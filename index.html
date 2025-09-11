@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>多樂器鍵盤（鋼琴專用｜必有聲）</title>
+<title>鋼琴鍵盤（簡化版｜必有聲｜固定Webhook）</title>
 <style>
   body{font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;margin:0;padding:16px;background:#f6f7fb;}
   .panel{background:#fff;border-radius:14px;box-shadow:0 10px 25px rgba(0,0,0,.08);padding:14px;}
@@ -14,7 +14,7 @@
 </style>
 <body>
   <div class="panel">
-    <h2>多樂器鍵盤（鋼琴專用｜必有聲）</h2>
+    <h2>鋼琴鍵盤（簡化版｜必有聲｜固定Webhook）</h2>
     <label>顯示名稱：</label>
     <input id="displayName" placeholder="例如：小明" style="flex:1">
     <p id="status">尚未初始化</p>
@@ -23,49 +23,29 @@
 
   <!-- Tone.js -->
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
-  <!-- 高品質鋼琴取樣：背景載入，先用合成器出聲 -->
   <script src="https://cdn.jsdelivr.net/npm/@tonejs/piano@0.2.0/build/Piano.js"></script>
-
   <script>
+    // Webhook 寫死，使用固定 /exec
     const WEBHOOK = "https://script.google.com/macros/s/AKfycbw3rDKy-mjN93ValBMs28ndCFv5IbqjupDgn9rHvqYOqJwo5If3DdB1zVervdluT8YW/exec";
+
     const $ = s => document.querySelector(s);
     const statusEl = $('#status');
 
     let engineReady = false;
-    let synth = null;        // 立即出聲（保底）
-    let piano = null;        // 取樣鋼琴
-    let pianoReady = false;  // 取樣是否載入完成
-    const pendingNotes = []; // 取樣未載時暫存
-
-    function setStatus(msg){ statusEl.textContent = msg; }
+    let piano = null;
+    let pianoReady = false;
 
     async function ensureEngine(){
       if(engineReady) return;
-      await Tone.start();             // 必須由使用者手勢觸發
-      synth = new Tone.PolySynth(Tone.Synth).toDestination();
-      synth.set({ oscillator:{type:'triangle'}, envelope:{attack:0.002, decay:0.12, sustain:0.2, release:0.25} });
+      await Tone.start();
+      piano = new Piano({velocities:2}).toDestination();
+      await piano.load();
+      pianoReady = true;
       engineReady = true;
-      setStatus('音源就緒 ✅（先用合成器，鋼琴取樣背景載入）');
+      setStatus('鋼琴音源就緒 ✅');
     }
 
-    async function ensurePiano(){
-      if (pianoReady || piano) return;      // 避免重複建立
-      try{
-        piano = new Piano({ velocities: 2 }); // 輕量＆自然
-        piano.toDestination();
-        await piano.load();                  // 關鍵：等取樣載完
-        pianoReady = true;
-        setStatus('鋼琴取樣已載入 ✅');
-        // 播放暫存音
-        while (pendingNotes.length) {
-          const n = pendingNotes.shift();
-          piano.keyDown({ note: n, velocity: 0.9 });
-          setTimeout(()=> piano.keyUp({ note: n }), Tone.Time('8n').toMilliseconds());
-        }
-      }catch(e){
-        setStatus('鋼琴取樣載入失敗，先用合成器演奏（可用）');
-      }
-    }
+    function setStatus(msg){ statusEl.textContent = msg; }
 
     const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
 
@@ -80,7 +60,6 @@
       kb.addEventListener('pointerdown',async e=>{
         const t=e.target.closest('.white'); if(!t) return;
         await ensureEngine();
-        ensurePiano(); // 背景載，不阻塞出聲
         playNote(t.dataset.note);
         log(t.dataset.note);
         t.classList.add('active');
@@ -91,14 +70,9 @@
     }
 
     function playNote(note){
-      // 先用合成器立即出聲（無延音，8n）
-      if (synth) synth.triggerAttackRelease(note,"8n");
-      // 若鋼琴取樣已就緒，改用真鋼琴音色（同時也可疊加，這裡選擇只用鋼琴）
-      if (pianoReady && piano) {
-        piano.keyDown({ note, velocity: 0.9 });
-        setTimeout(()=> piano.keyUp({ note }), Tone.Time('8n').toMilliseconds());
-      } else if (!pianoReady) {
-        pendingNotes.push(note);
+      if(pianoReady){
+        piano.keyDown({note,velocity:0.9});
+        setTimeout(()=>piano.keyUp({note}),Tone.Time('8n').toMilliseconds());
       }
     }
 
