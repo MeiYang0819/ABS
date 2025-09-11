@@ -2,11 +2,11 @@
 <html lang="zh-Hant">
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>多樂器鍵盤（自動初始化）</title>
+<title>多樂器鍵盤（自動初始化｜保證有聲）</title>
 <style>
   body{font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;margin:0;padding:16px;background:#f6f7fb;}
   .panel{background:#fff;border-radius:14px;box-shadow:0 10px 25px rgba(0,0,0,.08);padding:14px;}
-  #status{background:#f2f4f8;border-radius:10px;padding:10px;margin-top:10px;font-size:14px}
+  #status{background:#f2f4f8;border-radius:10px;padding:10px;margin-top:10px;font-size:14px;white-space:pre-wrap}
   .row{display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap}
   input,select{padding:8px 10px;font-size:14px}
   .kb-wrap{overflow-x:auto;background:#eceff4;border-radius:14px;margin-top:12px}
@@ -20,14 +20,14 @@
 </style>
 <body>
   <div class="panel">
-    <h2>多樂器鍵盤（自動初始化）</h2>
+    <h2>多樂器鍵盤（自動初始化｜保證有聲）</h2>
 
     <div class="row">
       <label>顯示名稱：</label>
       <input id="displayName" placeholder="例如：小明" style="flex:1">
       <label>樂器：</label>
       <select id="instrument">
-        <option value="piano">鋼琴</option>
+        <option value="piano" selected>鋼琴</option>
         <option value="electric-guitar">電吉他</option>
         <option value="acoustic-guitar">木吉他</option>
         <option value="violin">小提琴</option>
@@ -41,29 +41,39 @@
       </label>
     </div>
 
-    <p id="status">尚未初始化（第一次點琴鍵時自動載入）</p>
+    <p id="status">尚未初始化（第一次點琴鍵會自動載入）</p>
     <div class="kb-wrap"><div id="keyboard"></div></div>
   </div>
 
-  <!-- Tone.js -->
+  <!-- Tone.js：主 CDN（jsDelivr） -->
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
+  <!-- 備援：若主 CDN 載不到，掛 unpkg -->
+  <script>
+    if (!window.Tone) {
+      const s = document.createElement('script');
+      s.src = "https://unpkg.com/tone@14.8.49/build/Tone.min.js";
+      document.head.appendChild(s);
+    }
+  </script>
 
   <script>
-    const $ = s => document.querySelector(s);
-    const statusEl = $('#status');
-    let sampler = null;
-    let sustainOn = false;
-    let isReady = false;
-
-    // 🔴 把這裡換成你自己的 /exec URL
+    // ===== 你自己的 Webhook（/exec） =====
     const WEBHOOK = "https://script.google.com/macros/s/AKfycbw3rDKy-mjN93ValBMs28ndCFv5IbqjupDgn9rHvqYOqJwo5If3DdB1zVervdluT8YW/exec";
 
+    const $ = s => document.querySelector(s);
+    const statusEl = $('#status');
+    let engineReady = false;        // Tone 是否已啟動
+    let sampler = null;             // 取樣器
+    let synthFallback = null;       // 失敗時的內建合成器
+    let sustainOn = false;
+
+    // 23 鍵 (C3~B4，去掉最右白 C5 與黑 A#4)
     const START_OCTAVE=3, OCTAVES=2, INCLUDE_TOP_C=true;
     function whites(){
       const order=["C","D","E","F","G","A","B"], notes=[];
       for(let o=START_OCTAVE;o<START_OCTAVE+OCTAVES;o++){ for(const n of order) notes.push(n+o); }
       if(INCLUDE_TOP_C) notes.push("C"+(START_OCTAVE+OCTAVES));
-      notes.pop(); return notes; // 去掉最右白
+      notes.pop(); return notes;
     }
     const WHITE=whites(), BLACK_MAP={"C":"C#","D":"D#","F":"F#","G":"G#","A":"A#"};
 
@@ -83,49 +93,132 @@
         b.style.left=`calc(${i*keyW}% + ${keyW*0.66}%)`; b.style.width=`${keyW*0.64}%`;
         kb.appendChild(b);
       });
-      kb.addEventListener('pointerdown',e=>{ const t=e.target.closest('.white,.black'); if(!t) return; keyOn(t,t.dataset.note);});
-      kb.addEventListener('pointerup',e=>{ const t=e.target.closest('.white,.black'); if(!t) return; keyOff(t,t.dataset.note);});
+      const kbEl = $('#keyboard');
+      kbEl.addEventListener('pointerdown', async e=>{
+        const t=e.target.closest('.white,.black'); if(!t) return;
+        t.setPointerCapture?.(e.pointerId);
+        await onKeyDown(t.dataset.note, t);
+      });
+      kbEl.addEventListener('pointerup', e=>{
+        const t=e.target.closest('.white,.black'); if(!t) return;
+        onKeyUp(t.dataset.note, t);
+      });
     }
 
-    async function ensureReady(){
-      if(isReady) return;
-      await Tone.start();
-      const type=$('#instrument').value;
+    function setStatus(msg){
+      const toneOK = !!window.Tone;
+      const eng = engineReady ? (Tone.context?.state||'running?') : 'not started';
+      statusEl.textContent = `${msg}\nTone.js載入：${toneOK}｜AudioContext：${eng}`;
+    }
+
+    async function ensureEngine(){
+      if (engineReady) return;
+      // 等 Tone.js 物件出現（CDN 備援）
+      let tries = 0;
+      while (!window.Tone && tries++ < 40) { await new Promise(r=>setTimeout(r,100)); }
+      if (!window.Tone) { setStatus('無法載入 Tone.js（CDN 被擋？）'); throw new Error('Tone not loaded'); }
+
+      await Tone.start(); // 使用者互動手勢觸發
+      engineReady = true;
+    }
+
+    // 嘗試依序用多個檔名載入取樣；全失敗則啟用合成器 fallback
+    async function ensureInstrument(){
+      if (sampler || synthFallback) return;
+
+      const type = $('#instrument').value;
       const baseMap={
         "piano":"salamander","electric-guitar":"electric-guitar","acoustic-guitar":"acoustic-guitar",
         "violin":"violin","viola":"viola","cello":"cello","flute":"flute","alto-saxophone":"alto-saxophone"
       };
-      const base=baseMap[type]||"salamander";
-      sampler=new Tone.Sampler({ urls:{"C4":"C4.mp3"}, release:1, baseUrl:`https://tonejs.github.io/audio/${base}/` }).toDestination();
-      await sampler.load().catch(()=>{});
-      isReady=true;
-      statusEl.textContent=`音源已載入 ✅（${$('#instrument').selectedOptions[0].text}）`;
+      const base = baseMap[type] || "salamander";
+      const baseUrl = `https://tonejs.github.io/audio/${base}/`;
+
+      // 依序嘗試：C4 → c4 → C3 → C5（有些庫大小寫不同或缺檔）
+      const candidateMaps = [
+        {"C4":"C4.mp3"},
+        {"C4":"c4.mp3"},
+        {"C3":"C3.mp3"},
+        {"C5":"C5.mp3"}
+      ];
+
+      for (const urls of candidateMaps) {
+        try {
+          sampler = new Tone.Sampler({ urls, release: 1, baseUrl }).toDestination();
+          await sampler.load();
+          setStatus(`音源已載入 ✅（${$('#instrument').selectedOptions[0].text}）`);
+          return;
+        } catch (e) {
+          sampler = null; // 清掉，換下一個
+        }
+      }
+
+      // 全部失敗 → 啟用內建合成器（至少會有聲）
+      synthFallback = new Tone.PolySynth(Tone.Synth).toDestination();
+      setStatus(`未取得取樣，改用內建合成器 ✅（${$('#instrument').selectedOptions[0].text}）`);
     }
 
-    function keyOn(el,note){
+    async function onKeyDown(note, el){
       el.classList.add('active');
-      playLocal(note,0.9);
-      logToWebhook(note,0.9);
-    }
-    function keyOff(el,note){ el.classList.remove('active'); if(!sustainOn) stopNote(note); }
-
-    async function playLocal(note,v=0.9){
-      await ensureReady();
-      sampler.triggerAttack(note, undefined, v);
-      if(!sustainOn) sampler.triggerRelease(note,"+0.25");
-    }
-    function stopNote(note){ if(sampler) sampler.triggerRelease(note); }
-
-    function logToWebhook(note,v=0.9){
-      const payload={userId:"guest",displayName:$('#displayName').value||'Guest',instrument:$('#instrument').value,note,velocity:v,sessionId:"demo"};
-      fetch(WEBHOOK,{method:"POST",headers:{"Content-Type":"text/plain;charset=UTF-8"},body:JSON.stringify(payload)})
-        .then(r=>r.text()).then(txt=>statusEl.textContent=`已記錄：${note}｜回應：${txt}`)
-        .catch(err=>statusEl.textContent="記錄失敗："+err.message);
+      try{
+        await ensureEngine();
+        await ensureInstrument();
+        playNote(note);
+        log(note);
+      }catch(err){
+        setStatus('初始化失敗：'+err.message+'\n建議：重新整理或換無痕/換網路');
+      }
     }
 
-    $('#sustain').addEventListener('change',e=>{sustainOn=e.target.checked;});
-    $('#instrument').addEventListener('change',()=>{sampler=null;isReady=false;statusEl.textContent='已切換樂器，請再次點琴鍵載入';});
-    buildKeyboard();
+    function onKeyUp(note, el){
+      el.classList.remove('active');
+      if (!sustainOn) stopNote(note);
+    }
+
+    function playNote(note, vel=0.9){
+      if (sampler) {
+        sampler.triggerAttack(note, undefined, vel);
+        if (!sustainOn) sampler.triggerRelease(note, "+0.25");
+      } else if (synthFallback) {
+        synthFallback.triggerAttackRelease(note, "8n", undefined, vel);
+      }
+    }
+    function stopNote(note){
+      if (sampler) sampler.triggerRelease(note);
+      // synthFallback 的一次音長已設定，不需手動釋放
+    }
+
+    function log(note, vel=0.9){
+      const payload = {
+        userId:"guest",
+        displayName: $('#displayName').value || 'Guest',
+        instrument: $('#instrument').value,
+        note, velocity: vel, sessionId: 'demo'
+      };
+      fetch(WEBHOOK, {
+        method: 'POST',
+        headers: {'Content-Type':'text/plain;charset=UTF-8'},
+        body: JSON.stringify(payload)
+      })
+      .then(r=>r.text())
+      .then(txt=> setStatus(`已記錄：${note}｜回應：${txt}`))
+      .catch(err=> setStatus('記錄失敗：'+err.message));
+    }
+
+    // UI 綁定
+    $('#sustain').addEventListener('change', e=>{ sustainOn = e.target.checked; });
+    $('#instrument').addEventListener('change', ()=>{
+      // 切樂器時重置音源（下次按鍵再初始化）
+      sampler = null; synthFallback = null;
+      setStatus('已切換樂器，請點琴鍵載入音源…');
+    });
+
+    // 建鍵盤
+    (function build(){ 
+      const kb=$('#keyboard'); kb.innerHTML='';
+      buildKeyboard();
+      setStatus('尚未初始化（第一次點琴鍵會自動載入）');
+    })();
   </script>
 </body>
 </html>
