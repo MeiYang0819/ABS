@@ -2,15 +2,13 @@
 <html lang="zh-Hant">
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>多樂器鋼琴（Tone.js｜延音｜記錄）</title>
+<title>多樂器鍵盤（自動初始化）</title>
 <style>
   body{font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;margin:0;padding:16px;background:#f6f7fb;}
   .panel{background:#fff;border-radius:14px;box-shadow:0 10px 25px rgba(0,0,0,.08);padding:14px;}
   #status{background:#f2f4f8;border-radius:10px;padding:10px;margin-top:10px;font-size:14px}
   .row{display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap}
-  input,button,select{padding:8px 10px;font-size:14px}
-  button{border-radius:10px;border:1px solid #d0d7e2;background:#fff;cursor:pointer}
-  button:hover{background:#f5f7fb}
+  input,select{padding:8px 10px;font-size:14px}
   .kb-wrap{overflow-x:auto;background:#eceff4;border-radius:14px;margin-top:12px}
   #keyboard{position:relative;height:220px;min-width:720px;user-select:none;-webkit-user-select:none}
   .white{position:absolute;bottom:0;height:100%;background:linear-gradient(#fff,#e6e7ea 70%,#d1d3d8);
@@ -22,12 +20,7 @@
 </style>
 <body>
   <div class="panel">
-    <h2>多樂器鋼琴（Tone.js｜延音｜記錄）</h2>
-
-    <div class="row">
-      <label>Webhook /exec：</label>
-      <input id="webhook" style="flex:1" placeholder="https://script.google.com/macros/s/.../exec">
-    </div>
+    <h2>多樂器鍵盤（自動初始化）</h2>
 
     <div class="row">
       <label>顯示名稱：</label>
@@ -43,13 +36,12 @@
         <option value="flute">長笛</option>
         <option value="alto-saxophone">薩克斯風</option>
       </select>
-      <button id="loadBtn">初始化音源</button>
       <label style="display:flex;align-items:center;gap:6px;">
         <input type="checkbox" id="sustain"> 延音
       </label>
     </div>
 
-    <p id="status">尚未初始化</p>
+    <p id="status">尚未初始化（第一次點琴鍵時自動載入）</p>
     <div class="kb-wrap"><div id="keyboard"></div></div>
   </div>
 
@@ -61,127 +53,79 @@
     const statusEl = $('#status');
     let sampler = null;
     let sustainOn = false;
-    const heldNotes = new Set();
+    let isReady = false;
 
-    // 23 鍵 (C3~B4，去掉最右白 C5 與黑 A#4)
+    // 🔴 把這裡換成你自己的 /exec URL
+    const WEBHOOK = "https://script.google.com/macros/s/AKfycbw3rDKy-mjN93ValBMs28ndCFv5IbqjupDgn9rHvqYOqJwo5If3DdB1zVervdluT8YW/exec";
+
     const START_OCTAVE=3, OCTAVES=2, INCLUDE_TOP_C=true;
     function whites(){
       const order=["C","D","E","F","G","A","B"], notes=[];
       for(let o=START_OCTAVE;o<START_OCTAVE+OCTAVES;o++){ for(const n of order) notes.push(n+o); }
       if(INCLUDE_TOP_C) notes.push("C"+(START_OCTAVE+OCTAVES));
-      notes.pop(); // 去掉最右白(C5)
-      return notes;
+      notes.pop(); return notes; // 去掉最右白
     }
     const WHITE=whites(), BLACK_MAP={"C":"C#","D":"D#","F":"F#","G":"G#","A":"A#"};
 
     function buildKeyboard(){
       const kb=$('#keyboard'); kb.innerHTML='';
       const total=WHITE.length, keyW=100/total;
-
       WHITE.forEach((note,i)=>{
         const w=document.createElement('div'); w.className='white'; w.dataset.note=note;
         w.style.left=`${i*keyW}%`; w.style.width=`${keyW}%`;
-        if(note[0]==='C'||note[0]==='G'){
-          const lab=document.createElement('div'); lab.className='label'; lab.textContent=note;
-          w.appendChild(lab);
-        }
+        if(note[0]==='C'||note[0]==='G'){ const lab=document.createElement('div'); lab.className='label'; lab.textContent=note; w.appendChild(lab); }
         kb.appendChild(w);
       });
-
       WHITE.forEach((note,i)=>{
         const l=note[0]; let s=BLACK_MAP[l]?BLACK_MAP[l]+note.slice(1):null;
-        if(l==='A' && i===WHITE.length-1) s=null; // 去掉最右黑(A#4)
-        if(!s) return;
+        if(l==='A' && i===WHITE.length-1) s=null; if(!s) return;
         const b=document.createElement('div'); b.className='black'; b.dataset.note=s;
         b.style.left=`calc(${i*keyW}% + ${keyW*0.66}%)`; b.style.width=`${keyW*0.64}%`;
         kb.appendChild(b);
       });
+      kb.addEventListener('pointerdown',e=>{ const t=e.target.closest('.white,.black'); if(!t) return; keyOn(t,t.dataset.note);});
+      kb.addEventListener('pointerup',e=>{ const t=e.target.closest('.white,.black'); if(!t) return; keyOff(t,t.dataset.note);});
+    }
 
-      const startEv='pointerdown';
-      $('#keyboard').addEventListener(startEv,e=>{
-        const t=e.target.closest('.white,.black'); if(!t) return;
-        t.setPointerCapture?.(e.pointerId);
-        keyOn(t, t.dataset.note);
-      });
-      $('#keyboard').addEventListener('pointerup',e=>{
-        const t=e.target.closest('.white,.black'); if(!t) return;
-        keyOff(t, t.dataset.note);
-      });
-      $('#keyboard').addEventListener('pointerleave',e=>{
-        const t=e.target.closest('.white,.black'); if(!t) return;
-        keyOff(t, t.dataset.note);
-      });
+    async function ensureReady(){
+      if(isReady) return;
+      await Tone.start();
+      const type=$('#instrument').value;
+      const baseMap={
+        "piano":"salamander","electric-guitar":"electric-guitar","acoustic-guitar":"acoustic-guitar",
+        "violin":"violin","viola":"viola","cello":"cello","flute":"flute","alto-saxophone":"alto-saxophone"
+      };
+      const base=baseMap[type]||"salamander";
+      sampler=new Tone.Sampler({ urls:{"C4":"C4.mp3"}, release:1, baseUrl:`https://tonejs.github.io/audio/${base}/` }).toDestination();
+      await sampler.load().catch(()=>{});
+      isReady=true;
+      statusEl.textContent=`音源已載入 ✅（${$('#instrument').selectedOptions[0].text}）`;
     }
 
     function keyOn(el,note){
       el.classList.add('active');
       playLocal(note,0.9);
       logToWebhook(note,0.9);
-      heldNotes.add(note);
     }
-    function keyOff(el,note){
-      el.classList.remove('active');
-      heldNotes.delete(note);
-      if(!sustainOn) stopNote(note);
-    }
+    function keyOff(el,note){ el.classList.remove('active'); if(!sustainOn) stopNote(note); }
 
-    // 各樂器音色路徑（Tone.js 官方庫）
-    const instrumentMap = {
-      "piano":           { baseUrl: "https://tonejs.github.io/audio/salamander/" },
-      "electric-guitar": { baseUrl: "https://tonejs.github.io/audio/electric-guitar/" },
-      "acoustic-guitar": { baseUrl: "https://tonejs.github.io/audio/acoustic-guitar/" },
-      "violin":          { baseUrl: "https://tonejs.github.io/audio/violin/" },
-      "viola":           { baseUrl: "https://tonejs.github.io/audio/viola/" },
-      "cello":           { baseUrl: "https://tonejs.github.io/audio/cello/" },
-      "flute":           { baseUrl: "https://tonejs.github.io/audio/flute/" },
-      "alto-saxophone":  { baseUrl: "https://tonejs.github.io/audio/alto-saxophone/" }
-    };
-
-    // 取樣點（大多數官方庫都有以下檔名；若某個庫缺檔，會自動退回單一取樣）
-    const defaultUrls = {"C4":"C4.mp3","D#4":"Ds4.mp3","F#4":"Fs4.mp3","A4":"A4.mp3","C5":"C5.mp3"};
-    const fallbackUrls = {"C4":"C4.mp3"};
-
-    async function initTone(){
-      await Tone.start(); // 解鎖音訊
-      const type = $('#instrument').value;
-      const info = instrumentMap[type];
-
-      // 嘗試載入多取樣；失敗則退回單一取樣，避免載不到
-      try{
-        sampler = new Tone.Sampler({ urls: defaultUrls, release: 1, baseUrl: info.baseUrl }).toDestination();
-        await sampler.load();
-      }catch(e){
-        sampler = new Tone.Sampler({ urls: fallbackUrls, release: 1, baseUrl: info.baseUrl }).toDestination();
-        await sampler.load().catch(()=>{}); // 就算再失敗，也讓介面能顯示狀態
-      }
-      statusEl.textContent = `音源已載入 ✅（${$('#instrument').selectedOptions[0].text}）`;
-    }
-
-    function playLocal(note,v=0.9){
-      if(!sampler){ statusEl.textContent="請先按『初始化音源』"; return; }
+    async function playLocal(note,v=0.9){
+      await ensureReady();
       sampler.triggerAttack(note, undefined, v);
       if(!sustainOn) sampler.triggerRelease(note,"+0.25");
     }
     function stopNote(note){ if(sampler) sampler.triggerRelease(note); }
 
     function logToWebhook(note,v=0.9){
-      const url=$('#webhook').value.trim(); if(!url){ statusEl.textContent="請先貼上 Webhook /exec 網址"; return;}
       const payload={userId:"guest",displayName:$('#displayName').value||'Guest',instrument:$('#instrument').value,note,velocity:v,sessionId:"demo"};
-      fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=UTF-8"},body:JSON.stringify(payload)})
+      fetch(WEBHOOK,{method:"POST",headers:{"Content-Type":"text/plain;charset=UTF-8"},body:JSON.stringify(payload)})
         .then(r=>r.text()).then(txt=>statusEl.textContent=`已記錄：${note}｜回應：${txt}`)
         .catch(err=>statusEl.textContent="記錄失敗："+err.message);
     }
 
-    $('#loadBtn').addEventListener('click', initTone);
     $('#sustain').addEventListener('change',e=>{sustainOn=e.target.checked;});
-    $('#instrument').addEventListener('change',()=>{
-      // 變更樂器後提示要重新初始化
-      sampler = null;
-      statusEl.textContent = '已切換樂器，請按「初始化音源」載入取樣';
-    });
-
+    $('#instrument').addEventListener('change',()=>{sampler=null;isReady=false;statusEl.textContent='已切換樂器，請再次點琴鍵載入';});
     buildKeyboard();
   </script>
 </body>
-
 </html>
