@@ -59,9 +59,23 @@
     };
 
     async function pickBaseUrl(){
-      // 1) 先試「同站本地檔」：./audio/piano/C4.mp3
+      // 1) 先試「./audio/piano/」
       try{
         const r = await fetch('./audio/piano/C4.mp3', { method:'HEAD' });
+        if (r.ok) { setStatus('偵測到本地取樣：./audio/piano/'); return './audio/piano/'; }
+      }catch(e){}
+      // 2) 再試「./piano/」（你目前的結構）
+      try{
+        const r2 = await fetch('./piano/C4.mp3', { method:'HEAD' });
+        if (r2.ok) { setStatus('偵測到本地取樣：./piano/'); return './piano/'; }
+      }catch(e){}
+      // 3) 最後再試 tonejs 官方 CDN
+      try{
+        const test = await fetch('https://tonejs.github.io/audio/salamander/C4.mp3', { method:'HEAD' });
+        if (test.ok) { setStatus('使用外部取樣 CDN'); return 'https://tonejs.github.io/audio/salamander/'; }
+      }catch(e){}
+      return null;
+    });
         if (r.ok) return './audio/piano/';
       }catch(e){}
       // 2) 再試 tonejs 官方 CDN（若被擋會失敗）
