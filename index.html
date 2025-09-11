@@ -124,15 +124,27 @@
 
     // 嘗試依序用多個檔名載入取樣；全失敗則啟用合成器 fallback
     async function ensureInstrument(){
-      if (sampler || synthFallback) return;
+  if (sampler || synthFallback) return;
 
-      const type = $('#instrument').value;
-      const baseMap={
-        "piano":"salamander","electric-guitar":"electric-guitar","acoustic-guitar":"acoustic-guitar",
-        "violin":"violin","viola":"viola","cello":"cello","flute":"flute","alto-saxophone":"alto-saxophone"
-      };
-      const base = baseMap[type] || "salamander";
-      const baseUrl = `https://tonejs.github.io/audio/${base}/`;
+  const type = $('#instrument').value;
+  const baseMap={
+    "piano":"salamander","electric-guitar":"electric-guitar","acoustic-guitar":"acoustic-guitar",
+    "violin":"violin","viola":"viola","cello":"cello","flute":"flute","alto-saxophone":"alto-saxophone"
+  };
+  const base = baseMap[type] || "salamander";
+  const baseUrl = `https://tonejs.github.io/audio/${base}/`;
+
+  try {
+    sampler = new Tone.Sampler({ urls:{ "C4":"C4.mp3" }, release:1, baseUrl }).toDestination();
+    await sampler.load();
+    setStatus(`音源已載入 ✅（${$('#instrument').selectedOptions[0].text}）`);
+  } catch (e) {
+    // ⬇️ 載取失敗 → fallback
+    sampler = null;
+    synthFallback = new Tone.PolySynth(Tone.Synth).toDestination();
+    setStatus(`⚠️ 無法載入取樣，改用內建合成器（嗶聲）`);
+  }
+}
 
       // 依序嘗試：C4 → c4 → C3 → C5（有些庫大小寫不同或缺檔）
       const candidateMaps = [
@@ -222,3 +234,4 @@
   </script>
 </body>
 </html>
+
