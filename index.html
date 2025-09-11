@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>鋼琴鍵盤（鋼琴專用｜必有聲｜固定Webhook）</title>
+<title>鋼琴鍵盤（本地取樣優先｜必有聲｜固定Webhook）</title>
 <style>
   body{font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;margin:0;padding:16px;background:#f6f7fb;}
   .panel{background:#fff;border-radius:14px;box-shadow:0 10px 25px rgba(0,0,0,.08);padding:14px;}
@@ -14,17 +14,15 @@
 </style>
 <body>
   <div class="panel">
-    <h2>鋼琴鍵盤（鋼琴專用｜必有聲｜固定Webhook）</h2>
+    <h2>鋼琴鍵盤（本地取樣優先｜必有聲｜固定Webhook）</h2>
     <label>顯示名稱：</label>
     <input id="displayName" placeholder="例如：小明" style="flex:1">
     <p id="status">尚未初始化</p>
     <div class="kb-wrap"><div id="keyboard"></div></div>
   </div>
 
-  <!-- Tone.js -->
+  <!-- Tone.js 只有這個即可 -->
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
-  <!-- @tonejs/piano 會在全域掛上 window.TonejsPiano.Piano -->
-  <script src="https://cdn.jsdelivr.net/npm/@tonejs/piano@0.2.0/build/Piano.js"></script>
   <script>
     // Webhook 寫死，使用固定 /exec
     const WEBHOOK = "https://script.google.com/macros/s/AKfycbw3rDKy-mjN93ValBMs28ndCFv5IbqjupDgn9rHvqYOqJwo5If3DdB1zVervdluT8YW/exec";
@@ -34,9 +32,8 @@
 
     let engineReady = false;
     let synth = null;                 // 立即出聲（保底）
-    let piano = null;                 // 取樣鋼琴
-    let pianoReady = false;           // 取樣是否載入完成
-    const pendingNotes = [];          // 取樣未載時先排隊
+    let sampler = null;               // 取樣鋼琴（本地優先）
+    let samplerReady = false;         // 取樣是否載入完成
 
     function setStatus(msg){ statusEl.textContent = msg; }
 
@@ -48,26 +45,41 @@
       synth.set({ oscillator:{type:'triangle'}, envelope:{attack:0.002, decay:0.12, sustain:0.2, release:0.25} });
       engineReady = true;
       setStatus('音源就緒 ✅（先用合成器，背景載入鋼琴取樣）');
+      // 背景開始載入取樣
+      ensureSampler();
     }
 
-    async function ensurePiano(){
-      if (pianoReady || piano) return; // 已建立或已載入
+    // 少量跨八度取樣，Tone 會自動轉調
+    const URLS = {
+      'A1': 'A1.mp3',
+      'C2': 'C2.mp3', 'D#2': 'Ds2.mp3', 'F#2': 'Fs2.mp3', 'A2': 'A2.mp3',
+      'C3': 'C3.mp3', 'D#3': 'Ds3.mp3', 'F#3': 'Fs3.mp3', 'A3': 'A3.mp3',
+      'C4': 'C4.mp3', 'D#4': 'Ds4.mp3', 'F#4': 'Fs4.mp3', 'A4': 'A4.mp3',
+      'C5': 'C5.mp3'
+    };
+
+    async function pickBaseUrl(){
+      // 1) 先試「同站本地檔」：./audio/piano/C4.mp3
       try{
-        const PianoCtor = (window.TonejsPiano && window.TonejsPiano.Piano) ? window.TonejsPiano.Piano : null;
-        if (!PianoCtor) throw new Error('Piano UMD 未載入');
-        piano = new PianoCtor({ velocities: 2 });
-        piano.toDestination();
-        await piano.load();
-        pianoReady = true;
-        setStatus('鋼琴取樣已載入 ✅');
-        // 播放排隊音
-        while (pendingNotes.length) {
-          const n = pendingNotes.shift();
-          piano.keyDown({ note: n, velocity: 0.9 });
-          setTimeout(()=> piano.keyUp({ note: n }), Tone.Time('8n').toMilliseconds());
-        }
+        const r = await fetch('./audio/piano/C4.mp3', { method:'HEAD' });
+        if (r.ok) return './audio/piano/';
+      }catch(e){}
+      // 2) 再試 tonejs 官方 CDN（若被擋會失敗）
+      try{
+        const test = await fetch('https://tonejs.github.io/audio/piano/C4.mp3', { method:'HEAD' });
+        if (test.ok) return 'https://tonejs.github.io/audio/piano/';
+      }catch(e){}
+      return null;
+    }
+
+    async function ensureSampler(){
+      if (sampler || samplerReady) return;
+      const base = await pickBaseUrl();
+      if (!base) { setStatus('⚠️ 找不到鋼琴取樣來源，維持合成器'); return; }
+      try{
+        sampler = new Tone.Sampler({ urls: URLS, release: 1, baseUrl: base, onload:()=>{ samplerReady = true; setStatus('鋼琴取樣已載入 ✅'); } }).toDestination();
       }catch(e){
-        setStatus('鋼琴取樣載入失敗，改用合成器（可用）');
+        setStatus('鋼琴取樣載入失敗，維持合成器');
       }
     }
 
@@ -84,8 +96,6 @@
       kb.addEventListener('pointerdown',async e=>{
         const t=e.target.closest('.white'); if(!t) return;
         await ensureEngine();
-        // 背景啟動鋼琴取樣載入；不阻塞出聲
-        ensurePiano();
         playNote(t.dataset.note);
         log(t.dataset.note);
         t.classList.add('active');
@@ -97,13 +107,10 @@
 
     function playNote(note){
       // 先合成器立即出聲
-      if (synth) synth.triggerAttackRelease(note,"8n");
-      // 若鋼琴取樣已就緒，再用真鋼琴音色播放
-      if (pianoReady && piano) {
-        piano.keyDown({ note, velocity: 0.9 });
-        setTimeout(()=> piano.keyUp({ note }), Tone.Time('8n').toMilliseconds());
-      } else if (!pianoReady && piano) {
-        pendingNotes.push(note);
+      if (synth) synth.triggerAttackRelease(note, '8n');
+      // 若鋼琴取樣已就緒，再疊加真鋼琴音色（或改成只用取樣）
+      if (samplerReady && sampler) {
+        sampler.triggerAttackRelease(note, '8n');
       }
     }
 
