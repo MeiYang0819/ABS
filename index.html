@@ -4,14 +4,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>互動音符</title>
 <style>
-  :root{
-    --panel:#fff; --rim:#e4e7ef; --ink:#0f172a; --kb-h:280px; --sep:2px;
-  }
+  :root{ --panel:#fff; --rim:#e4e7ef; --ink:#0f172a; --kb-h:280px; --sep:2px; }
   *{box-sizing:border-box}
   html,body{
     margin:0; color:var(--ink);
     font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;
-    /* 柔和淡紫色漸層背景 */
+    /* 頁面淡紫色漸層（只在頁面背景，不影響鋼琴） */
     background:
       radial-gradient(1200px 900px at 85% -10%, #ede9fe 0%, transparent 60%),
       radial-gradient(900px 700px  at -10% 90%, #f5f3ff 0%, transparent 60%),
@@ -20,26 +18,22 @@
   }
 
   .panel{
-    max-width:1060px;margin:22px auto;background:var(--panel);
+    max-width:1060px;margin:22px auto;background:#fff;          /* 實心白色 */
     border-radius:16px;padding:18px 18px 26px;
-    box-shadow:0 10px 30px rgba(98,76,171,.15);
-    backdrop-filter:saturate(115%) blur(0.5px);
+    box-shadow:0 10px 30px rgba(98,76,171,.12);
+    /* 移除會讓內容受背景影響的濾鏡 */
   }
   h2{margin:4px 0 12px; text-align:center;}
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  input{
-    padding:8px 10px;border:1px solid var(--rim);border-radius:10px;min-width:220px;flex:1
-  }
-  #status{
-    background:#eef2f7;border:1px solid var(--rim);border-radius:12px;
-    padding:10px;margin-top:10px;font-size:14px;white-space:pre-wrap;color:#334155
-  }
+  input{padding:8px 10px;border:1px solid var(--rim);border-radius:10px;min-width:220px}
+  #status{background:#eef2f7;border:1px solid var(--rim);border-radius:12px;padding:10px;margin-top:10px;font-size:14px;white-space:pre-wrap;color:#334155}
 
   /* 直向可水平捲動；橫向寬度夠時不捲動 */
   .kb-wrap{
     overflow-x:auto;
     -webkit-overflow-scrolling:touch;
-    background:#e9edf4cc;border:1px solid var(--rim);border-radius:14px;margin-top:14px
+    background:#e9edf4;                    /* 實心、不透明的淡灰藍 */
+    border:1px solid var(--rim);border-radius:14px;margin-top:14px
   }
 
   /* 允許原生橫向捲動（關鍵），高度固定 */
@@ -49,12 +43,13 @@
     touch-action:pan-x;
   }
 
-  /* white keys — 移除真正的邊框，改用 ::after 畫分隔線（不佔寬） */
+  /* 白鍵 —— 純白到淡灰漸層，避免任何混色 */
   .white{
     position:absolute;bottom:0;height:100%;
     background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5);
     border-radius:0 0 12px 12px;
     box-shadow:inset 0 -12px 16px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.9),0 1px 0 rgba(0,0,0,.04);
+    mix-blend-mode:normal;                 /* 明確指定不與背景混色 */
   }
   .white::after{
     content:""; position:absolute; top:0; bottom:0; right:0; width:var(--sep);
@@ -66,13 +61,14 @@
   }
   .white.active{filter:brightness(1.06)}
 
-  /* black keys */
-  .black{position:absolute;bottom:38%;height:62%;
-    width:6.4%;
+  /* 黑鍵 —— 純黑系漸層 */
+  .black{
+    position:absolute;bottom:38%;height:62%; width:6.4%;
     background:linear-gradient(#2d2f36,#0e0f13);
     border:1px solid #0b0d11;border-top:none;
     border-radius:0 0 10px 10px;z-index:5;
     box-shadow:inset 0 -6px 10px rgba(0,0,0,.45),0 3px 10px rgba(0,0,0,.35);
+    mix-blend-mode:normal;
   }
   .black.active{filter:brightness(1.22)}
 
@@ -80,7 +76,7 @@
     font-size:11px;color:#475569;background:#ffffffee;border:1px solid var(--rim);
     padding:2px 6px;border-radius:8px}
 
-  /* 解鎖遮罩（保留） */
+  /* 解鎖遮罩 */
   #unlockOverlay{
     position:fixed; inset:0; background:rgba(0,0,0,.55); color:#fff;
     display:flex; align-items:center; justify-content:center; z-index:9999;
@@ -124,8 +120,7 @@
     // 鍵盤配置
     const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
     const BLACK_AFTER={ 'C':'C#','D':'D#','F':'F#','G':'G#','A':'A#' };
-    const MIN_WHITE_PX = 64; // 每個白鍵在直向時的最小寬（可自行微調 58~72）
-    const TOTAL_WHITE = WHITE.length;
+    const MIN_WHITE_PX = 64; const TOTAL_WHITE = WHITE.length;
 
     // 取樣路徑
     const BASE = new URL('./piano/', location.href).href;
@@ -165,7 +160,6 @@
     function buildKeyboard(){
       const kb=$('#keyboard'); kb.innerHTML='';
       sizeKeyboard(); // 先決定寬度
-
       const keyW = 100 / TOTAL_WHITE;
 
       // 白鍵
@@ -221,12 +215,7 @@
       const kb   = document.querySelector('#keyboard');
       const wrapW = wrap.clientWidth;
       const minW = TOTAL_WHITE * (MIN_WHITE_PX + parseInt(getComputedStyle(kb).getPropertyValue('--sep')||'2'));
-
-      if (wrapW >= minW){
-        kb.style.width = (wrapW - 1) + 'px'; // 減 1px 避免浮點誤差導致吃邊
-      }else{
-        kb.style.width = minW + 'px';
-      }
+      kb.style.width = (wrapW >= minW ? wrapW - 1 : minW) + 'px';
     }
 
     function log(n){
