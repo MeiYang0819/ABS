@@ -38,7 +38,7 @@
     font-size:11px;color:#475569;background:#ffffffee;border:1px solid var(--rim);
     padding:2px 6px;border-radius:8px}
 
-  /* 啟用聲音遮罩 */
+  /* 一定按一下的解鎖遮罩（iOS/LINE 最穩） */
   #unlockOverlay{
     position:fixed; inset:0; background:rgba(0,0,0,.55); color:#fff;
     display:flex; align-items:center; justify-content:center; z-index:9999;
@@ -62,32 +62,35 @@
     <div class="kb-wrap"><div id="keyboard"></div></div>
   </div>
 
-  <!-- 第一次必點：解鎖音訊（iOS/Safari 必需） -->
   <div id="unlockOverlay">
     <div id="unlockCard">
       <div style="font-size:16px;opacity:.9">請開啟音量並點擊下方按鈕啟用聲音</div>
-      <div style="font-size:12px;opacity:.7;margin-top:6px">（若是 iPhone，請確定側邊靜音鍵已關閉）</div>
+      <div style="font-size:12px;opacity:.7;margin-top:6px">iPhone 請確認側邊靜音鍵關閉</div>
       <button id="unlockBtn">啟用聲音</button>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
   <script>
-    // 固定 /exec
     const WEBHOOK = "https://script.google.com/macros/s/AKfycbw3rDKy-mjN93ValBMs28ndCFv5IbqjupDgn9rHvqYOqJwo5If3DdB1zVervdluT8YW/exec";
 
     const $ = s => document.querySelector(s);
     const statusEl = $('#status');
     const setStatus = (m)=> statusEl.textContent = m;
 
-    // === 音訊物件 ===
-    let audioCtx = null;       // 原生 AudioContext（或 webkitAudioContext）
-    let synth = null;          // 保底合成器（Tone）
-    let sampler = null;        // Tone Sampler
+    // === iOS / LINE 檢測（僅用於提示，不做阻斷） ===
+    const ua = navigator.userAgent || '';
+    const isIOS = /iP(hone|od|ad)/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isLine = /Line\/|LINE\//i.test(ua);
+
+    // === 音訊 ===
+    let audioCtx = null;    // 原生（iOS 用 webkitAudioContext）
+    let synth = null;       // Tone 合成器保底
+    let sampler = null;     // Tone Sampler
     let samplerReady = false;
     let unlocked = false;
 
-    // === 取樣路徑（轉成絕對 URL，避免 GitHub Pages 子路徑錯位） ===
+    // 取樣路徑（轉絕對，避免子路徑 404）
     const BASE = new URL('./piano/', location.href).href;
     const URLS = {
       'A1':'A1.mp3',
@@ -97,51 +100,47 @@
       'C5':'C5.mp3'
     };
 
-    // === 一次性解鎖 ===
     async function unlockAudio(){
       try{
-        // 1) 建立/恢復原生 AudioContext（iOS 需用 webkitAudioContext）
-        const Ctx = window.AudioContext || window.webkitAudioContext;
+        // 1) 建立 iOS 友善的 context
+        const Ctx = window.webkitAudioContext || window.AudioContext;
         if(!audioCtx) audioCtx = new Ctx({ latencyHint: 'interactive' });
-        if(audioCtx.state !== 'running') { await audioCtx.resume(); }
 
-        // 2) 播放極小聲的 80ms 正弦波，確保系統真解鎖
+        // 2) resume 必須在手勢中
+        if (audioCtx.state !== 'running') { await audioCtx.resume(); }
+
+        // 3) 可聽見的 120ms beep（小聲，但聽得到），確認通道真的開
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
         osc.frequency.value = 880;
-        gain.gain.value = 0.001;             // 非 0，極小聲
+        gain.gain.value = 0.01; // 小聲但可聽見
         osc.connect(gain).connect(audioCtx.destination);
         const t0 = audioCtx.currentTime;
         osc.start(t0);
-        osc.stop(t0 + 0.08);
+        osc.stop(t0 + 0.12);
 
-        // 3) 讓 Tone 使用同一個 AudioContext
+        // 4) 讓 Tone 綁定同一個 context（關鍵）
         Tone.setContext(new Tone.Context(audioCtx));
-        await Tone.start(); // 同一手勢內允許 await
+        await Tone.start();
 
-        // 4) 建立合成器（保底）
+        // 5) 合成器保底
         if(!synth){
           synth = new Tone.PolySynth(Tone.Synth).toDestination();
           synth.set({ oscillator:{type:'triangle'}, envelope:{attack:0.002, decay:0.12, sustain:0.2, release:0.25} });
         }
 
-        // 5) 預檢取樣路徑（避免 404 導致一直只有合成器聲）
-        const probeUrl = BASE + URLS['C3'];
+        // 6) 檢查取樣是否可存取，OK 再載入
+        const probe = BASE + URLS['C3'];
         try{
-          const resp = await fetch(probeUrl, {method:'HEAD', cache:'no-store'});
-          if(!resp.ok){
-            setStatus(`取樣檔案找不到：${probeUrl}\n請確認 piano 資料夾路徑與檔名大小寫。`);
-          }else{
-            loadSampler(); // 只有確認可取用才載入 Sampler
-          }
-        }catch(err){
-          setStatus(`無法存取取樣：${probeUrl}\n錯誤：${err.message}`);
-        }
+          const r = await fetch(probe, {method:'HEAD', cache:'no-store'});
+          if(r.ok){ loadSampler(); }
+          else { setStatus(`取樣檔案找不到：${probe}`); }
+        }catch(err){ setStatus(`取樣測試失敗：${err.message}`); }
 
         unlocked = true;
         $('#unlockOverlay').style.display = 'none';
-        setStatus(`音訊解鎖完成｜ctx:${audioCtx.state}`);
+        setStatus(`音訊解鎖完成｜${isIOS?'iOS':''}${isLine?' LINE':''}｜ctx:${audioCtx.state}`);
       }catch(e){
         setStatus('解鎖失敗：' + e.message);
       }
@@ -191,10 +190,13 @@
 
       setStatus(`初始化完成｜白鍵 ${WHITE.length}｜黑鍵 ${blackCount}`);
 
-      const down = (el)=> {
+      // 事件：若未解鎖，第一次按鍵自動觸發解鎖並發出可聽見 beep 作為驗證
+      const down = async (el)=> {
         const key = el && el.closest ? el.closest('.black,.white') : null;
         if(!key) return;
-        if(!unlocked){ setStatus('請先點擊「啟用聲音」'); return; }
+        if(!unlocked){
+          await unlockAudio(); // 在手勢中呼叫，會 beep 一下
+        }
         playNote(key.dataset.note);
         log(key.dataset.note);
         key.classList.add('active');
@@ -224,9 +226,8 @@
     }
 
     function playNote(note){
-      // 先用合成器保底，Sampler 成功後會同時出聲（聽起來會更真實）
-      if(synth) synth.triggerAttackRelease(note,'8n');
-      if(samplerReady && sampler) sampler.triggerAttackRelease(note,'8n');
+      if(synth) synth.triggerAttackRelease(note,'8n'); // 合成器保底
+      if(samplerReady && sampler) sampler.triggerAttackRelease(note,'8n'); // 取樣到位就會同步出聲
     }
 
     function log(note){
@@ -236,14 +237,14 @@
         .catch(err=>setStatus('記錄失敗：'+err.message));
     }
 
-    // 可見性恢復：回前景若被系統暫停，再次提示解鎖
+    // 回前景若被系統暫停，再次要求解鎖
     document.addEventListener('visibilitychange', () => {
       if(document.visibilityState === 'visible' && audioCtx && audioCtx.state !== 'running'){
         $('#unlockOverlay').style.display = 'block';
       }
     });
 
-    // 初始化
+    // 啟動
     window.addEventListener('DOMContentLoaded', ()=>{
       buildKeyboard();
       $('#unlockBtn').addEventListener('click', unlockAudio, {once:true});
