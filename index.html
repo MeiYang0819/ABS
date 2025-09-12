@@ -75,7 +75,7 @@
     const $ = s => document.querySelector(s);
     const setStatus = m => $('#status').textContent = m;
 
-    let audioCtx=null, synth=null, sampler=null, samplerReady=false, unlocked=false;
+    let audioCtx=null, sampler=null, samplerReady=false, unlocked=false;
     const BASE = new URL('./piano/', location.href).href;
     const URLS = {
       'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3',
@@ -85,31 +85,43 @@
 
     function unlockAudio(){
       try{
+        // 安靜解鎖：只建立/恢復 AudioContext、綁定 Tone，完全不發聲
         const Ctx = window.webkitAudioContext || window.AudioContext;
         if(!audioCtx) audioCtx = new Ctx({ latencyHint:'interactive' });
-        if(audioCtx.state!=='running') audioCtx.resume(); // 不 await
+        if(audioCtx.state!=='running') audioCtx.resume(); // 不 await，保持手勢同步
 
+        // 綁 Tone 到同一 Context（不發聲）
         Tone.setContext(new Tone.Context(audioCtx));
         Tone.start(); // fire-and-forget
 
-        if(!synth){
-          synth = new Tone.PolySynth(Tone.Synth).toDestination();
-          synth.set({ oscillator:{type:'triangle'}, envelope:{attack:0.002, decay:0.12, sustain:0.2, release:0.25} });
-        }
+        // 載入鋼琴取樣（載入完成前不出聲）
         loadSampler();
 
-        unlocked=true;
-        $('#unlockOverlay').style.display='none';
-        setStatus('音訊解鎖完成｜ctx:'+audioCtx.state);
-      }catch(e){ setStatus('解鎖失敗:'+e.message); }
+        unlocked = true;
+        $('#unlockOverlay').style.display = 'none';
+        setStatus('音訊已啟用，音色載入中…');
+      }catch(e){
+        setStatus('啟用失敗：' + e.message);
+      }
     }
 
     function loadSampler(){
-      if(sampler||samplerReady) return;
+      if(sampler || samplerReady) return;
       sampler = new Tone.Sampler({
-        urls:URLS, release:1, baseUrl:BASE,
-        onload:()=>{ samplerReady=true; setStatus('鋼琴取樣已載入 ✅'); }
+        urls: URLS,
+        release: 1,
+        baseUrl: BASE,
+        onload: ()=>{ samplerReady = true; setStatus('鋼琴取樣已載入 ✅'); }
       }).toDestination();
+    }
+
+    // 只用取樣發聲；未載入前不發聲且提示
+    function playNote(note){
+      if(!samplerReady || !sampler){
+        setStatus('音色載入中…'); 
+        return;
+      }
+      sampler.triggerAttackRelease(note,'8n');
     }
 
     const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
@@ -127,25 +139,43 @@
         b.style.left=`calc(${i*keyW}% + ${keyW*0.68}%)`;kb.appendChild(b);});
       setStatus('初始化完成');
 
-      const down=el=>{const k=el?.closest('.black,.white');if(!k)return;if(!unlocked)unlockAudio();playNote(k.dataset.note);log(k.dataset.note);k.classList.add('active');};
-      const up=el=>{const k=el?.closest('.black,.white');if(k)k.classList.remove('active');};
-      kb.addEventListener('pointerdown',e=>down(e.target)); kb.addEventListener('pointerup',e=>up(e.target));
-      kb.addEventListener('touchstart',e=>{if(e.touches.length>0)e.preventDefault();const el=document.elementFromPoint(e.touches[0].clientX,e.touches[0].clientY);down(el);},{passive:false});
-      kb.addEventListener('touchend',e=>{const el=document.elementFromPoint(e.changedTouches[0].clientX,e.changedTouches[0].clientY);up(el);},{passive:false});
-      kb.addEventListener('mousedown',e=>down(e.target)); kb.addEventListener('mouseup',e=>up(e.target));
+      const down=el=>{
+        const k=el?.closest('.black,.white'); if(!k) return;
+        if(!unlocked) unlockAudio();
+        playNote(k.dataset.note);
+        log(k.dataset.note);
+        k.classList.add('active');
+      };
+      const up=el=>{
+        const k=el?.closest('.black,.white'); if(k) k.classList.remove('active');
+      };
+
+      kb.addEventListener('pointerdown',e=>down(e.target));
+      kb.addEventListener('pointerup',e=>up(e.target));
+      kb.addEventListener('touchstart',e=>{
+        if(e.touches.length>0) e.preventDefault();
+        const el=document.elementFromPoint(e.touches[0].clientX,e.touches[0].clientY);
+        down(el);
+      },{passive:false});
+      kb.addEventListener('touchend',e=>{
+        const el=document.elementFromPoint(e.changedTouches[0].clientX,e.changedTouches[0].clientY);
+        up(el);
+      },{passive:false});
+      kb.addEventListener('mousedown',e=>down(e.target));
+      kb.addEventListener('mouseup',e=>up(e.target));
     }
 
-    function playNote(n){ if(synth) synth.triggerAttackRelease(n,'8n'); if(samplerReady&&sampler) sampler.triggerAttackRelease(n,'8n'); }
-    function log(n){const payload={userId:'guest',displayName:$('#displayName').value||'Guest',instrument:'piano',note:n,velocity:1,sessionId:'demo'};
+    function log(n){
+      const payload={userId:'guest',displayName:$('#displayName').value||'Guest',instrument:'piano',note:n,velocity:1,sessionId:'demo'};
       fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
-      .then(r=>r.text()).then(txt=>setStatus(`已記錄：${n}｜回應：${txt}`))
-      .catch(err=>setStatus('記錄失敗：'+err.message));}
+        .then(r=>r.text()).then(txt=>setStatus(`已記錄：${n}｜回應：${txt}`))
+        .catch(err=>setStatus('記錄失敗：'+err.message));
+    }
 
-    window.addEventListener('DOMContentLoaded',()=>{buildKeyboard();$('#unlockBtn').addEventListener('click',unlockAudio,{once:true});});
-    window.addEventListener('touchstart',unlockAudio,{passive:true});
-    window.addEventListener('click',unlockAudio,{passive:true});
+    window.addEventListener('DOMContentLoaded',()=>{
+      buildKeyboard();
+      $('#unlockBtn').addEventListener('click', unlockAudio, {once:true});
+    });
   </script>
 </body>
 </html>
-
-
