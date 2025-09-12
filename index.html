@@ -14,7 +14,7 @@
   #status{background:#eef2f7;border:1px solid var(--rim);border-radius:12px;padding:10px;margin-top:10px;font-size:14px;white-space:pre-wrap;color:#334155}
 
   .kb-wrap{overflow-x:auto;background:#e9edf4;border:1px solid var(--rim);border-radius:14px;margin-top:14px}
-  #keyboard{position:relative;height:280px;min-width:980px;user-select:none;-webkit-user-select:none}
+  #keyboard{position:relative;height:280px;min-width:980px;user-select:none;-webkit-user-select:none;touch-action:none}
 
   /* white keys */
   .white{position:absolute;bottom:0;height:100%;
@@ -175,6 +175,42 @@
     }
 
     buildKeyboard();
+
+    // ====== 行動版事件相容：iOS Safari 不支援 Pointer Events 的備援 ======
+    (function mobileCompat(){
+      const kb = document.getElementById('keyboard');
+      // touchstart → 觸發一次音，防止滾動畫面
+      kb.addEventListener('touchstart', async (e)=>{
+        if (e.touches && e.touches.length>0){ e.preventDefault(); }
+        const t0 = e.touches[0] || e.changedTouches[0];
+        const el = document.elementFromPoint(t0.clientX, t0.clientY);
+        const key = el && el.closest ? el.closest('.black,.white') : null;
+        if(!key) return;
+        await ensureEngine();
+        playNote(key.dataset.note); log(key.dataset.note);
+        key.classList.add('active');
+      }, {passive:false});
+      kb.addEventListener('touchend', (e)=>{
+        const t0 = e.changedTouches && e.changedTouches[0];
+        if(!t0) return;
+        const el = document.elementFromPoint(t0.clientX, t0.clientY);
+        const key = el && el.closest ? el.closest('.black,.white') : null;
+        if(key) key.classList.remove('active');
+      }, {passive:false});
+
+      // mouse 備援（桌機）
+      kb.addEventListener('mousedown', async (e)=>{
+        const key=e.target.closest('.black,.white'); if(!key) return;
+        await ensureEngine();
+        playNote(key.dataset.note); log(key.dataset.note);
+        key.classList.add('active');
+      });
+      kb.addEventListener('mouseup', (e)=>{
+        const key=e.target.closest('.black,.white'); if(key) key.classList.remove('active');
+      });
+    })();
   </script>
 </body>
 </html>
+
+
