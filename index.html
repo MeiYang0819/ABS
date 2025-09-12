@@ -37,6 +37,16 @@
   .label{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
     font-size:11px;color:#475569;background:#ffffffee;border:1px solid var(--rim);
     padding:2px 6px;border-radius:8px}
+
+  /* 啟動提示列（只在需要時顯示） */
+  #unlockBanner{
+    position:fixed; left:50%; bottom:16px; transform:translateX(-50%);
+    background:#111827; color:#fff; border-radius:999px; padding:10px 14px;
+    font-size:14px; box-shadow:0 8px 20px rgba(0,0,0,.25); display:none; z-index:9999;
+  }
+  #unlockBanner button{
+    margin-left:10px; border:0; border-radius:999px; padding:6px 10px; cursor:pointer;
+  }
 </style>
 <body>
   <div class="panel">
@@ -47,6 +57,10 @@
     </div>
     <p id="status">尚未初始化</p>
     <div class="kb-wrap"><div id="keyboard"></div></div>
+  </div>
+
+  <div id="unlockBanner">裝置需要啟用聲音
+    <button id="unlockBtn">點一下啟用</button>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
@@ -63,48 +77,56 @@
     let samplerReady=false;
     let audioUnlocked=false;
 
-    // —— 關鍵：在手勢事件中做「零音量短促播放」來解鎖 iOS/Safari —— //
-    function unlockAudioOnce(){
-      // 已解鎖或已 running 就跳過
-      const ctx = Tone.getContext().rawContext;
-      if(audioUnlocked || ctx.state === 'running'){ audioUnlocked = true; return; }
+    const ctx = Tone.getContext().rawContext;
 
+    function reportCtx(label){
+      setStatus(`${label}｜ctx:${ctx.state}${audioUnlocked?'｜unlocked':''}`);
+    }
+
+    // 嚴格解鎖：用原生 WebAudio 播 30ms 很小聲的正弦波，確保 iOS 真的跑起來
+    function strictUnlockAudio(){
       try{
-        // 1. 嘗試 resume（同步、不 await）
-        ctx.resume && ctx.resume();
-
-        // 2. 播放 1 個樣本、零音量的 buffer 以確保裝置真的出聲（雖然聽不到）
-        const buffer = ctx.createBuffer(1, 1, 22050);
-        const src = ctx.createBufferSource();
-        src.buffer = buffer;
+        ctx.resume && ctx.resume(); // 同步，不 await
+        const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        gain.gain.value = 0; // 靜音
-        src.connect(gain).connect(ctx.destination);
-        src.start(0);
-
-        // 3. 通知 Tone（fire-and-forget）
+        osc.type = 'sine';
+        osc.frequency.value = 880;
+        gain.gain.value = 0.0005;  // 非零，極小聲
+        osc.connect(gain).connect(ctx.destination);
+        const now = ctx.currentTime;
+        osc.start(now);
+        osc.stop(now + 0.03); // 30ms 脈衝
+        // 通知 Tone（非阻塞）
         Tone.start();
-
         audioUnlocked = true;
+        if (ctx.state !== 'running') {
+          // 有些裝置需要多試一次
+          ctx.resume && ctx.resume();
+        }
+        $('#unlockBanner').style.display = 'none';
       }catch(e){
-        // 若失敗不阻斷流程，下次手勢會再試
+        // 忽略錯誤，後續手勢再試
       }
+      reportCtx('已嘗試解鎖');
     }
 
     function ensureEngineSync(){
-      if(engineReady) return;
-      try{
-        if(!synth){
-          synth = new Tone.PolySynth(Tone.Synth).toDestination();
-          synth.set({ oscillator:{type:'triangle'}, envelope:{attack:0.002, decay:0.12, sustain:0.2, release:0.25} });
+      if(!engineReady){
+        try{
+          if(!synth){
+            synth = new Tone.PolySynth(Tone.Synth).toDestination();
+            synth.set({ oscillator:{type:'triangle'}, envelope:{attack:0.002, decay:0.12, sustain:0.2, release:0.25} });
+          }
+          strictUnlockAudio(); // 手勢中呼叫
+          engineReady = true;
+          setStatus('音源就緒 ✅（先合成器，背景載入鋼琴取樣）');
+          ensureSampler();
+        }catch(e){
+          setStatus('音源啟動失敗：'+e.message);
         }
-        // 不 await，保持在手勢事件同步鏈上
-        unlockAudioOnce();
-        engineReady = true;
-        setStatus('音源就緒 ✅（先合成器，背景載入鋼琴取樣）');
-        ensureSampler();
-      }catch(e){
-        setStatus('音源啟動失敗：'+e.message);
+      }else{
+        // 已就緒也持續確保 context 在 running
+        if (ctx.state !== 'running') strictUnlockAudio();
       }
     }
 
@@ -121,7 +143,7 @@
       try{
         sampler = new Tone.Sampler({
           urls: URLS, release:1, baseUrl: BASE,
-          onload: ()=>{ samplerReady=true; setStatus('鋼琴取樣已載入 ✅'); }
+          onload: ()=>{ samplerReady=true; setStatus('鋼琴取樣已載入 ✅'); reportCtx('取樣載入'); }
         }).toDestination();
       }catch(e){
         setStatus('鋼琴取樣載入失敗（維持合成器）');
@@ -136,7 +158,6 @@
       const total=WHITE.length; const keyW=100/total;
       let blackCount=0;
 
-      // white keys
       WHITE.forEach((note,i)=>{
         const w=document.createElement('div'); w.className='white'; w.dataset.note=note;
         w.style.left=`${i*keyW}%`; w.style.width=`${keyW}%`;
@@ -146,7 +167,6 @@
         kb.appendChild(w);
       });
 
-      // black keys
       WHITE.forEach((note,i)=>{
         const n0=note[0]; const sharp=BLACK_AFTER[n0] ? BLACK_AFTER[n0] + note.slice(1) : null;
         if(!sharp || (n0==='A' && i===WHITE.length-1)) return;
@@ -156,52 +176,44 @@
       });
 
       setStatus(`初始化完成｜白鍵 ${WHITE.length}｜黑鍵 ${blackCount}`);
+      if (ctx.state !== 'running') $('#unlockBanner').style.display = 'block';
 
-      // 事件：一律在事件最前面先 unlock，再 ensureEngineSync，再播放
-      kb.addEventListener('pointerdown', (e)=>{
-        const t=e.target.closest('.black,.white'); if(!t) return;
-        t.setPointerCapture?.(e.pointerId);
-        unlockAudioOnce();
+      const down = (el)=> {
+        const key = el.closest('.black,.white'); if(!key) return;
+        strictUnlockAudio();
         ensureEngineSync();
-        playNote(t.dataset.note); log(t.dataset.note);
-        t.classList.add('active');
-      });
-      kb.addEventListener('pointerup', (e)=>{
-        const t=e.target.closest('.black,.white'); if(t) t.classList.remove('active');
-      });
+        playNote(key.dataset.note);
+        log(key.dataset.note);
+        key.classList.add('active');
+      };
+      const up = (el)=> {
+        const key = el && el.closest ? el.closest('.black,.white') : null;
+        if(key) key.classList.remove('active');
+      };
 
-      kb.addEventListener('touchstart', (e)=>{
+      kb.addEventListener('pointerdown', e=>{ down(e.target); });
+      kb.addEventListener('pointerup',   e=>{ up(e.target); });
+
+      kb.addEventListener('touchstart', e=>{
         if(e.touches && e.touches.length>0) e.preventDefault();
         const t0=e.touches[0]||e.changedTouches[0];
         const el=document.elementFromPoint(t0.clientX,t0.clientY);
-        const key=el&&el.closest?el.closest('.black,.white'):null; if(!key) return;
-        unlockAudioOnce();
-        ensureEngineSync();
-        playNote(key.dataset.note); log(key.dataset.note);
-        key.classList.add('active');
+        down(el);
       }, {passive:false});
-      kb.addEventListener('touchend', (e)=>{
+      kb.addEventListener('touchend', e=>{
         const t0=e.changedTouches&&e.changedTouches[0]; if(!t0) return;
         const el=document.elementFromPoint(t0.clientX,t0.clientY);
-        const key=el&&el.closest?el.closest('.black,.white'):null; if(key) key.classList.remove('active');
+        up(el);
       }, {passive:false});
 
-      kb.addEventListener('mousedown', (e)=>{
-        const t=e.target.closest('.black,.white'); if(!t) return;
-        unlockAudioOnce();
-        ensureEngineSync();
-        playNote(t.dataset.note); log(t.dataset.note);
-        t.classList.add('active');
-      });
-      kb.addEventListener('mouseup', (e)=>{
-        const t=e.target.closest('.black,.white'); if(t) t.classList.remove('active');
-      });
+      kb.addEventListener('mousedown', e=>{ down(e.target); });
+      kb.addEventListener('mouseup',   e=>{ up(e.target); });
     }
 
     function playNote(note){
-      // 先用合成器保底，取樣載入後會同時發聲
       if(synth) synth.triggerAttackRelease(note,'8n');
       if(samplerReady && sampler) sampler.triggerAttackRelease(note,'8n');
+      reportCtx(`播放 ${note}`);
     }
 
     function log(note){
@@ -211,17 +223,16 @@
         .catch(err=>setStatus('記錄失敗：'+err.message));
     }
 
-    // 回到前景時，有些瀏覽器會把 context 暫停；帶回時再嘗試恢復
     document.addEventListener('visibilitychange', () => {
-      if(document.visibilityState === 'visible'){
-        try{ unlockAudioOnce(); }catch(e){}
+      if(document.visibilityState === 'visible' && ctx.state !== 'running'){
+        $('#unlockBanner').style.display = 'block';
       }
     });
 
-    // 額外保險：任意點擊/觸控頁面也會嘗試解鎖（不影響已解鎖的情況）
-    ['click','touchstart'].forEach(ev=>{
-      window.addEventListener(ev, unlockAudioOnce, {passive:true, once:false});
-    });
+    // 全域點擊/觸控也嘗試解鎖；同時提供明確按鈕作為備援
+    window.addEventListener('click', strictUnlockAudio, {passive:true});
+    window.addEventListener('touchstart', strictUnlockAudio, {passive:true});
+    $('#unlockBtn').addEventListener('click', strictUnlockAudio);
 
     window.addEventListener('DOMContentLoaded', ()=>{
       try{ buildKeyboard(); }catch(e){ setStatus('載入錯誤：'+e.message); }
@@ -229,3 +240,5 @@
   </script>
 </body>
 </html>
+
+
