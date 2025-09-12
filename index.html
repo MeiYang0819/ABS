@@ -3,7 +3,6 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>互動音符</title>
-<!-- 可愛圓體 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
@@ -13,15 +12,14 @@
   html,body{ margin:0; color:var(--ink); background:linear-gradient(135deg,#e6dfff 0%, #dcd4ff 100%); }
   .panel{ max-width:1060px;margin:22px auto;background:rgba(255,255,255,.58);border:1px solid rgba(255,255,255,.65);border-radius:16px;padding:18px 18px 26px;box-shadow:0 10px 30px rgba(98,76,171,.12);backdrop-filter:blur(10px) saturate(120%); }
   h2{ margin:4px 0 20px;text-align:center;font-size:2.8rem;font-weight:700;letter-spacing:1px;-webkit-text-stroke:.7px var(--stroke);text-shadow:0 3px 4px rgba(255,255,255,.85); }
-  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .row label{opacity:.92}
   input, select, button{ padding:8px 10px;border:1px solid var(--rim);border-radius:10px;-webkit-text-stroke:.25px rgba(0,0,0,.12);text-shadow:0 1px 0 rgba(255,255,255,.5);background:#fff; }
   input{min-width:150px}
   #lastNote{min-width:120px}
   button{cursor:pointer}
   button:disabled{opacity:.55;cursor:not-allowed}
-  .pill{ background:#ffffffee;border:1px solid var(--rim);border-radius:999px;padding:6px 10px;font-size:14px;white-space:nowrap; }
-  #status{ background:#eef2f7;border:1px solid var(--rim);border-radius:12px;padding:10px;margin-top:10px;font-size:14px;white-space:pre-wrap;color:#334155; }
+  #status{ background:#eef2f7;border:1px solid var(--rim);border-radius:12px;padding:10px;margin-top:10px;font-size:14px;white-space:pre-wrap;color:#334155;text-align:center; }
   .kb-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch;background:linear-gradient(180deg,#f7f2ff 0%, #ede9fe 100%);border:1px solid var(--rim); border-radius:14px; margin-top:14px }
   #keyboard{ position:relative; height:var(--kb-h); user-select:none; -webkit-user-select:none; touch-action:pan-x; }
   .white{ position:absolute; bottom:0; height:100%; background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5); border-radius:0 0 12px 12px; box-shadow:inset 0 -12px 16px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.9), 0 1px 0 rgba(0,0,0,.04); }
@@ -40,24 +38,27 @@
     <!-- 第一行：標題 -->
     <h2>互動音符</h2>
 
-    <!-- 第二行：右→左 -->
+    <!-- 第二行：同一排，左→右：親友姓名｜取得代號｜樂器轉換｜紀錄｜確認鎖定 -->
     <div class="row">
-      <span id="loadedBadge" class="pill">尚未初始化</span>
+      <label for="displayName">親友姓名：</label>
+      <input id="displayName" placeholder="例如：小明" />
+
+      <label for="code">取得代號：</label>
+      <input id="code" placeholder="請輸入代號" />
+
       <label for="instrument">樂器轉換：</label>
       <select id="instrument">
         <option value="piano" selected>鋼琴</option>
         <option value="guitar">吉他</option>
       </select>
-      <button id="lockBtn" disabled>確認鎖定</button>
+
       <label for="lastNote">紀錄：</label>
       <input id="lastNote" placeholder="尚未彈奏" readonly />
-      <label for="code">取得代號：</label>
-      <input id="code" placeholder="請輸入代號" />
-      <label for="displayName">親友姓名：</label>
-      <input id="displayName" placeholder="例如：小明" />
+
+      <button id="lockBtn" disabled>確認鎖定</button>
     </div>
 
-    <!-- 第三行：狀態列 -->
+    <!-- 第三行：置中顯示「鋼琴/吉他取樣已載入 ✅」 -->
     <p id="status">尚未初始化</p>
 
     <!-- 第四行：鍵盤 -->
@@ -78,12 +79,11 @@
     const WEBHOOK = "https://script.google.com/macros/s/AKfycbw3rDKy-mjN93ValBMs28ndCFv5IbqjupDgn9rHvqYOqJwo5If3DdB1zVervdluT8YW/exec";
     const $ = s => document.querySelector(s);
     const setStatus = m => $('#status').textContent = m;
-    const setBadge  = m => $('#loadedBadge').textContent = m;
 
     let audioCtx=null, sampler=null, samplerReady=false, unlocked=false;
     let currentInstrument = 'piano';
 
-    // 鋼琴（既有固定清單）
+    // 鋼琴（固定清單）
     const PIANO_BASE=new URL('./piano/',location.href).href;
     const PIANO_URLS={'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3',
                       'C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3',
@@ -91,31 +91,20 @@
 
     // ===== 自動偵測吉他取樣（目錄 /guitar/）=====
     const GUITAR_BASE=new URL('./guitar/', location.href).href;
-    // 嘗試的音名清單（E2 ~ D5，含升記號）
     const GUITAR_NOTES = [
       'E2','F2','F#2','G2','G#2','A2','A#2','B2',
       'C3','C#3','D3','D#3','E3','F3','F#3','G3','G#3','A3','A#3','B3',
       'C4','C#4','D4','D#4','E4','F4','F#4','G4','G#4','A4','A#4','B4',
       'C5','C#5','D5'
     ];
-    const EXT_ORDER = ['.wav', '.mp3', '.ogg']; // 依序嘗試
-
-    // A# → As 這種檔名轉換
+    const EXT_ORDER = ['.wav', '.mp3', '.ogg'];
     const sharpToS = n => n.replace('C#','Cs').replace('D#','Ds').replace('F#','Fs').replace('G#','Gs').replace('A#','As');
 
-    async function headOk(url){
-      try{
-        const r = await fetch(url, { method:'HEAD' });
-        return r.ok;
-      }catch(_){ return false; }
-    }
-
+    async function headOk(url){ try{ const r=await fetch(url,{method:'HEAD'}); return r.ok; }catch(_){ return false; } }
     async function detectGuitarUrls(){
       const urls = {};
-      // 先嘗試空弦六音，增加命中率
       const preferred = ['E2','A2','D3','G3','B3','E4'];
       const candidates = [...new Set([...preferred, ...GUITAR_NOTES])];
-
       for(const note of candidates){
         const fnameCore = sharpToS(note);
         let found = false;
@@ -124,7 +113,7 @@
           const url = GUITAR_BASE + file;
           if(await headOk(url)){ urls[note] = file; found = true; break; }
         }
-        // 沒找到就略過（Tone 會用其他相近 sample 補）
+        if(!found) continue;
       }
       return urls;
     }
@@ -148,13 +137,11 @@
 
       let urls = PIANO_URLS, base = PIANO_BASE, label='鋼琴';
       if(inst==='guitar'){
-        setBadge('吉他取樣偵測中…'); setStatus('正在偵測 /guitar/ 內可用取樣檔…');
+        setStatus('正在偵測 /guitar/ 內可用取樣檔…');
         const detected = await detectGuitarUrls();
-        // 最少要有空弦音（或任一音）才載入
         const keys = Object.keys(detected);
         if(keys.length === 0){
           setStatus('未在 /guitar/ 找到可用取樣檔，請確認檔案或副檔名（wav/mp3/ogg）。');
-          setBadge('載入失敗');
           return;
         }
         urls = detected; base = GUITAR_BASE; label = '吉他';
@@ -162,7 +149,7 @@
 
       sampler = new Tone.Sampler({
         urls, release:1, baseUrl:base,
-        onload:()=>{ samplerReady=true; setStatus(label + '取樣已載入 ✅'); setBadge(label + '取樣已載入 ✅'); }
+        onload:()=>{ samplerReady=true; setStatus(label + '取樣已載入 ✅'); }
       }).toDestination();
     }
 
@@ -171,7 +158,7 @@
       sampler.triggerAttackRelease(note,'8n');
     }
 
-    // ====== 鋼琴鍵盤（原樣） ======
+    // ====== 鋼琴鍵盤（保留原樣） ======
     const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
     const BLACK_AFTER={ 'C':'C#','D':'D#','F':'F#','G':'G#','A':'A#' };
     const MIN_WHITE_PX=64, TOTAL_WHITE=WHITE.length;
@@ -198,7 +185,7 @@
         kb.appendChild(b);
       });
 
-      setStatus(`初始化完成｜白鍵 ${TOTAL_WHITE}`);
+      setStatus('初始化完成。請先啟用聲音，或直接點鍵觸發。');
 
       kb.addEventListener('pointerdown',e=>handleDown(e.target));
       kb.addEventListener('pointerup',e=>handleUp(e.target));
@@ -226,11 +213,10 @@
       kb.style.width=(wrapW>=minW?wrapW-1:minW)+'px';
     }
 
-    // 寫入（沿用你現有行為：每次按鍵就記錄）
+    // 寫入：仍保留（但不再把回應塞到狀態列）
     function log(n){
       const payload={userId:'guest',displayName:$('#displayName').value||'Guest',instrument:currentInstrument,note:n,velocity:1,sessionId:'demo'};
       fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
-        .then(r=>r.text()).then(txt=>setStatus(`已記錄：${n}｜回應：${txt}`))
         .catch(err=>setStatus('記錄失敗：'+err.message));
     }
 
@@ -238,7 +224,7 @@
     $('#instrument').addEventListener('change', async ()=>{
       currentInstrument = $('#instrument').value;
       if(unlocked){ await loadSampler(currentInstrument); }
-      else{ setBadge('尚未初始化'); setStatus('切換完成，待啟用聲音後載入取樣。'); }
+      else{ setStatus('已切換為「'+(currentInstrument==='piano'?'鋼琴':'吉他')+'」，啟用聲音後會載入取樣。'); }
     });
 
     // 事件
