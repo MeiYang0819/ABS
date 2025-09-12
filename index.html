@@ -3,26 +3,25 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>互動音符</title>
-<!-- 可愛圓體（含 400/500/700 權重） -->
+<!-- 可愛圓體 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{ --rim:#e4e7ef; --ink:#0f172a; --kb-h:280px; --sep:2px; --stroke:rgba(0,0,0,.18); --glow:rgba(255,255,255,.65); }
-  *{box-sizing:border-box}
+  *{
+    box-sizing:border-box;
+    font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif !important;
+    -webkit-text-stroke:.35px var(--stroke);
+    text-shadow:0 1px 0 var(--glow);
+  }
 
-  /* 背景（深淡紫漸層） */
   html,body{
     margin:0;
     color:var(--ink);
-    font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif; /* 全站可愛圓體 */
-    /* 全站細描邊 + 柔和陰影 */
-    -webkit-text-stroke:.35px var(--stroke);
-    text-shadow:0 1px 0 var(--glow);
     background:linear-gradient(135deg,#e6dfff 0%, #dcd4ff 100%);
   }
 
-  /* 容器（渲染） */
   .panel{
     max-width:1060px;margin:22px auto;
     background:rgba(255,255,255,.58);
@@ -32,24 +31,28 @@
     box-shadow:0 10px 30px rgba(98,76,171,.12);
     backdrop-filter:blur(10px) saturate(120%);
   }
+
   h2{
-    margin:4px 0 12px;text-align:center;
-    font-weight:700; letter-spacing:.5px;
+    margin:4px 0 16px;
+    text-align:center;
+    font-size:2.2rem; /* 標題更大 */
+    font-weight:700;
+    letter-spacing:.5px;
+    -webkit-text-stroke:.6px var(--stroke);
+    text-shadow:0 2px 3px rgba(255,255,255,.8);
   }
+
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   input{
     padding:8px 10px;border:1px solid var(--rim);border-radius:10px;min-width:220px;
-    /* 讓輸入框內文字也保持圓體+微描邊（淡一點） */
     -webkit-text-stroke:.25px rgba(0,0,0,.12);
     text-shadow:0 1px 0 rgba(255,255,255,.5);
-    font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif;
   }
   #status{
     background:#eef2f7;border:1px solid var(--rim);border-radius:12px;padding:10px;margin-top:10px;
     font-size:14px;white-space:pre-wrap;color:#334155;
   }
 
-  /* 鍵盤外框（淺淡紫漸層、實心，避免染到琴鍵） */
   .kb-wrap{
     overflow-x:auto; -webkit-overflow-scrolling:touch;
     background:linear-gradient(180deg,#f7f2ff 0%, #ede9fe 100%);
@@ -62,7 +65,6 @@
     touch-action:pan-x;
   }
 
-  /* 白鍵（維持原樣，無混色） */
   .white{
     position:absolute; bottom:0; height:100%;
     background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5);
@@ -70,7 +72,6 @@
     box-shadow:inset 0 -12px 16px rgba(0,0,0,.12),
                inset 0 1px 0 rgba(255,255,255,.9),
                0 1px 0 rgba(0,0,0,.04);
-    mix-blend-mode:normal;
   }
   .white::after{
     content:""; position:absolute; top:0; bottom:0; right:0; width:var(--sep);
@@ -82,14 +83,12 @@
   }
   .white.active{filter:brightness(1.06)}
 
-  /* 黑鍵（維持原樣） */
   .black{
     position:absolute; bottom:38%; height:62%; width:6.4%;
     background:linear-gradient(#2d2f36,#0e0f13);
     border:1px solid #0b0d11; border-top:none;
     border-radius:0 0 10px 10px; z-index:5;
     box-shadow:inset 0 -6px 10px rgba(0,0,0,.45), 0 3px 10px rgba(0,0,0,.35);
-    mix-blend-mode:normal;
   }
   .black.active{filter:brightness(1.22)}
 
@@ -101,7 +100,6 @@
     text-shadow:0 1px 0 rgba(255,255,255,.6);
   }
 
-  /* 解鎖遮罩 */
   #unlockOverlay{ position:fixed; inset:0; background:rgba(0,0,0,.55); color:#fff;
     display:flex; align-items:center; justify-content:center; z-index:9999; }
   #unlockCard{
@@ -137,15 +135,12 @@
     const $ = s => document.querySelector(s);
     const setStatus = m => $('#status').textContent = m;
 
-    // 音訊
     let audioCtx=null, sampler=null, samplerReady=false, unlocked=false;
 
-    // 鍵盤配置
     const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
     const BLACK_AFTER={ 'C':'C#','D':'D#','F':'F#','G':'G#','A':'A#' };
     const MIN_WHITE_PX=64, TOTAL_WHITE=WHITE.length;
 
-    // 取樣
     const BASE=new URL('./piano/',location.href).href;
     const URLS={'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3',
                 'C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3',
@@ -202,7 +197,6 @@
 
       setStatus(`初始化完成｜白鍵 ${TOTAL_WHITE}`);
 
-      // 事件：手機用 touch、桌機用 pointer（避免重複）
       kb.addEventListener('touchstart',e=>{
         const t=e.touches[0]||e.changedTouches[0];
         const el=document.elementFromPoint(t.clientX,t.clientY);
