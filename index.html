@@ -38,7 +38,6 @@
     font-size:11px;color:#475569;background:#ffffffee;border:1px solid var(--rim);
     padding:2px 6px;border-radius:8px}
 
-  /* 解鎖遮罩 */
   #unlockOverlay{
     position:fixed; inset:0; background:rgba(0,0,0,.55); color:#fff;
     display:flex; align-items:center; justify-content:center; z-index:9999;
@@ -89,14 +88,6 @@
         const Ctx = window.webkitAudioContext || window.AudioContext;
         if(!audioCtx) audioCtx = new Ctx({ latencyHint:'interactive' });
         if(audioCtx.state!=='running') audioCtx.resume(); // 不 await
-
-        // 明顯的 beep 200ms
-        const osc = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        osc.type='sine'; osc.frequency.value=880;
-        g.gain.value=0.06;
-        osc.connect(g).connect(audioCtx.destination);
-        const t=audioCtx.currentTime; osc.start(t); osc.stop(t+0.20);
 
         Tone.setContext(new Tone.Context(audioCtx));
         Tone.start(); // fire-and-forget
@@ -156,3 +147,5 @@
   </script>
 </body>
 </html>
+
+
