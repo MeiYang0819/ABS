@@ -2,13 +2,13 @@
 <html lang="zh-Hant">
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>鋼琴鍵盤（穩定行動版｜固定 piano｜Webhook）</title>
+<title>互動音符</title>
 <style>
   :root{ --page:#f6f7fb; --panel:#fff; --rim:#e4e7ef; --ink:#0f172a; }
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--page);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif}
   .panel{max-width:1060px;margin:22px auto;background:var(--panel);border-radius:16px;padding:18px 18px 26px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
-  h2{margin:4px 0 12px}
+  h2{margin:4px 0 12px; text-align:center;} /* 標題置中 */
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   input{padding:8px 10px;border:1px solid var(--rim);border-radius:10px;min-width:220px}
   #status{background:#eef2f7;border:1px solid var(--rim);border-radius:12px;padding:10px;margin-top:10px;font-size:14px;white-space:pre-wrap;color:#334155}
@@ -21,14 +21,14 @@
     background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5);
     border-radius:0 0 12px 12px;
     box-shadow:inset 0 -12px 16px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.9),0 1px 0 rgba(0,0,0,.04);
-    border-right:1px solid #cfd3dc; /* 分隔線 */
+    border-right:1px solid #cfd3dc;
   }
   .white:first-child{border-left:1px solid #cfd3dc}
   .white.active{filter:brightness(1.06)}
 
   /* black keys */
   .black{position:absolute;bottom:38%;height:62%;
-    width:6.4%; /* 以白鍵寬度比例顯示 */
+    width:6.4%;
     background:linear-gradient(#2d2f36,#0e0f13);
     border:1px solid #0b0d11;border-top:none;
     border-radius:0 0 10px 10px;z-index:5;
@@ -42,7 +42,7 @@
 </style>
 <body>
   <div class="panel">
-    <h2>鋼琴鍵盤（穩定行動版｜固定 piano｜Webhook）</h2>
+    <h2>互動音符</h2>
     <div class="row">
       <label for="displayName">顯示名稱：</label>
       <input id="displayName" placeholder="例如：小明" />
@@ -65,13 +65,27 @@
     let sampler=null;          // 鋼琴取樣（固定 ./piano/）
     let samplerReady=false;
 
-    async function ensureEngine(){
+    // 改為「同步解鎖」：在手勢事件中不要 await，立即 resume/start 再播放
+    function ensureEngineSync(){
       if(engineReady) return;
-      await Tone.start();
-      synth = new Tone.PolySynth(Tone.Synth).toDestination();
-      synth.set({ oscillator:{type:'triangle'}, envelope:{attack:0.002, decay:0.12, sustain:0.2, release:0.25} });
-      engineReady=true; setStatus('音源就緒 ✅（先合成器，背景載入鋼琴取樣）');
-      ensureSampler();
+      try{
+        if(!synth){
+          synth = new Tone.PolySynth(Tone.Synth).toDestination();
+          synth.set({ oscillator:{type:'triangle'}, envelope:{attack:0.002, decay:0.12, sustain:0.2, release:0.25} });
+        }
+        // 先嘗試讓 AudioContext 就緒（不 await）
+        if (Tone.context.state !== 'running') {
+          // iOS 需要在手勢事件堆疊中呼叫 resume()
+          Tone.context.resume();
+        }
+        // 觸發 Tone 的啟動（fire-and-forget，避免阻斷手勢事件）
+        Tone.start();
+        engineReady = true;
+        setStatus('音源就緒 ✅（先合成器，背景載入鋼琴取樣）');
+        ensureSampler();
+      }catch(e){
+        setStatus('音源啟動失敗：'+e.message);
+      }
     }
 
     // 取樣固定在 ./piano/
@@ -86,8 +100,13 @@
     function ensureSampler(){
       if(sampler || samplerReady) return;
       try{
-        sampler = new Tone.Sampler({ urls:URLS, release:1, baseUrl:BASE, onload:()=>{ samplerReady=true; setStatus('鋼琴取樣已載入 ✅'); } }).toDestination();
-      }catch(e){ setStatus('鋼琴取樣載入失敗（維持合成器）'); }
+        sampler = new Tone.Sampler({
+          urls: URLS, release:1, baseUrl: BASE,
+          onload: ()=>{ samplerReady=true; setStatus('鋼琴取樣已載入 ✅'); }
+        }).toDestination();
+      }catch(e){
+        setStatus('鋼琴取樣載入失敗（維持合成器）');
+      }
     }
 
     // === 14 白鍵 + 黑鍵 ===
@@ -118,44 +137,60 @@
         });
         setStatus(`初始化完成｜白鍵 ${WHITE.length}｜黑鍵 ${blackCount}`);
 
-        // 事件：Pointer + Touch + Mouse
-        // 1) pointer（支援的瀏覽器）
+        // 事件：Pointer + Touch + Mouse（都改成同步啟動音訊）
         kb.addEventListener('pointerdown', onPointerDown);
         kb.addEventListener('pointerup', onPointerUp);
-        // 2) touch（iOS 安全）
+
         kb.addEventListener('touchstart', onTouchStart, {passive:false});
         kb.addEventListener('touchend', onTouchEnd, {passive:false});
-        // 3) mouse（桌機備援）
+
         kb.addEventListener('mousedown', onMouseDown);
         kb.addEventListener('mouseup', onMouseUp);
       }catch(err){ setStatus('初始化錯誤：'+err.message); }
     }
 
-    async function onPointerDown(e){
+    function primeAudioIfNeeded(){
+      // 在任何互動時都嘗試讓 context 保持 running（不影響已就緒的情況）
+      if (Tone.context.state !== 'running') Tone.context.resume();
+    }
+
+    function onPointerDown(e){
       const t=e.target.closest('.black,.white'); if(!t) return;
       t.setPointerCapture?.(e.pointerId);
-      await ensureEngine();
+      primeAudioIfNeeded();
+      ensureEngineSync();
       playNote(t.dataset.note); log(t.dataset.note);
       t.classList.add('active');
     }
     function onPointerUp(e){ const t=e.target.closest('.black,.white'); if(t) t.classList.remove('active'); }
 
-    async function onMouseDown(e){
+    function onMouseDown(e){
       const t=e.target.closest('.black,.white'); if(!t) return;
-      await ensureEngine(); playNote(t.dataset.note); log(t.dataset.note); t.classList.add('active');
+      primeAudioIfNeeded();
+      ensureEngineSync();
+      playNote(t.dataset.note); log(t.dataset.note); t.classList.add('active');
     }
     function onMouseUp(e){ const t=e.target.closest('.black,.white'); if(t) t.classList.remove('active'); }
 
-    async function onTouchStart(e){
+    function onTouchStart(e){
       if(e.touches && e.touches.length>0) e.preventDefault();
       const t0=e.touches[0]||e.changedTouches[0];
       const el=document.elementFromPoint(t0.clientX,t0.clientY);
       const key=el&&el.closest?el.closest('.black,.white'):null; if(!key) return;
-      await ensureEngine(); playNote(key.dataset.note); log(key.dataset.note); key.classList.add('active');
+      primeAudioIfNeeded();
+      ensureEngineSync();
+      playNote(key.dataset.note); log(key.dataset.note); key.classList.add('active');
     }
-    function onTouchEnd(e){ const t0=e.changedTouches&&e.changedTouches[0]; if(!t0) return; const el=document.elementFromPoint(t0.clientX,t0.clientY); const key=el&&el.closest?el.closest('.black,.white'):null; if(key) key.classList.remove('active'); }
+    function onTouchEnd(e){
+      const t0=e.changedTouches&&e.changedTouches[0]; if(!t0) return;
+      const el=document.elementFromPoint(t0.clientX,t0.clientY);
+      const key=el&&el.closest?el.closest('.black,.white'):null; if(key) key.classList.remove('active');
+    }
 
-    function playNote(note){ if(synth) synth.triggerAttackRelease(note,'8n'); if(samplerReady && sampler) sampler.triggerAttackRelease(note,'8n'); }
+    function playNote(note){
+      if(synth) synth.triggerAttackRelease(note,'8n');
+      if(samplerReady && sampler) sampler.triggerAttackRelease(note,'8n');
+    }
 
     function log(note){
       const payload={userId:'guest',displayName:$('#displayName').value||'Guest',instrument:'piano',note,velocity:1,sessionId:'demo'};
@@ -164,13 +199,16 @@
         .catch(err=>setStatus('記錄失敗：'+err.message));
     }
 
-    // 等 DOM 準備好再建鍵盤，避免競態
+    // 額外保險：返回前景時確保 Context 仍為 running（iOS 可能自動暫停）
+    document.addEventListener('visibilitychange', () => {
+      if(document.visibilityState === 'visible' && Tone.context.state !== 'running'){
+        Tone.context.resume();
+      }
+    });
+
     window.addEventListener('DOMContentLoaded', ()=>{
       try{ buildKeyboard(); }catch(e){ setStatus('載入錯誤：'+e.message); }
     });
   </script>
 </body>
 </html>
-
-
-
