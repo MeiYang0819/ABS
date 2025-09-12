@@ -4,7 +4,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>互動音符</title>
 <style>
-  :root{ --page:#f6f7fb; --panel:#fff; --rim:#e4e7ef; --ink:#0f172a; --kb-h:280px; }
+  :root{ --page:#f6f7fb; --panel:#fff; --rim:#e4e7ef; --ink:#0f172a; --kb-h:280px; --sep:2px; }
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--page);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif}
   .panel{max-width:1060px;margin:22px auto;background:var(--panel);border-radius:16px;padding:18px 18px 26px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
@@ -13,27 +13,35 @@
   input{padding:8px 10px;border:1px solid var(--rim);border-radius:10px;min-width:220px}
   #status{background:#eef2f7;border:1px solid var(--rim);border-radius:12px;padding:10px;margin-top:10px;font-size:14px;white-space:pre-wrap;color:#334155}
 
-  /* 卷軸外框：直立時可水平捲動，橫向寬度夠則不出現卷軸 */
+  /* 直向可水平捲動；橫向寬度夠時不捲動 */
   .kb-wrap{
-    overflow-x:auto;              /* 顯示水平卷軸（需要時） */
-    -webkit-overflow-scrolling:touch; /* iOS 慣性 */
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
     background:#e9edf4;border:1px solid var(--rim);border-radius:14px;margin-top:14px
   }
 
-  /* 鍵盤容器：高度固定，寬度由 JS 依情境設定（100% 或 最小寬度） */
+  /* 允許原生橫向捲動（關鍵），高度固定 */
   #keyboard{
     position:relative;height:var(--kb-h);
-    user-select:none;-webkit-user-select:none;touch-action:none;
+    user-select:none;-webkit-user-select:none;
+    touch-action:pan-x;
   }
 
-  /* white keys */
-  .white{position:absolute;bottom:0;height:100%;
+  /* white keys — 移除真正的邊框，改用 ::after 畫分隔線（不佔寬） */
+  .white{
+    position:absolute;bottom:0;height:100%;
     background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5);
     border-radius:0 0 12px 12px;
     box-shadow:inset 0 -12px 16px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.9),0 1px 0 rgba(0,0,0,.04);
-    border-right:1px solid #cfd3dc;
   }
-  .white:first-child{border-left:1px solid #cfd3dc}
+  .white::after{
+    content:""; position:absolute; top:0; bottom:0; right:0; width:var(--sep);
+    background:linear-gradient(transparent,#cfd3dc 50%,transparent);
+  }
+  .white:first-child::before{
+    content:""; position:absolute; top:0; bottom:0; left:0; width:var(--sep);
+    background:linear-gradient(transparent,#cfd3dc 50%,transparent);
+  }
   .white.active{filter:brightness(1.06)}
 
   /* black keys */
@@ -50,7 +58,7 @@
     font-size:11px;color:#475569;background:#ffffffee;border:1px solid var(--rim);
     padding:2px 6px;border-radius:8px}
 
-  /* 解鎖遮罩 */
+  /* 解鎖遮罩（保留） */
   #unlockOverlay{
     position:fixed; inset:0; background:rgba(0,0,0,.55); color:#fff;
     display:flex; align-items:center; justify-content:center; z-index:9999;
@@ -88,15 +96,16 @@
     const $ = s => document.querySelector(s);
     const setStatus = m => $('#status').textContent = m;
 
-    // === 只用取樣（無嗶、無合成器） ===
+    // 只用取樣（無嗶、無合成器）
     let audioCtx=null, sampler=null, samplerReady=false, unlocked=false;
 
-    // 鍵盤設定
+    // 鍵盤配置
     const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
     const BLACK_AFTER={ 'C':'C#','D':'D#','F':'F#','G':'G#','A':'A#' };
-    const MIN_WHITE_PX = 64; // 直立時的每個白鍵最小寬度（決定「需捲動」的臨界點）
+    const MIN_WHITE_PX = 64; // 每個白鍵在直向時的最小寬（可自行微調 58~72）
+    const TOTAL_WHITE = WHITE.length;
 
-    // 取樣
+    // 取樣路徑
     const BASE = new URL('./piano/', location.href).href;
     const URLS = {
       'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3',
@@ -108,9 +117,9 @@
       try{
         const Ctx = window.webkitAudioContext || window.AudioContext;
         if(!audioCtx) audioCtx = new Ctx({ latencyHint:'interactive' });
-        if(audioCtx.state!=='running') audioCtx.resume(); // 同步解鎖
+        if(audioCtx.state!=='running') audioCtx.resume();
         Tone.setContext(new Tone.Context(audioCtx));
-        Tone.start(); // 不發聲
+        Tone.start();
         loadSampler();
         unlocked=true;
         $('#unlockOverlay').style.display='none';
@@ -133,10 +142,10 @@
 
     function buildKeyboard(){
       const kb=$('#keyboard'); kb.innerHTML='';
-      // 根據容器寬度設定鍵盤寬度：寬度夠 → 100%，太窄 → 需要捲動的最小總寬
-      sizeKeyboard();
+      sizeKeyboard(); // 先決定寬度
 
-      const total=WHITE.length; const keyW=100/total;
+      const keyW = 100 / TOTAL_WHITE;
+
       // 白鍵
       WHITE.forEach((note,i)=>{
         const w=document.createElement('div'); w.className='white'; w.dataset.note=note;
@@ -146,16 +155,17 @@
         }
         kb.appendChild(w);
       });
+
       // 黑鍵
       WHITE.forEach((note,i)=>{
-        const n0=note[0], sharp=BLACK_AFTER[n0]?BLACK_AFTER[n0]+note.slice(1):null;
-        if(!sharp || (n0==='A' && i===WHITE.length-1)) return;
+        const l=note[0], sharp=BLACK_AFTER[l]?BLACK_AFTER[l]+note.slice(1):null;
+        if(!sharp || (l==='A' && i===TOTAL_WHITE-1)) return;
         const b=document.createElement('div'); b.className='black'; b.dataset.note=sharp;
-        b.style.left=`calc(${i*(100/total)}% + ${(100/total)*0.68}%)`;
+        b.style.left=`calc(${i*keyW}% + ${keyW*0.68}%)`;
         kb.appendChild(b);
       });
 
-      setStatus(`初始化完成｜白鍵 ${WHITE.length}`);
+      setStatus(`初始化完成｜白鍵 ${TOTAL_WHITE}`);
 
       const down=el=>{
         const k=el?.closest('.black,.white'); if(!k) return;
@@ -166,36 +176,34 @@
       };
       const up=el=>{ const k=el?.closest('.black,.white'); if(k) k.classList.remove('active'); };
 
+      // 不再阻擋原生捲動：移除 preventDefault
       kb.addEventListener('pointerdown',e=>down(e.target));
       kb.addEventListener('pointerup',e=>up(e.target));
       kb.addEventListener('touchstart',e=>{
-        if(e.touches?.length) e.preventDefault();
-        const t=e.touches[0]||e.changedTouches[0];
-        const el=document.elementFromPoint(t.clientX,t.clientY);
+        const t=(e.touches&&e.touches[0])||(e.changedTouches&&e.changedTouches[0]);
+        const el=t?document.elementFromPoint(t.clientX,t.clientY):e.target;
         down(el);
-      },{passive:false});
+      },{passive:true});
       kb.addEventListener('touchend',e=>{
-        const t=e.changedTouches?.[0]; if(!t) return;
+        const t=e.changedTouches&&e.changedTouches[0]; if(!t) return;
         const el=document.elementFromPoint(t.clientX,t.clientY);
         up(el);
-      },{passive:false});
+      },{passive:true});
       kb.addEventListener('mousedown',e=>down(e.target));
       kb.addEventListener('mouseup',e=>up(e.target));
     }
 
-    // 依視窗尺寸調整鍵盤寬度（橫向剛好、直向可捲）
+    // 橫向剛好、直向可捲
     function sizeKeyboard(){
       const wrap = document.querySelector('.kb-wrap');
       const kb   = document.querySelector('#keyboard');
       const wrapW = wrap.clientWidth;
-      const minKeyboardWidth = WHITE.length * MIN_WHITE_PX; // 需要捲動的最小總寬
+      const minW = TOTAL_WHITE * (MIN_WHITE_PX + parseInt(getComputedStyle(kb).getPropertyValue('--sep')||'2'));
 
-      if (wrapW >= minKeyboardWidth){
-        // 橫向或寬螢幕：鍵盤寬度 = 容器寬度，剛剛好不捲動
-        kb.style.width = '100%';
+      if (wrapW >= minW){
+        kb.style.width = (wrapW - 1) + 'px'; // 減 1px 避免浮點四捨五入造成最後一鍵被吃
       }else{
-        // 直立窄螢幕：鍵盤固定最小寬，外層出現水平卷軸
-        kb.style.width = minKeyboardWidth + 'px';
+        kb.style.width = minW + 'px';
       }
     }
 
@@ -206,14 +214,12 @@
         .catch(err=>setStatus('記錄失敗：'+err.message));
     }
 
-    // 監聽尺寸／方向變化，動態調整寬度
     window.addEventListener('resize', sizeKeyboard);
     window.addEventListener('orientationchange', sizeKeyboard);
 
     window.addEventListener('DOMContentLoaded', ()=>{
       buildKeyboard();
       $('#unlockBtn').addEventListener('click', unlockAudio, {once:true});
-      // 初次載入也計算一次
       sizeKeyboard();
     });
   </script>
