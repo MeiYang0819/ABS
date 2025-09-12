@@ -3,54 +3,60 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>互動音符</title>
+<!-- 可愛圓體字型 -->
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@700&display=swap" rel="stylesheet">
 <style>
-  :root{ --rim:#e4e7ef; --ink:#0f172a; --kb-h:280px; --sep:2px; }
+  :root{ --page:#f6f7fb; --panel:#fff; --rim:#e4e7ef; --ink:#0f172a; --kb-h:280px; --sep:2px; }
   *{box-sizing:border-box}
-
-  /* 頁面背景：較深淡紫漸層 */
   html,body{
-    margin:0; color:var(--ink);
+    margin:0;
     font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;
-    background:linear-gradient(135deg,#e6dfff 0%, #dcd4ff 100%);
+    background:linear-gradient(135deg,#e6dfff 0%, #dcd4ff 100%); /* 背景深淡紫漸層 */
+    color:var(--ink);
   }
-
-  /* 互動音符外框：玻璃質感（渲染） */
   .panel{
     max-width:1060px;margin:22px auto;
-    background:rgba(255,255,255,.58);
-    border:1px solid rgba(255,255,255,.65);
+    background:rgba(255,255,255,.6);
     border-radius:16px;
     padding:18px 18px 26px;
     box-shadow:0 10px 30px rgba(98,76,171,.12);
-    backdrop-filter:blur(10px) saturate(120%);
+    backdrop-filter:blur(12px) saturate(120%);
   }
-  h2{margin:4px 0 12px;text-align:center;}
+  h2{
+    margin:4px 0 12px;
+    text-align:center;
+    font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif; /* 可愛圓體 */
+    font-weight:700;
+    letter-spacing:.5px;
+  }
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   input{padding:8px 10px;border:1px solid var(--rim);border-radius:10px;min-width:220px}
   #status{background:#eef2f7;border:1px solid var(--rim);border-radius:12px;padding:10px;margin-top:10px;font-size:14px;white-space:pre-wrap;color:#334155}
 
-  /* 鍵盤外框：更淺的淡紫漸層（實心，避免染到琴鍵） */
+  /* 鍵盤區：淺淡紫漸層 */
   .kb-wrap{
-    overflow-x:auto; -webkit-overflow-scrolling:touch;
-    background:linear-gradient(180deg,#f7f2ff 0%, #ede9fe 100%);
-    border:1px solid var(--rim); border-radius:14px; margin-top:14px
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    background:linear-gradient(180deg,#f5f0ff 0%, #ede9fe 100%);
+    border:1px solid var(--rim);
+    border-radius:14px;
+    margin-top:14px;
   }
 
   #keyboard{
-    position:relative; height:var(--kb-h);
-    user-select:none; -webkit-user-select:none;
-    touch-action:pan-x; /* 直向可水平捲動 */
+    position:relative;height:var(--kb-h);
+    user-select:none;-webkit-user-select:none;
+    touch-action:pan-x;
   }
 
-  /* 白鍵（保持黑白，無混色） */
+  /* 白鍵 */
   .white{
-    position:absolute; bottom:0; height:100%;
+    position:absolute;bottom:0;height:100%;
     background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5);
     border-radius:0 0 12px 12px;
     box-shadow:inset 0 -12px 16px rgba(0,0,0,.12),
                inset 0 1px 0 rgba(255,255,255,.9),
                0 1px 0 rgba(0,0,0,.04);
-    mix-blend-mode:normal;
   }
   .white::after{
     content:""; position:absolute; top:0; bottom:0; right:0; width:var(--sep);
@@ -62,24 +68,24 @@
   }
   .white.active{filter:brightness(1.06)}
 
-  /* 黑鍵（保持黑色系） */
+  /* 黑鍵 */
   .black{
-    position:absolute; bottom:38%; height:62%; width:6.4%;
+    position:absolute;bottom:38%;height:62%;
+    width:6.4%;
     background:linear-gradient(#2d2f36,#0e0f13);
-    border:1px solid #0b0d11; border-top:none;
-    border-radius:0 0 10px 10px; z-index:5;
-    box-shadow:inset 0 -6px 10px rgba(0,0,0,.45), 0 3px 10px rgba(0,0,0,.35);
-    mix-blend-mode:normal;
+    border:1px solid #0b0d11;border-top:none;
+    border-radius:0 0 10px 10px;z-index:5;
+    box-shadow:inset 0 -6px 10px rgba(0,0,0,.45),
+               0 3px 10px rgba(0,0,0,.35);
   }
   .black.active{filter:brightness(1.22)}
 
   .label{
-    position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
-    font-size:11px; color:#475569; background:#ffffffee; border:1px solid var(--rim);
-    padding:2px 6px; border-radius:8px
+    position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+    font-size:11px;color:#475569;background:#ffffffee;border:1px solid var(--rim);
+    padding:2px 6px;border-radius:8px
   }
 
-  /* 解鎖遮罩 */
   #unlockOverlay{
     position:fixed; inset:0; background:rgba(0,0,0,.55); color:#fff;
     display:flex; align-items:center; justify-content:center; z-index:9999;
@@ -117,29 +123,24 @@
     const $ = s => document.querySelector(s);
     const setStatus = m => $('#status').textContent = m;
 
-    // ===== 音訊 =====
     let audioCtx=null, sampler=null, samplerReady=false, unlocked=false;
 
-    // ===== 鍵盤配置 =====
     const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
     const BLACK_AFTER={ 'C':'C#','D':'D#','F':'F#','G':'G#','A':'A#' };
-    const MIN_WHITE_PX = 64, TOTAL_WHITE = WHITE.length;
+    const MIN_WHITE_PX=64, TOTAL_WHITE=WHITE.length;
 
-    // 取樣
-    const BASE = new URL('./piano/', location.href).href;
-    const URLS = {
-      'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3',
-      'C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3',
-      'C4':'C4.mp3','D#4':'Ds4.mp3','F#4':'Fs4.mp3','A4':'A4.mp3','C5':'C5.mp3'
-    };
+    const BASE=new URL('./piano/',location.href).href;
+    const URLS={'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3',
+                'C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3',
+                'C4':'C4.mp3','D#4':'Ds4.mp3','F#4':'Fs4.mp3','A4':'A4.mp3','C5':'C5.mp3'};
 
-    async function unlockAudio(){
+    function unlockAudio(){
       try{
-        const Ctx = window.webkitAudioContext || window.AudioContext;
-        if(!audioCtx) audioCtx = new Ctx({ latencyHint:'interactive' });
-        if(audioCtx.state!=='running') await audioCtx.resume();
+        const Ctx=window.webkitAudioContext||window.AudioContext;
+        if(!audioCtx) audioCtx=new Ctx({latencyHint:'interactive'});
+        if(audioCtx.state!=='running') audioCtx.resume();
         Tone.setContext(new Tone.Context(audioCtx));
-        await Tone.start();
+        Tone.start();
         loadSampler();
         unlocked=true;
         $('#unlockOverlay').style.display='none';
@@ -149,8 +150,8 @@
 
     function loadSampler(){
       if(sampler||samplerReady) return;
-      sampler = new Tone.Sampler({
-        urls:URLS, release:1, baseUrl:BASE,
+      sampler=new Tone.Sampler({
+        urls:URLS,release:1,baseUrl:BASE,
         onload:()=>{ samplerReady=true; setStatus('鋼琴取樣已載入 ✅'); }
       }).toDestination();
     }
@@ -160,14 +161,11 @@
       sampler.triggerAttackRelease(note,'8n');
     }
 
-    // ===== 建鍵盤 =====
-    let eventsBound = false;               // 防止重複綁事件
     function buildKeyboard(){
       const kb=$('#keyboard'); kb.innerHTML='';
       sizeKeyboard();
-      const keyW = 100 / TOTAL_WHITE;
+      const keyW=100/TOTAL_WHITE;
 
-      // 白鍵
       WHITE.forEach((note,i)=>{
         const w=document.createElement('div'); w.className='white'; w.dataset.note=note;
         w.style.left=`${i*keyW}%`; w.style.width=`${keyW}%`;
@@ -176,10 +174,10 @@
         }
         kb.appendChild(w);
       });
-      // 黑鍵
+
       WHITE.forEach((note,i)=>{
-        const l=note[0], sharp=BLACK_AFTER[l]?BLACK_AFTER[l]+note.slice(1):null;
-        if(!sharp || (l==='A' && i===TOTAL_WHITE-1)) return;
+        const l=note[0],sharp=BLACK_AFTER[l]?BLACK_AFTER[l]+note.slice(1):null;
+        if(!sharp||(l==='A'&&i===TOTAL_WHITE-1)) return;
         const b=document.createElement('div'); b.className='black'; b.dataset.note=sharp;
         b.style.left=`calc(${i*keyW}% + ${keyW*0.68}%)`;
         kb.appendChild(b);
@@ -187,52 +185,39 @@
 
       setStatus(`初始化完成｜白鍵 ${TOTAL_WHITE}`);
 
-      if (!eventsBound){
-        bindKeyboardEvents(kb);
-        eventsBound = true;
-      }
-    }
-
-    // ===== 單一 Pointer 事件 + 防重複 =====
-    function bindKeyboardEvents(kb){
-      const activePointers = new Set();
-
-      function handleDown(target, e){
-        if(e && e.button !== undefined && e.button !== 0) return; // 只處理左鍵
-        const key = target?.closest('.black,.white'); if(!key) return;
+      const down=el=>{
+        const k=el?.closest('.black,.white'); if(!k) return;
         if(!unlocked) unlockAudio();
-        playNote(key.dataset.note);
-        log(key.dataset.note);
-        key.classList.add('active');
-      }
-      function handleUp(target){
-        const key = target?.closest('.black,.white'); if(key) key.classList.remove('active');
-      }
+        playNote(k.dataset.note);
+        log(k.dataset.note);
+        k.classList.add('active');
+      };
+      const up=el=>{ const k=el?.closest('.black,.white'); if(k) k.classList.remove('active'); };
 
-      kb.addEventListener('pointerdown', (e)=>{
-        if(activePointers.has(e.pointerId)) return;
-        activePointers.add(e.pointerId);
-        handleDown(e.target, e);
-      }, {passive:true});
+      // 手機專用
+      kb.addEventListener('touchstart',e=>{
+        const t=e.touches[0]||e.changedTouches[0];
+        const el=document.elementFromPoint(t.clientX,t.clientY);
+        down(el);
+      },{passive:true});
+      kb.addEventListener('touchend',e=>{
+        const t=e.changedTouches[0]; if(!t) return;
+        const el=document.elementFromPoint(t.clientX,t.clientY);
+        up(el);
+      },{passive:true});
 
-      kb.addEventListener('pointerup', (e)=>{
-        activePointers.delete(e.pointerId);
-        handleUp(e.target);
-      }, {passive:true});
-
-      kb.addEventListener('pointercancel', (e)=>{
-        activePointers.delete(e.pointerId);
-        handleUp(e.target);
-      }, {passive:true});
+      // 桌機專用（只保留 pointer，不重複）
+      kb.addEventListener('pointerdown',e=>down(e.target));
+      kb.addEventListener('pointerup',e=>up(e.target));
     }
 
-    // 橫向剛好、直向可捲
     function sizeKeyboard(){
-      const wrap = document.querySelector('.kb-wrap');
-      const kb   = document.querySelector('#keyboard');
-      const wrapW = wrap.clientWidth;
-      const minW = TOTAL_WHITE * (MIN_WHITE_PX + parseInt(getComputedStyle(kb).getPropertyValue('--sep')||'2'));
-      kb.style.width = (wrapW >= minW ? wrapW - 1 : minW) + 'px';
+      const wrap=document.querySelector('.kb-wrap');
+      const kb=document.querySelector('#keyboard');
+      const wrapW=wrap.clientWidth;
+      const minW=TOTAL_WHITE*(MIN_WHITE_PX+parseInt(getComputedStyle(kb).getPropertyValue('--sep')||'2'));
+      if(wrapW>=minW){ kb.style.width=(wrapW-1)+'px'; }
+      else{ kb.style.width=minW+'px'; }
     }
 
     function log(n){
@@ -242,11 +227,12 @@
         .catch(err=>setStatus('記錄失敗：'+err.message));
     }
 
-    window.addEventListener('resize', sizeKeyboard);
-    window.addEventListener('orientationchange', sizeKeyboard);
-    window.addEventListener('DOMContentLoaded', ()=>{
+    window.addEventListener('resize',sizeKeyboard);
+    window.addEventListener('orientationchange',sizeKeyboard);
+
+    window.addEventListener('DOMContentLoaded',()=>{
       buildKeyboard();
-      $('#unlockBtn').addEventListener('click', unlockAudio, {once:true});
+      $('#unlockBtn').addEventListener('click',unlockAudio,{once:true});
       sizeKeyboard();
     });
   </script>
