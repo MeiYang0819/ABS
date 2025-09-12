@@ -4,20 +4,42 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>互動音符</title>
 <style>
-  :root{ --page:#f6f7fb; --panel:#fff; --rim:#e4e7ef; --ink:#0f172a; --kb-h:280px; --sep:2px; }
+  :root{
+    --panel:#fff; --rim:#e4e7ef; --ink:#0f172a; --kb-h:280px; --sep:2px;
+  }
   *{box-sizing:border-box}
-  html,body{margin:0;background:var(--page);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif}
-  .panel{max-width:1060px;margin:22px auto;background:var(--panel);border-radius:16px;padding:18px 18px 26px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+  html,body{
+    margin:0; color:var(--ink);
+    font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;
+    /* 柔和淡紫色漸層背景 */
+    background:
+      radial-gradient(1200px 900px at 85% -10%, #ede9fe 0%, transparent 60%),
+      radial-gradient(900px 700px  at -10% 90%, #f5f3ff 0%, transparent 60%),
+      linear-gradient(135deg, #faf5ff 0%, #f3e8ff 36%, #ede9fe 65%, #faf5ff 100%);
+    background-attachment: fixed;
+  }
+
+  .panel{
+    max-width:1060px;margin:22px auto;background:var(--panel);
+    border-radius:16px;padding:18px 18px 26px;
+    box-shadow:0 10px 30px rgba(98,76,171,.15);
+    backdrop-filter:saturate(115%) blur(0.5px);
+  }
   h2{margin:4px 0 12px; text-align:center;}
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  input{padding:8px 10px;border:1px solid var(--rim);border-radius:10px;min-width:220px}
-  #status{background:#eef2f7;border:1px solid var(--rim);border-radius:12px;padding:10px;margin-top:10px;font-size:14px;white-space:pre-wrap;color:#334155}
+  input{
+    padding:8px 10px;border:1px solid var(--rim);border-radius:10px;min-width:220px;flex:1
+  }
+  #status{
+    background:#eef2f7;border:1px solid var(--rim);border-radius:12px;
+    padding:10px;margin-top:10px;font-size:14px;white-space:pre-wrap;color:#334155
+  }
 
   /* 直向可水平捲動；橫向寬度夠時不捲動 */
   .kb-wrap{
     overflow-x:auto;
     -webkit-overflow-scrolling:touch;
-    background:#e9edf4;border:1px solid var(--rim);border-radius:14px;margin-top:14px
+    background:#e9edf4cc;border:1px solid var(--rim);border-radius:14px;margin-top:14px
   }
 
   /* 允許原生橫向捲動（關鍵），高度固定 */
@@ -176,7 +198,7 @@
       };
       const up=el=>{ const k=el?.closest('.black,.white'); if(k) k.classList.remove('active'); };
 
-      // 不再阻擋原生捲動：移除 preventDefault
+      // 不阻擋原生捲動
       kb.addEventListener('pointerdown',e=>down(e.target));
       kb.addEventListener('pointerup',e=>up(e.target));
       kb.addEventListener('touchstart',e=>{
@@ -201,7 +223,7 @@
       const minW = TOTAL_WHITE * (MIN_WHITE_PX + parseInt(getComputedStyle(kb).getPropertyValue('--sep')||'2'));
 
       if (wrapW >= minW){
-        kb.style.width = (wrapW - 1) + 'px'; // 減 1px 避免浮點四捨五入造成最後一鍵被吃
+        kb.style.width = (wrapW - 1) + 'px'; // 減 1px 避免浮點誤差導致吃邊
       }else{
         kb.style.width = minW + 'px';
       }
