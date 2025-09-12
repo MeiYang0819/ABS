@@ -2,47 +2,47 @@
 <html lang="zh-Hant">
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>鋼琴鍵盤（美化版｜固定 piano｜Webhook）</title>
+<title>鋼琴鍵盤（美化完成｜固定 piano｜Webhook）</title>
 <style>
   :root{
-    --panel-bg:#ffffff;--page:#f6f7fb;--ink:#0f172a;--muted:#7a8396;--rim:#e4e7ef;
+    --page:#f6f7fb; --panel:#fff; --rim:#e4e7ef; --ink:#0f172a; --muted:#64748b;
   }
   *{box-sizing:border-box}
-  body{font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;margin:0;background:var(--page);color:var(--ink)}
-  .panel{max-width:980px;margin:20px auto;background:var(--panel-bg);border-radius:16px;padding:16px 16px 24px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
-  h2{margin:6px 0 12px}
-  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-  input{padding:8px 10px;border:1px solid var(--rim);border-radius:10px}
-  #status{background:#eef1f6;border:1px solid var(--rim);border-radius:12px;padding:10px;margin-top:10px;font-size:14px;white-space:pre-wrap;color:#334155}
+  html,body{margin:0;background:var(--page);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif}
+  .panel{max-width:1060px;margin:22px auto;background:var(--panel);border-radius:16px;padding:18px 18px 26px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+  h2{margin:4px 0 12px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  input{padding:8px 10px;border:1px solid var(--rim);border-radius:10px;min-width:220px}
+  #status{background:#eef2f7;border:1px solid var(--rim);border-radius:12px;padding:10px;margin-top:10px;font-size:14px;white-space:pre-wrap;color:#334155}
 
-  .kb-wrap{overflow-x:auto;background:#eceff4;border-radius:14px;margin-top:14px;border:1px solid var(--rim)}
-  #keyboard{position:relative;height:260px;min-width:860px;user-select:none;-webkit-user-select:none}
+  .kb-wrap{overflow-x:auto;background:#e9edf4;border:1px solid var(--rim);border-radius:14px;margin-top:14px}
+  #keyboard{position:relative;height:280px;min-width:980px;user-select:none;-webkit-user-select:none}
 
-  /* White keys */
+  /* white keys */
   .white{position:absolute;bottom:0;height:100%;
-    background:linear-gradient(#fff,#eceef2 70%,#d8dbe2);
+    background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5);
     border-radius:0 0 12px 12px;
-    border:1px solid #cfd3dc;border-top:none;
-    box-shadow:inset 0 -10px 14px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.9),0 1px 0 rgba(0,0,0,.04);
+    border-left:1px solid #cfd3dc; border-right:1px solid #cfd3dc;
+    box-shadow:inset 0 -12px 16px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.9),0 1px 0 rgba(0,0,0,.04);
   }
   .white.active{filter:brightness(1.06)}
 
-  /* Black keys */
-  .black{position:absolute;bottom:36%;height:64%;
-    background:linear-gradient(#303136,#0f1115);
-    border:1px solid #0b0c0f;border-top:none;
+  /* black keys */
+  .black{position:absolute;bottom:38%;height:62%;
+    background:linear-gradient(#2d2f36,#0e0f13);
+    border:1px solid #0b0d11;border-top:none;
     border-radius:0 0 10px 10px;z-index:3;
-    box-shadow:inset 0 -6px 10px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.35);
+    box-shadow:inset 0 -6px 10px rgba(0,0,0,.45),0 3px 10px rgba(0,0,0,.35);
   }
-  .black.active{filter:brightness(1.25)}
+  .black.active{filter:brightness(1.22)}
 
-  .label{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+  .label{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
     font-size:11px;color:#475569;background:#ffffffee;border:1px solid var(--rim);
-    padding:2px 6px;border-radius:8px;}
+    padding:2px 6px;border-radius:8px}
 </style>
 <body>
   <div class="panel">
-    <h2>鋼琴鍵盤（美化版｜固定 piano｜Webhook）</h2>
+    <h2>鋼琴鍵盤（美化完成｜固定 piano｜Webhook）</h2>
     <div class="row">
       <label for="displayName">顯示名稱：</label>
       <input id="displayName" placeholder="例如：小明" />
@@ -51,7 +51,6 @@
     <div class="kb-wrap"><div id="keyboard"></div></div>
   </div>
 
-  <!-- Tone.js -->
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
   <script>
     const WEBHOOK = "https://script.google.com/macros/s/AKfycbw3rDKy-mjN93ValBMs28ndCFv5IbqjupDgn9rHvqYOqJwo5If3DdB1zVervdluT8YW/exec"; // 固定 /exec
@@ -60,7 +59,7 @@
     const statusEl = $('#status');
 
     let engineReady=false;
-    let synth=null;            // 保底合成器（立即出聲）
+    let synth=null;            // 保底合成器
     let sampler=null;          // 鋼琴取樣（固定 ./piano/）
     let samplerReady=false;
 
@@ -71,12 +70,11 @@
       await Tone.start();
       synth = new Tone.PolySynth(Tone.Synth).toDestination();
       synth.set({ oscillator:{type:'triangle'}, envelope:{attack:0.002, decay:0.12, sustain:0.2, release:0.25} });
-      engineReady=true;
-      setStatus('音源就緒 ✅（先合成器，背景載入鋼琴取樣）');
+      engineReady=true; setStatus('音源就緒 ✅（先合成器，背景載入鋼琴取樣）');
       ensureSampler();
     }
 
-    // 取樣檔固定在 ./piano/
+    // 取樣固定在 ./piano/
     const BASE='./piano/';
     const URLS={
       'A1':'A1.mp3',
@@ -92,43 +90,41 @@
       }catch(e){ setStatus('鋼琴取樣載入失敗（維持合成器）'); }
     }
 
-    // ===== 14 個白鍵（C3 ~ B4）與黑鍵配置 =====
+    // === 14 白鍵 + 黑鍵 ===
     const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
     const BLACK_AFTER={ 'C':'C#', 'D':'D#', 'F':'F#', 'G':'G#', 'A':'A#' };
 
     function buildKeyboard(){
       const kb=$('#keyboard'); kb.innerHTML='';
-      const total=WHITE.length, keyW=100/total;
+      const total=WHITE.length; const keyW=100/total;
 
-      // Draw whites first
+      // white keys
       WHITE.forEach((note,i)=>{
         const w=document.createElement('div'); w.className='white'; w.dataset.note=note;
-        w.style.left=`${i*keyW}%`; w.style.width=`calc(${keyW}% - 1px)`;
-        if(note.startsWith('C') || note.startsWith('G')){
+        // -1px 讓左右邊界線不重疊成粗線
+        w.style.left=`${i*keyW}%`; w.style.width=`calc(${keyW}% - 2px)`;
+        if(note.startsWith('C')||note.startsWith('G')){
           const lab=document.createElement('div'); lab.className='label'; lab.textContent=note; w.appendChild(lab);
         }
         kb.appendChild(w);
       });
 
-      // Then blacks
+      // black keys（放後面，覆蓋在白鍵上）
       WHITE.forEach((note,i)=>{
-        const n0=note[0];
-        const sharp=BLACK_AFTER[n0] ? BLACK_AFTER[n0] + note.slice(1) : null;
-        // 邊界情況：最後一個 A 不放 A#
-        if(!sharp || (n0==='A' && i===WHITE.length-1)) return;
+        const n0=note[0]; const sharp=BLACK_AFTER[n0] ? BLACK_AFTER[n0] + note.slice(1) : null;
+        if(!sharp || (n0==='A' && i===WHITE.length-1)) return; // 最右側不放 A#
         const b=document.createElement('div'); b.className='black'; b.dataset.note=sharp;
         b.style.width=`${keyW*0.64}%`;
-        b.style.left=`calc(${i*keyW}% + ${keyW*0.66}%)`;
+        b.style.left=`calc(${i*keyW}% + ${keyW*0.68}%)`;
         kb.appendChild(b);
       });
 
-      // Events
+      // events（黑鍵優先）
       kb.addEventListener('pointerdown', async e=>{
-        const t=e.target.closest('.black,.white'); if(!t) return; // 黑鍵優先
+        const t=e.target.closest('.black,.white'); if(!t) return;
         t.setPointerCapture?.(e.pointerId);
         await ensureEngine();
-        playNote(t.dataset.note);
-        log(t.dataset.note);
+        playNote(t.dataset.note); log(t.dataset.note);
         t.classList.add('active');
       });
       kb.addEventListener('pointerup', e=>{
@@ -137,8 +133,8 @@
     }
 
     function playNote(note){
-      if(synth) synth.triggerAttackRelease(note,'8n'); // 立即
-      if(samplerReady && sampler){ sampler.triggerAttackRelease(note,'8n'); }
+      if(synth) synth.triggerAttackRelease(note,'8n');
+      if(samplerReady && sampler) sampler.triggerAttackRelease(note,'8n');
     }
 
     function log(note){
@@ -148,7 +144,6 @@
         .catch(err=>setStatus('記錄失敗：'+err.message));
     }
 
-    // boot
     buildKeyboard();
   </script>
 </body>
