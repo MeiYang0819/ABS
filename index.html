@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  :root{ --rim:#e4e7ef; --ink:#0f172a; --stroke:rgba(0,0,0,.18); --glow:rgba(255,255,255,.65); }
+  :root{ --rim:#e4e7ef; --ink:#0f172a; }
   *{ box-sizing:border-box; font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif !important; }
 
   body{ margin:0; color:var(--ink); background:linear-gradient(135deg,#e6dfff 0%, #dcd4ff 100%); }
@@ -15,21 +15,21 @@
     padding:18px 18px 26px; box-shadow:0 10px 30px rgba(98,76,171,.12); backdrop-filter:blur(10px) saturate(120%); }
   h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; }
 
-  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-start}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .row label{opacity:.92;white-space:nowrap}
   .row input, .row select, .row button{
     padding:8px 10px;
     border:1px solid var(--rim);
     border-radius:10px;
-    width:120px;   /* ✅ 統一固定寬度 */
-    height:38px;
+    width:120px; height:38px;
     font-size:14px;
     background:#fff;
   }
   .row button{ cursor:pointer; font-weight:600; }
   .row button:disabled{opacity:.55;cursor:not-allowed}
 
-  #status{ margin:12px auto; text-align:center; font-size:15px; font-weight:500; color:#334155; }
+  #status{ margin:14px auto; text-align:center; font-size:15px; font-weight:500; color:#334155; }
+
   .kb-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--rim); border-radius:14px; margin-top:14px; background:#fafafa }
   #keyboard{ position:relative; height:280px; }
   .white{ position:absolute; bottom:0; height:100%; background:#fff; border:1px solid #ccc; border-radius:0 0 6px 6px; }
@@ -39,6 +39,7 @@
   <div class="panel">
     <h2>互動音符</h2>
 
+    <!-- 第二行 -->
     <div class="row">
       <label for="displayName">親友姓名：</label>
       <input id="displayName" placeholder="例如：小明" />
@@ -58,9 +59,112 @@
       <button id="lockBtn" disabled>確認鎖定</button>
     </div>
 
+    <!-- 狀態列 -->
     <div id="status">鋼琴取樣已載入 ✅</div>
 
+    <!-- 鍵盤 -->
     <div class="kb-wrap"><div id="keyboard"></div></div>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
+  <script>
+    const WEBHOOK = "https://script.google.com/macros/s/XXXXX/exec"; // 改成你的 Apps Script URL
+    const $ = s => document.querySelector(s);
+    let audioCtx, sampler, unlocked=false, currentInstrument="piano", lastNote="";
+
+    // 音色對應
+    const SAMPLE_MAPS = {
+      piano: {
+        baseUrl: "./piano/",
+        urls: {'C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3','C4':'C4.mp3','D#4':'Ds4.mp3','F#4':'Fs4.mp3','A4':'A4.mp3','C5':'C5.mp3'}
+      },
+      guitar: {
+        baseUrl: "./guitar/",
+        urls: {'C3':'C3.wav','D#3':'Ds3.wav','F#3':'Fs3.wav','A3':'A3.wav','C4':'C4.wav','D#4':'Ds4.wav','F#4':'Fs4.wav','A4':'A4.wav','C5':'C5.wav'}
+      }
+    };
+
+    async function initAudio(){
+      if(unlocked) return;
+      const Ctx=window.AudioContext||window.webkitAudioContext;
+      audioCtx=new Ctx();
+      Tone.setContext(new Tone.Context(audioCtx));
+      await Tone.start();
+      unlocked=true;
+      loadSampler("piano");
+    }
+
+    function loadSampler(instrument){
+      if(sampler) sampler.dispose();
+      const conf=SAMPLE_MAPS[instrument];
+      sampler=new Tone.Sampler({
+        urls: conf.urls, baseUrl: conf.baseUrl, release:1,
+        onload:()=>{ $("#status").textContent = (instrument==="piano"?"鋼琴":"吉他")+"取樣已載入 ✅"; }
+      }).toDestination();
+      currentInstrument=instrument;
+    }
+
+    function buildKeyboard(){
+      const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
+      const BLACK_AFTER={C:"C#",D:"D#",F:"F#",G:"G#",A:"A#"};
+      const kb=$("#keyboard"); kb.innerHTML="";
+      const keyW=100/WHITE.length;
+
+      WHITE.forEach((n,i)=>{
+        const w=document.createElement("div"); w.className="white"; w.dataset.note=n;
+        w.style.left=`${i*keyW}%`; w.style.width=`${keyW}%`;
+        kb.appendChild(w);
+        if(BLACK_AFTER[n[0]]){
+          const sharp=BLACK_AFTER[n[0]]+n.slice(1);
+          if(sharp[0]!=="B" && sharp[0]!=="E"){
+            const b=document.createElement("div"); b.className="black"; b.dataset.note=sharp;
+            b.style.left=`calc(${i*keyW}% + ${keyW*0.7}%)`;
+            kb.appendChild(b);
+          }
+        }
+      });
+
+      kb.addEventListener("pointerdown",e=>{handleDown(e.target)});
+      kb.addEventListener("pointerup",e=>{handleUp(e.target)});
+      kb.addEventListener("touchstart",e=>{
+        const t=e.touches[0]; handleDown(document.elementFromPoint(t.clientX,t.clientY));
+      });
+      kb.addEventListener("touchend",e=>{
+        const t=e.changedTouches[0]; handleUp(document.elementFromPoint(t.clientX,t.clientY));
+      });
+    }
+
+    function handleDown(el){
+      const k=el?.closest(".white,.black"); if(!k) return;
+      if(!unlocked) initAudio();
+      sampler.triggerAttackRelease(k.dataset.note,"8n");
+      lastNote=k.dataset.note;
+      $("#lastNote").value=lastNote;
+      $("#lockBtn").disabled=false;
+      k.classList.add("active");
+    }
+    function handleUp(el){ const k=el?.closest(".white,.black"); if(k) k.classList.remove("active"); }
+
+    $("#instrument").addEventListener("change",e=>{
+      loadSampler(e.target.value);
+    });
+
+    $("#lockBtn").addEventListener("click",()=>{
+      const payload={
+        userId:"guest",
+        displayName:$("#displayName").value||"Guest",
+        code:$("#code").value||"",
+        instrument:currentInstrument,
+        note:lastNote,
+        velocity:1,
+        sessionId:"demo"
+      };
+      fetch(WEBHOOK,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(payload)});
+      $("#status").textContent="已送出鎖定 ✅";
+      $("#lockBtn").disabled=true;
+    });
+
+    window.addEventListener("DOMContentLoaded",()=>{ buildKeyboard(); });
+  </script>
 </body>
 </html>
