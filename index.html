@@ -3,7 +3,6 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>互動音符</title>
-<!-- 可愛圓體 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
@@ -34,6 +33,7 @@
     -webkit-text-stroke:.7px var(--stroke);
     text-shadow:0 3px 4px rgba(255,255,255,.85);
   }
+
   /* 第二行：等寬 120×38 */
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .row label{opacity:.92;white-space:nowrap}
@@ -53,16 +53,16 @@
     font-size:14px;white-space:pre-wrap;color:#334155;text-align:center;
   }
 
-  /* 鍵盤外框 */
+  /* 鍵盤外框 / 指板外框（共用容器） */
   .kb-wrap{
     overflow-x:auto; -webkit-overflow-scrolling:touch;
     background:linear-gradient(180deg,#f7f2ff 0%, #ede9fe 100%);
-    border:1px solid var(--rim); border-radius:14px; margin-top:14px
+    border:1px solid var(--rim); border-radius:14px; margin-top:14px;
   }
   #keyboard{ position:relative; height:var(--kb-h);
     user-select:none; -webkit-user-select:none; touch-action:pan-x; }
 
-  /* 白鍵/黑鍵還原 */
+  /* ====== 鋼琴樣式 ====== */
   .white{
     position:absolute; bottom:0; height:100%;
     background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5);
@@ -80,7 +80,6 @@
     background:linear-gradient(transparent,#cfd3dc 50%,transparent);
   }
   .white.active{filter:brightness(1.06)}
-
   .black{
     position:absolute; bottom:38%; height:62%; width:6.4%;
     background:linear-gradient(#2d2f36,#0e0f13);
@@ -90,7 +89,6 @@
                0 3px 10px rgba(0,0,0,.35);
   }
   .black.active{filter:brightness(1.22)}
-
   .label{
     position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
     font-size:11px; color:#475569; background:#ffffffee; border:1px solid var(--rim);
@@ -99,16 +97,34 @@
     text-shadow:0 1px 0 rgba(255,255,255,.6);
   }
 
-  /* 音訊解鎖 */
-  #unlockOverlay{ position:fixed; inset:0; background:rgba(0,0,0,.55); color:#fff;
-    display:flex; align-items:center; justify-content:center; z-index:9999; }
-  #unlockCard{ background:#0b1220; padding:18px 20px; border-radius:16px; width:min(92%,420px);
-    box-shadow:0 18px 45px rgba(0,0,0,.5); text-align:center}
-  #unlockCard button{ margin-top:12px; padding:10px 14px; border-radius:12px; border:0; cursor:pointer}
+  /* ====== 吉他指板樣式 ====== */
+  .fretboard{ position:relative; display:grid; grid-auto-flow:column;
+    grid-auto-columns:64px; /* 每個品寬 */
+    height:var(--kb-h); background:linear-gradient(#f2ecff,#e6defe); }
+  .fret-col{ position:relative; border-left:2px solid rgba(0,0,0,.12); }
+  .nut{ position:absolute; left:0; top:0; bottom:0; width:6px;
+    background:linear-gradient(#ddd,#bbb); border-right:2px solid #9aa0a6; z-index:3; }
+  .string{
+    position:absolute; left:0; right:0; height:2px; background:linear-gradient(#666,#333);
+    opacity:.85;
+  }
+  .marker{
+    position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
+    font-size:12px; color:#6b7280; background:#ffffffd0; border:1px solid var(--rim);
+    padding:1px 6px; border-radius:999px;
+  }
+  .note-btn{
+    position:absolute; width:28px; height:28px; border-radius:50%;
+    background:#ffffff; border:2px solid #8b5cf6; box-shadow:0 2px 8px rgba(0,0,0,.15);
+    display:flex; align-items:center; justify-content:center; font-size:12px; color:#4c1d95; cursor:pointer;
+    transform:translate(-50%,-50%);
+  }
+  .note-btn:active, .note-btn.active{ filter:brightness(1.1); }
 </style>
 <body>
   <div class="panel">
     <h2>互動音符</h2>
+
     <!-- 第二行：親友姓名 → 取得代號 → 紀錄 → 樂器轉換 → 確認鎖定 -->
     <div class="row">
       <label for="displayName">親友姓名：</label>
@@ -132,7 +148,7 @@
     <!-- 第三行：置中顯示取樣狀態 -->
     <p id="status">尚未初始化</p>
 
-    <!-- 第四行：鍵盤 -->
+    <!-- 第四行：鋼琴鍵盤或吉他指板會繪製在這裡 -->
     <div class="kb-wrap"><div id="keyboard"></div></div>
   </div>
 
@@ -147,28 +163,39 @@
 
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
   <script>
-    // === 你的 GAS Webhook（維持不動） ===
+    // === 換成你的 Apps Script Webhook ===
     const WEBHOOK = "https://script.google.com/macros/s/AKfycbw3rDKy-mjN93ValBMs28ndCFv5IbqjupDgn9rHvqYOqJwo5If3DdB1zVervdluT8YW/exec";
 
     const $ = s => document.querySelector(s);
     const setStatus = m => $('#status').textContent = m;
 
     let audioCtx=null, sampler=null, samplerReady=false, unlocked=false;
-    let currentInstrument='piano';
+    let currentInstrument='piano', lastNote='';
 
-    // 鋼琴取樣（原樣）
+    // 鋼琴取樣（沿用你現有 MP3）
     const PIANO_BASE=new URL('./piano/',location.href).href;
     const PIANO_URLS={'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3',
                       'C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3',
                       'C4':'C4.mp3','D#4':'Ds4.mp3','F#4':'Fs4.mp3','A4':'A4.mp3','C5':'C5.mp3'};
-    // 吉他取樣（簡單對應；你也可改成自動偵測版）
+    // 吉他取樣（可只放常見幾個音，Sampler 會自動轉調補齊）
     const GUITAR_BASE=new URL('./guitar/',location.href).href;
     const GUITAR_URLS={'E2':'E2.wav','A2':'A2.wav','D3':'D3.wav','G3':'G3.wav','B3':'B3.wav','E4':'E4.wav'};
 
-    // 鍵盤布局（原樣）
+    // ====== 鋼琴鍵盤資料 ======
     const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
     const BLACK_AFTER={ 'C':'C#','D':'D#','F':'F#','G':'G#','A':'A#' };
     const MIN_WHITE_PX=64, TOTAL_WHITE=WHITE.length;
+
+    // ====== 吉他指板資料 ======
+    const TUNING_MIDI = [40,45,50,55,59,64]; // E2 A2 D3 G3 B3 E4
+    const NOTE_NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+    const FRETS = 13; // 0~12
+
+    function midiToNoteName(midi){
+      const n = NOTE_NAMES[midi % 12];
+      const octave = Math.floor(midi/12) - 1;
+      return n.replace('♯','#') + octave;
+    }
 
     async function unlockAudio(){
       try{
@@ -188,20 +215,36 @@
       sampler?.dispose?.(); sampler=null; samplerReady=false;
       let urls=PIANO_URLS, base=PIANO_BASE, label='鋼琴';
       if(inst==='guitar'){ urls=GUITAR_URLS; base=GUITAR_BASE; label='吉他'; }
+      setStatus(label+'取樣載入中…');
       sampler=new Tone.Sampler({
         urls, release:1, baseUrl:base,
         onload:()=>{ samplerReady=true; setStatus(label+'取樣已載入 ✅'); }
       }).toDestination();
     }
 
-    function playNote(note){
+    function trigger(note){
       if(!samplerReady){ setStatus('音色載入中…'); return; }
       sampler.triggerAttackRelease(note,'8n');
+      lastNote = note;
+      $('#lastNote').value = note;
+      $('#lockBtn').disabled = false;
+
+      // 仍維持每鍵記錄（你之後要改成“鎖定才送”我們再切換）
+      const payload={
+        userId:'guest',
+        displayName:$('#displayName').value||'Guest',
+        instrument:currentInstrument,
+        note:note, velocity:1, sessionId:'demo'
+      };
+      fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
+        .catch(err=>setStatus('記錄失敗：'+err.message));
     }
 
-    function buildKeyboard(){
+    // ====== 鋼琴渲染 ======
+    function renderPiano(){
       const kb=$('#keyboard'); kb.innerHTML='';
-      sizeKeyboard();
+      kb.className=''; // 清掉指板樣式
+      sizePiano();
       const keyW=100/TOTAL_WHITE;
 
       WHITE.forEach((note,i)=>{
@@ -221,68 +264,108 @@
         kb.appendChild(b);
       });
 
-      setStatus('初始化完成。請點擊按鍵或上方「啟用聲音」。');
-
-      kb.addEventListener('pointerdown',e=>handleDown(e.target));
-      kb.addEventListener('pointerup',e=>handleUp(e.target));
-      kb.addEventListener('touchstart',e=>{
-        const t=e.touches[0]||e.changedTouches[0];
-        const el=document.elementFromPoint(t.clientX,t.clientY);
-        handleDown(el);
-      },{passive:true});
-      kb.addEventListener('touchend',e=>{
-        const t=e.changedTouches[0]; if(!t) return;
-        const el=document.elementFromPoint(t.clientX,t.clientY);
-        handleUp(el);
-      },{passive:true});
+      kb.addEventListener('pointerdown',onPianoDown);
+      kb.addEventListener('pointerup',onPianoUp);
+      kb.addEventListener('touchstart',onPianoTouchStart,{passive:true});
+      kb.addEventListener('touchend',onPianoTouchEnd,{passive:true});
     }
-
-    function handleDown(el){
-      const k=el?.closest('.black,.white'); if(!k) return;
+    function onPianoDown(e){
+      const k=e.target?.closest('.black,.white'); if(!k) return;
       if(!unlocked) unlockAudio();
-      playNote(k.dataset.note);
-      $('#lastNote').value = k.dataset.note;  // 只顯示最後彈的音
-      log(k.dataset.note);                    // 維持原本「每鍵記錄」的行為
+      trigger(k.dataset.note);
       k.classList.add('active');
-      $('#lockBtn').disabled=false;           // 有紀錄才允許鎖定（先留著，不影響主流程）
     }
-    function handleUp(el){ const k=el?.closest('.black,.white'); if(k) k.classList.remove('active'); }
-
-    function sizeKeyboard(){
+    function onPianoUp(e){ const k=e.target?.closest('.black,.white'); if(k) k.classList.remove('active'); }
+    function onPianoTouchStart(e){ const t=e.touches[0]; const el=document.elementFromPoint(t.clientX,t.clientY); onPianoDown({target:el}); }
+    function onPianoTouchEnd(e){ const t=e.changedTouches[0]; const el=document.elementFromPoint(t.clientX,t.clientY); onPianoUp({target:el}); }
+    function sizePiano(){
       const wrap=document.querySelector('.kb-wrap');
       const kb=document.querySelector('#keyboard');
       const wrapW=wrap.clientWidth;
       const sep=parseInt(getComputedStyle(kb).getPropertyValue('--sep')||'2');
       const minW=TOTAL_WHITE*(MIN_WHITE_PX+sep);
       kb.style.width=(wrapW>=minW?wrapW-1:minW)+'px';
+      kb.style.height='var(--kb-h)';
     }
 
-    // 寫入：不再把回應塞到 #status
-    function log(n){
-      const payload={
-        userId:'guest',
-        displayName:$('#displayName').value||'Guest',
-        instrument:currentInstrument,
-        note:n, velocity:1, sessionId:'demo'
-      };
-      fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
-        .catch(err=>setStatus('記錄失敗：'+err.message));
+    // ====== 吉他渲染 ======
+    function renderGuitar(){
+      const kb=$('#keyboard'); kb.innerHTML='';
+      kb.className='fretboard';
+      kb.style.height='var(--kb-h)';
+
+      // 產生 FRETS 個欄（0~12）
+      for(let f=0; f<FRETS; f++){
+        const col=document.createElement('div');
+        col.className='fret-col';
+        if(f===0){ const nut=document.createElement('div'); nut.className='nut'; col.appendChild(nut); }
+
+        // 六條弦（由上而下 e4,b3,g3,d3,a2,e2）
+        for(let s=0; s<6; s++){
+          const y = (s+1) * (100/7); // 留上下邊界
+          const str=document.createElement('div');
+          str.className='string';
+          str.style.top = `calc(${y}% )`;
+          col.appendChild(str);
+
+          // 放可點擊音符按鈕（放在每個品的中間）
+          const midi = TUNING_MIDI[5-s] + f; // UI 顯示上面為高音 e4 → index 5
+          const note = midiToNoteName(midi);
+          const btn=document.createElement('div');
+          btn.className='note-btn';
+          btn.dataset.note = note;
+          btn.style.top = `calc(${y}% )`;
+          btn.style.left = f===0 ? '22px' : '32px'; // 0品靠近上枕
+          btn.addEventListener('pointerdown', ev=>{
+            if(!unlocked) unlockAudio();
+            trigger(note);
+            btn.classList.add('active');
+          });
+          btn.addEventListener('pointerup', ()=>btn.classList.remove('active'));
+          col.appendChild(btn);
+        }
+
+        // 指板標記（3/5/7/9/12）
+        if([3,5,7,9].includes(f)){
+          const mk=document.createElement('div'); mk.className='marker'; mk.textContent=f;
+          mk.style.left='50%'; mk.style.bottom='8px';
+          col.appendChild(mk);
+        }
+        if(f===12){
+          const mk=document.createElement('div'); mk.className='marker'; mk.textContent='12';
+          mk.style.left='50%'; mk.style.bottom='8px';
+          col.appendChild(mk);
+        }
+
+        kb.appendChild(col);
+      }
+
+      // 自適應寬度：桌機滿版、手機可捲動
+      const minWidth = FRETS * 64 + 16; // 每品64px
+      kb.style.minWidth = minWidth + 'px';
     }
 
-    // 樂器切換
-    $('#instrument').addEventListener('change',()=>{
-      currentInstrument=$('#instrument').value;
-      if(unlocked) loadSampler(currentInstrument);
-      else setStatus('已切換為「'+(currentInstrument==='piano'?'鋼琴':'吉他')+'」，啟用聲音後會載入取樣。');
+    // ===== UI 事件 =====
+    $('#instrument').addEventListener('change', ()=>{
+      currentInstrument = $('#instrument').value;
+      loadSampler(currentInstrument);
+      if(currentInstrument==='guitar') renderGuitar();
+      else renderPiano();
     });
 
-    // 事件
-    window.addEventListener('resize',sizeKeyboard);
-    window.addEventListener('orientationchange',sizeKeyboard);
-    window.addEventListener('DOMContentLoaded',()=>{
-      buildKeyboard();
-      $('#unlockBtn').addEventListener('click',unlockAudio,{once:true});
-      sizeKeyboard();
+    $('#unlockBtn').addEventListener('click', unlockAudio, {once:true});
+
+    // ===== 啟動 =====
+    window.addEventListener('resize', ()=>{
+      if(currentInstrument==='piano') sizePiano();
+    });
+    window.addEventListener('orientationchange', ()=>{
+      if(currentInstrument==='piano') sizePiano();
+    });
+    window.addEventListener('DOMContentLoaded', ()=>{
+      renderPiano();           // 預設先顯示鋼琴
+      sizePiano();
+      setStatus('初始化完成。請先啟用聲音或點擊琴鍵/指板。');
     });
   </script>
 </body>
