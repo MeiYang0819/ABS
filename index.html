@@ -3,42 +3,119 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>互動音符</title>
+<!-- 可愛圓體 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{ --rim:#e4e7ef; --ink:#0f172a; --kb-h:280px; --sep:2px; --stroke:rgba(0,0,0,.18); --glow:rgba(255,255,255,.65); }
-  *{ box-sizing:border-box; font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif !important; -webkit-text-stroke:.35px var(--stroke); text-shadow:0 1px 0 var(--glow); }
-  html,body{ margin:0; color:var(--ink); background:linear-gradient(135deg,#e6dfff 0%, #dcd4ff 100%); }
-  .panel{ max-width:1060px;margin:22px auto;background:rgba(255,255,255,.58);border:1px solid rgba(255,255,255,.65);border-radius:16px;padding:18px 18px 26px;box-shadow:0 10px 30px rgba(98,76,171,.12);backdrop-filter:blur(10px) saturate(120%); }
-  h2{ margin:4px 0 20px;text-align:center;font-size:2.8rem;font-weight:700;letter-spacing:1px;-webkit-text-stroke:.7px var(--stroke);text-shadow:0 3px 4px rgba(255,255,255,.85); }
-  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .row label{opacity:.92}
-  input, select, button{ padding:8px 10px;border:1px solid var(--rim);border-radius:10px;-webkit-text-stroke:.25px rgba(0,0,0,.12);text-shadow:0 1px 0 rgba(255,255,255,.5);background:#fff; }
-  input{min-width:150px}
-  #lastNote{min-width:120px}
-  button{cursor:pointer}
-  button:disabled{opacity:.55;cursor:not-allowed}
-  #status{ background:#eef2f7;border:1px solid var(--rim);border-radius:12px;padding:10px;margin-top:10px;font-size:14px;white-space:pre-wrap;color:#334155;text-align:center; }
-  .kb-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch;background:linear-gradient(180deg,#f7f2ff 0%, #ede9fe 100%);border:1px solid var(--rim); border-radius:14px; margin-top:14px }
-  #keyboard{ position:relative; height:var(--kb-h); user-select:none; -webkit-user-select:none; touch-action:pan-x; }
-  .white{ position:absolute; bottom:0; height:100%; background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5); border-radius:0 0 12px 12px; box-shadow:inset 0 -12px 16px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.9), 0 1px 0 rgba(0,0,0,.04); }
-  .white::after{ content:""; position:absolute; top:0; bottom:0; right:0; width:var(--sep); background:linear-gradient(transparent,#cfd3dc 50%,transparent); }
-  .white:first-child::before{ content:""; position:absolute; top:0; bottom:0; left:0; width:var(--sep); background:linear-gradient(transparent,#cfd3dc 50%,transparent); }
+  *{
+    box-sizing:border-box;
+    font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif !important;
+    -webkit-text-stroke:.35px var(--stroke);
+    text-shadow:0 1px 0 var(--glow);
+  }
+  html,body{
+    margin:0;
+    color:var(--ink);
+    background:linear-gradient(135deg,#e6dfff 0%, #dcd4ff 100%);
+  }
+  .panel{
+    max-width:1060px;margin:22px auto;
+    background:rgba(255,255,255,.58);
+    border:1px solid rgba(255,255,255,.65);
+    border-radius:16px;
+    padding:18px 18px 26px;
+    box-shadow:0 10px 30px rgba(98,76,171,.12);
+    backdrop-filter:blur(10px) saturate(120%);
+  }
+  h2{
+    margin:4px 0 20px;
+    text-align:center;
+    font-size:2.8rem;
+    font-weight:700;
+    letter-spacing:1px;
+    -webkit-text-stroke:.7px var(--stroke);
+    text-shadow:0 3px 4px rgba(255,255,255,.85);
+  }
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+  .row label{opacity:.92;white-space:nowrap}
+  .row input, .row select, .row button{
+    padding:8px 10px;
+    border:1px solid var(--rim);
+    border-radius:10px;
+    min-width:150px;
+    height:38px;
+    font-size:14px;
+    -webkit-text-stroke:.25px rgba(0,0,0,.12);
+    text-shadow:0 1px 0 rgba(255,255,255,.5);
+    background:#fff;
+  }
+  .row button{cursor:pointer;font-weight:600}
+  .row button:disabled{opacity:.55;cursor:not-allowed}
+  #status{
+    text-align:center;
+    background:#eef2f7;border:1px solid var(--rim);
+    border-radius:12px;padding:10px;margin:12px 0;
+    font-size:15px;color:#334155;font-weight:600;
+  }
+  .kb-wrap{
+    overflow-x:auto; -webkit-overflow-scrolling:touch;
+    background:linear-gradient(180deg,#f7f2ff 0%, #ede9fe 100%);
+    border:1px solid var(--rim); border-radius:14px; margin-top:14px
+  }
+  #keyboard{
+    position:relative; height:var(--kb-h);
+    user-select:none; -webkit-user-select:none;
+    touch-action:pan-x;
+  }
+  .white{
+    position:absolute; bottom:0; height:100%;
+    background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5);
+    border-radius:0 0 12px 12px;
+    box-shadow:inset 0 -12px 16px rgba(0,0,0,.12),
+               inset 0 1px 0 rgba(255,255,255,.9),
+               0 1px 0 rgba(0,0,0,.04);
+  }
+  .white::after{
+    content:""; position:absolute; top:0; bottom:0; right:0; width:var(--sep);
+    background:linear-gradient(transparent,#cfd3dc 50%,transparent);
+  }
+  .white:first-child::before{
+    content:""; position:absolute; top:0; bottom:0; left:0; width:var(--sep);
+    background:linear-gradient(transparent,#cfd3dc 50%,transparent);
+  }
   .white.active{filter:brightness(1.06)}
-  .black{ position:absolute; bottom:38%; height:62%; width:6.4%; background:linear-gradient(#2d2f36,#0e0f13); border:1px solid #0b0d11; border-top:none; border-radius:0 0 10px 10px; z-index:5; box-shadow:inset 0 -6px 10px rgba(0,0,0,.45), 0 3px 10px rgba(0,0,0,.35); }
+  .black{
+    position:absolute; bottom:38%; height:62%; width:6.4%;
+    background:linear-gradient(#2d2f36,#0e0f13);
+    border:1px solid #0b0d11; border-top:none;
+    border-radius:0 0 10px 10px; z-index:5;
+    box-shadow:inset 0 -6px 10px rgba(0,0,0,.45), 0 3px 10px rgba(0,0,0,.35);
+  }
   .black.active{filter:brightness(1.22)}
-  .label{ position:absolute; bottom:12px; left:50%; transform:translateX(-50%); font-size:11px; color:#475569; background:#ffffffee; border:1px solid var(--rim); padding:2px 6px; border-radius:8px; -webkit-text-stroke:.25px rgba(0,0,0,.12); text-shadow:0 1px 0 rgba(255,255,255,.6); }
-  #unlockOverlay{ position:fixed; inset:0; background:rgba(0,0,0,.55); color:#fff; display:flex; align-items:center; justify-content:center; z-index:9999; }
-  #unlockCard{ background:#0b1220; padding:18px 20px; border-radius:16px; width:min(92%,420px); box-shadow:0 18px 45px rgba(0,0,0,.5); text-align:center }
-  #unlockCard button{ margin-top:12px; padding:10px 14px; border-radius:12px; border:0; cursor:pointer }
+  .label{
+    position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
+    font-size:11px; color:#475569; background:#ffffffee; border:1px solid var(--rim);
+    padding:2px 6px; border-radius:8px;
+    -webkit-text-stroke:.25px rgba(0,0,0,.12);
+    text-shadow:0 1px 0 rgba(255,255,255,.6);
+  }
+  #unlockOverlay{ position:fixed; inset:0; background:rgba(0,0,0,.55); color:#fff;
+    display:flex; align-items:center; justify-content:center; z-index:9999; }
+  #unlockCard{
+    background:#0b1220; padding:18px 20px; border-radius:16px; width:min(92%,420px);
+    box-shadow:0 18px 45px rgba(0,0,0,.5); text-align:center
+  }
+  #unlockCard button{
+    margin-top:12px; padding:10px 14px; border-radius:12px; border:0; cursor:pointer
+  }
 </style>
 <body>
   <div class="panel">
-    <!-- 第一行：標題 -->
     <h2>互動音符</h2>
 
-    <!-- 第二行：同一排，左→右：親友姓名｜取得代號｜樂器轉換｜紀錄｜確認鎖定 -->
+    <!-- 第二行 -->
     <div class="row">
       <label for="displayName">親友姓名：</label>
       <input id="displayName" placeholder="例如：小明" />
@@ -46,26 +123,26 @@
       <label for="code">取得代號：</label>
       <input id="code" placeholder="請輸入代號" />
 
+      <label for="lastNote">紀錄：</label>
+      <input id="lastNote" placeholder="尚未彈奏" readonly />
+
       <label for="instrument">樂器轉換：</label>
       <select id="instrument">
         <option value="piano" selected>鋼琴</option>
         <option value="guitar">吉他</option>
       </select>
 
-      <label for="lastNote">紀錄：</label>
-      <input id="lastNote" placeholder="尚未彈奏" readonly />
-
       <button id="lockBtn" disabled>確認鎖定</button>
     </div>
 
-    <!-- 第三行：置中顯示「鋼琴/吉他取樣已載入 ✅」 -->
+    <!-- 狀態列 -->
     <p id="status">尚未初始化</p>
 
-    <!-- 第四行：鍵盤 -->
+    <!-- 鍵盤 -->
     <div class="kb-wrap"><div id="keyboard"></div></div>
   </div>
 
-  <!-- 首次解鎖 Overlay -->
+  <!-- 解鎖遮罩 -->
   <div id="unlockOverlay">
     <div id="unlockCard">
       <div style="font-size:16px;opacity:.9">請開啟音量並點擊下方按鈕啟用聲音</div>
@@ -76,47 +153,23 @@
 
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
   <script>
-    const WEBHOOK = "https://script.google.com/macros/s/AKfycbw3rDKy-mjN93ValBMs28ndCFv5IbqjupDgn9rHvqYOqJwo5If3DdB1zVervdluT8YW/exec";
+    const WEBHOOK = "YOUR_WEBHOOK_URL";
     const $ = s => document.querySelector(s);
     const setStatus = m => $('#status').textContent = m;
 
     let audioCtx=null, sampler=null, samplerReady=false, unlocked=false;
-    let currentInstrument = 'piano';
 
-    // 鋼琴（固定清單）
-    const PIANO_BASE=new URL('./piano/',location.href).href;
-    const PIANO_URLS={'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3',
-                      'C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3',
-                      'C4':'C4.mp3','D#4':'Ds4.mp3','F#4':'Fs4.mp3','A4':'A4.mp3','C5':'C5.mp3'};
+    const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
+    const BLACK_AFTER={ 'C':'C#','D':'D#','F':'F#','G':'G#','A':'A#' };
+    const MIN_WHITE_PX=64, TOTAL_WHITE=WHITE.length;
 
-    // ===== 自動偵測吉他取樣（目錄 /guitar/）=====
-    const GUITAR_BASE=new URL('./guitar/', location.href).href;
-    const GUITAR_NOTES = [
-      'E2','F2','F#2','G2','G#2','A2','A#2','B2',
-      'C3','C#3','D3','D#3','E3','F3','F#3','G3','G#3','A3','A#3','B3',
-      'C4','C#4','D4','D#4','E4','F4','F#4','G4','G#4','A4','A#4','B4',
-      'C5','C#5','D5'
-    ];
-    const EXT_ORDER = ['.wav', '.mp3', '.ogg'];
-    const sharpToS = n => n.replace('C#','Cs').replace('D#','Ds').replace('F#','Fs').replace('G#','Gs').replace('A#','As');
+    const BASE=new URL('./piano/',location.href).href;
+    const URLS={'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3',
+                'C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3',
+                'C4':'C4.mp3','D#4':'Ds4.mp3','F#4':'Fs4.mp3','A4':'A4.mp3','C5':'C5.mp3'};
 
-    async function headOk(url){ try{ const r=await fetch(url,{method:'HEAD'}); return r.ok; }catch(_){ return false; } }
-    async function detectGuitarUrls(){
-      const urls = {};
-      const preferred = ['E2','A2','D3','G3','B3','E4'];
-      const candidates = [...new Set([...preferred, ...GUITAR_NOTES])];
-      for(const note of candidates){
-        const fnameCore = sharpToS(note);
-        let found = false;
-        for(const ext of EXT_ORDER){
-          const file = fnameCore + ext;
-          const url = GUITAR_BASE + file;
-          if(await headOk(url)){ urls[note] = file; found = true; break; }
-        }
-        if(!found) continue;
-      }
-      return urls;
-    }
+    const GUITAR_BASE=new URL('./guitar/',location.href).href;
+    const GUITAR_URLS={'E2':'E2.wav','A2':'A2.wav','D3':'D3.wav','G3':'G3.wav','B3':'B3.wav','E4':'E4.wav'};
 
     async function unlockAudio(){
       try{
@@ -125,31 +178,19 @@
         if(audioCtx.state!=='running') await audioCtx.resume();
         Tone.setContext(new Tone.Context(audioCtx));
         await Tone.start();
-        await loadSampler(currentInstrument);
+        loadSampler($('#instrument').value);
         unlocked=true;
         $('#unlockOverlay').style.display='none';
-        setStatus('音訊已啟用，音色載入中…');
       }catch(e){ setStatus('啟用失敗：'+e.message); }
     }
 
-    async function loadSampler(inst='piano'){
-      sampler?.dispose?.(); sampler=null; samplerReady=false;
-
-      let urls = PIANO_URLS, base = PIANO_BASE, label='鋼琴';
-      if(inst==='guitar'){
-        setStatus('正在偵測 /guitar/ 內可用取樣檔…');
-        const detected = await detectGuitarUrls();
-        const keys = Object.keys(detected);
-        if(keys.length === 0){
-          setStatus('未在 /guitar/ 找到可用取樣檔，請確認檔案或副檔名（wav/mp3/ogg）。');
-          return;
-        }
-        urls = detected; base = GUITAR_BASE; label = '吉他';
-      }
-
-      sampler = new Tone.Sampler({
-        urls, release:1, baseUrl:base,
-        onload:()=>{ samplerReady=true; setStatus(label + '取樣已載入 ✅'); }
+    function loadSampler(inst='piano'){
+      sampler=null; samplerReady=false;
+      let urls=URLS, base=BASE, label='鋼琴';
+      if(inst==='guitar'){ urls=GUITAR_URLS; base=GUITAR_BASE; label='吉他'; }
+      sampler=new Tone.Sampler({
+        urls:urls,release:1,baseUrl:base,
+        onload:()=>{ samplerReady=true; setStatus(label+'取樣已載入 ✅'); }
       }).toDestination();
     }
 
@@ -158,16 +199,10 @@
       sampler.triggerAttackRelease(note,'8n');
     }
 
-    // ====== 鋼琴鍵盤（保留原樣） ======
-    const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
-    const BLACK_AFTER={ 'C':'C#','D':'D#','F':'F#','G':'G#','A':'A#' };
-    const MIN_WHITE_PX=64, TOTAL_WHITE=WHITE.length;
-
     function buildKeyboard(){
       const kb=$('#keyboard'); kb.innerHTML='';
       sizeKeyboard();
       const keyW=100/TOTAL_WHITE;
-
       WHITE.forEach((note,i)=>{
         const w=document.createElement('div'); w.className='white'; w.dataset.note=note;
         w.style.left=`${i*keyW}%`; w.style.width=`${keyW}%`;
@@ -176,7 +211,6 @@
         }
         kb.appendChild(w);
       });
-
       WHITE.forEach((note,i)=>{
         const l=note[0],sharp=BLACK_AFTER[l]?BLACK_AFTER[l]+note.slice(1):null;
         if(!sharp||(l==='A'&&i===TOTAL_WHITE-1)) return;
@@ -184,21 +218,25 @@
         b.style.left=`calc(${i*keyW}% + ${keyW*0.68}%)`;
         kb.appendChild(b);
       });
-
-      setStatus('初始化完成。請先啟用聲音，或直接點鍵觸發。');
-
       kb.addEventListener('pointerdown',e=>handleDown(e.target));
       kb.addEventListener('pointerup',e=>handleUp(e.target));
-      kb.addEventListener('touchstart',e=>{const t=e.touches[0];const el=document.elementFromPoint(t.clientX,t.clientY);handleDown(el);},{passive:true});
-      kb.addEventListener('touchend',e=>{const t=e.changedTouches[0];const el=document.elementFromPoint(t.clientX,t.clientY);handleUp(el);},{passive:true});
+      kb.addEventListener('touchstart',e=>{
+        const t=e.touches[0]||e.changedTouches[0];
+        const el=document.elementFromPoint(t.clientX,t.clientY);
+        handleDown(el);
+      },{passive:true});
+      kb.addEventListener('touchend',e=>{
+        const t=e.changedTouches[0]; if(!t) return;
+        const el=document.elementFromPoint(t.clientX,t.clientY);
+        handleUp(el);
+      },{passive:true});
     }
 
     function handleDown(el){
       const k=el?.closest('.black,.white'); if(!k) return;
       if(!unlocked) unlockAudio();
       playNote(k.dataset.note);
-      $('#lastNote').value = k.dataset.note;
-      log(k.dataset.note);
+      $('#lastNote').value=k.dataset.note;
       k.classList.add('active');
     }
     function handleUp(el){
@@ -213,26 +251,15 @@
       kb.style.width=(wrapW>=minW?wrapW-1:minW)+'px';
     }
 
-    // 寫入：仍保留（但不再把回應塞到狀態列）
-    function log(n){
-      const payload={userId:'guest',displayName:$('#displayName').value||'Guest',instrument:currentInstrument,note:n,velocity:1,sessionId:'demo'};
-      fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
-        .catch(err=>setStatus('記錄失敗：'+err.message));
-    }
-
-    // 樂器切換
-    $('#instrument').addEventListener('change', async ()=>{
-      currentInstrument = $('#instrument').value;
-      if(unlocked){ await loadSampler(currentInstrument); }
-      else{ setStatus('已切換為「'+(currentInstrument==='piano'?'鋼琴':'吉他')+'」，啟用聲音後會載入取樣。'); }
-    });
-
-    // 事件
     window.addEventListener('resize',sizeKeyboard);
     window.addEventListener('orientationchange',sizeKeyboard);
     window.addEventListener('DOMContentLoaded',()=>{
       buildKeyboard();
       $('#unlockBtn').addEventListener('click',unlockAudio,{once:true});
+      $('#instrument').addEventListener('change',()=>{
+        sampler=null; samplerReady=false;
+        loadSampler($('#instrument').value);
+      });
       sizeKeyboard();
     });
   </script>
