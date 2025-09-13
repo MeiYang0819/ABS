@@ -34,16 +34,19 @@
     text-shadow:0 3px 4px rgba(255,255,255,.85);
   }
 
-  /* 第二行：等寬 120×38 */
+  /* 第二行：等寬 */
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .row label{opacity:.92;white-space:nowrap}
+  .row label{opacity:.92;white-space:nowrap;font-weight:400;-webkit-text-stroke:0;text-shadow:none}
   .row input,.row select,.row button{
     padding:8px 10px; border:1px solid var(--rim); border-radius:10px;
-    width:120px; height:38px; font-size:14px; background:#fff;
+    height:38px; font-size:14px; background:#fff;
     -webkit-text-stroke:.25px rgba(0,0,0,.12);
     text-shadow:0 1px 0 rgba(255,255,255,.5);
   }
-  .row button{cursor:pointer;font-weight:600}
+  .row input{width:100px;font-weight:400;-webkit-text-stroke:0;text-shadow:none}
+  .row select{width:120px;text-align:center;text-align-last:center;-webkit-text-stroke:0;text-shadow:none}
+  .row select option{text-align:center}
+  .row button{width:120px;cursor:pointer;font-weight:600}
   .row button:disabled{opacity:.55;cursor:not-allowed}
 
   /* 狀態列置中，只顯示取樣/錯誤 */
@@ -99,8 +102,7 @@
 
   /* ====== 吉他指板樣式 ====== */
   .fretboard{ position:relative; display:grid; grid-auto-flow:column;
-    grid-auto-columns:64px; /* 每個品寬 */
-    height:var(--kb-h); background:linear-gradient(#f2ecff,#e6defe); }
+    grid-auto-columns:64px; height:var(--kb-h); background:linear-gradient(#f2ecff,#e6defe); }
   .fret-col{ position:relative; border-left:2px solid rgba(0,0,0,.12); }
   .nut{ position:absolute; left:0; top:0; bottom:0; width:6px;
     background:linear-gradient(#ddd,#bbb); border-right:2px solid #9aa0a6; z-index:3; }
@@ -120,12 +122,32 @@
     transform:translate(-50%,-50%);
   }
   .note-btn:active, .note-btn.active{ filter:brightness(1.1); }
+
+  /* ==== 解鎖彈跳視窗 ==== */
+  #unlockOverlay{
+    position: fixed; inset: 0; z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(17,24,39,.35); backdrop-filter: blur(3px);
+  }
+  #unlockCard{
+    min-width:260px; max-width:90vw;
+    background:rgba(255,255,255,.92);
+    border:1px solid rgba(255,255,255,.8);
+    border-radius:14px; padding:18px 18px 16px;
+    box-shadow:0 16px 40px rgba(0,0,0,.18);
+    text-align:center;
+  }
+  #unlockCard #unlockBtn{
+    margin-top:12px;
+    width:160px; height:40px;
+    border-radius:10px; border:1px solid var(--rim);
+    background:#fff; cursor:pointer; font-weight:600;
+  }
 </style>
 <body>
   <div class="panel">
     <h2>互動音符</h2>
 
-    <!-- 第二行：親友姓名 → 取得代號 → 紀錄 → 樂器轉換 → 確認鎖定 -->
     <div class="row">
       <label for="displayName">親友姓名：</label>
       <input id="displayName" placeholder="例如：小明" />
@@ -145,14 +167,12 @@
       <button id="lockBtn" disabled>確認鎖定</button>
     </div>
 
-    <!-- 第三行：置中顯示取樣狀態 -->
     <p id="status">尚未初始化</p>
 
-    <!-- 第四行：鋼琴鍵盤或吉他指板會繪製在這裡 -->
     <div class="kb-wrap"><div id="keyboard"></div></div>
   </div>
 
-  <!-- 首次解鎖 Overlay -->
+  <!-- 彈跳 Overlay -->
   <div id="unlockOverlay">
     <div id="unlockCard">
       <div style="font-size:16px;opacity:.9">請開啟音量並點擊下方按鈕啟用聲音</div>
@@ -163,8 +183,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
   <script>
-    // === 換成你的 Apps Script Webhook ===
-    const WEBHOOK = "https://script.google.com/macros/s/AKfycbw3rDKy-mjN93ValBMs28ndCFv5IbqjupDgn9rHvqYOqJwo5If3DdB1zVervdluT8YW/exec";
+    const WEBHOOK = "YOUR_GAS_WEBHOOK_URL";
 
     const $ = s => document.querySelector(s);
     const setStatus = m => $('#status').textContent = m;
@@ -172,24 +191,20 @@
     let audioCtx=null, sampler=null, samplerReady=false, unlocked=false;
     let currentInstrument='piano', lastNote='';
 
-    // 鋼琴取樣（沿用你現有 MP3）
     const PIANO_BASE=new URL('./piano/',location.href).href;
     const PIANO_URLS={'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3',
                       'C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3',
                       'C4':'C4.mp3','D#4':'Ds4.mp3','F#4':'Fs4.mp3','A4':'A4.mp3','C5':'C5.mp3'};
-    // 吉他取樣（可只放常見幾個音，Sampler 會自動轉調補齊）
     const GUITAR_BASE=new URL('./guitar/',location.href).href;
     const GUITAR_URLS={'E2':'E2.wav','A2':'A2.wav','D3':'D3.wav','G3':'G3.wav','B3':'B3.wav','E4':'E4.wav'};
 
-    // ====== 鋼琴鍵盤資料 ======
     const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
     const BLACK_AFTER={ 'C':'C#','D':'D#','F':'F#','G':'G#','A':'A#' };
     const MIN_WHITE_PX=64, TOTAL_WHITE=WHITE.length;
 
-    // ====== 吉他指板資料 ======
-    const TUNING_MIDI = [40,45,50,55,59,64]; // E2 A2 D3 G3 B3 E4
+    const TUNING_MIDI = [40,45,50,55,59,64];
     const NOTE_NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
-    const FRETS = 13; // 0~12
+    const FRETS = 13;
 
     function midiToNoteName(midi){
       const n = NOTE_NAMES[midi % 12];
@@ -229,22 +244,15 @@
       $('#lastNote').value = note;
       $('#lockBtn').disabled = false;
 
-      // 仍維持每鍵記錄（你之後要改成“鎖定才送”我們再切換）
-      const payload={
-        userId:'guest',
-        displayName:$('#displayName').value||'Guest',
-        instrument:currentInstrument,
-        note:note, velocity:1, sessionId:'demo'
-      };
+      const payload={userId:'guest',displayName:$('#displayName').value||'Guest',
+                     instrument:currentInstrument,note:note,velocity:1,sessionId:'demo'};
       fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
         .catch(err=>setStatus('記錄失敗：'+err.message));
     }
 
-    // ====== 鋼琴渲染 ======
     function renderPiano(){
       const kb=$('#keyboard'); kb.innerHTML='';
-      kb.className=''; // 清掉指板樣式
-      sizePiano();
+      kb.className=''; sizePiano();
       const keyW=100/TOTAL_WHITE;
 
       WHITE.forEach((note,i)=>{
@@ -272,8 +280,7 @@
     function onPianoDown(e){
       const k=e.target?.closest('.black,.white'); if(!k) return;
       if(!unlocked) unlockAudio();
-      trigger(k.dataset.note);
-      k.classList.add('active');
+      trigger(k.dataset.note); k.classList.add('active');
     }
     function onPianoUp(e){ const k=e.target?.closest('.black,.white'); if(k) k.classList.remove('active'); }
     function onPianoTouchStart(e){ const t=e.touches[0]; const el=document.elementFromPoint(t.clientX,t.clientY); onPianoDown({target:el}); }
@@ -288,85 +295,36 @@
       kb.style.height='var(--kb-h)';
     }
 
-    // ====== 吉他渲染 ======
     function renderGuitar(){
       const kb=$('#keyboard'); kb.innerHTML='';
-      kb.className='fretboard';
-      kb.style.height='var(--kb-h)';
+      kb.className='fretboard'; kb.style.height='var(--kb-h)';
 
-      // 產生 FRETS 個欄（0~12）
       for(let f=0; f<FRETS; f++){
-        const col=document.createElement('div');
-        col.className='fret-col';
+        const col=document.createElement('div'); col.className='fret-col';
         if(f===0){ const nut=document.createElement('div'); nut.className='nut'; col.appendChild(nut); }
-
-        // 六條弦（由上而下 e4,b3,g3,d3,a2,e2）
         for(let s=0; s<6; s++){
-          const y = (s+1) * (100/7); // 留上下邊界
-          const str=document.createElement('div');
-          str.className='string';
-          str.style.top = `calc(${y}% )`;
-          col.appendChild(str);
-
-          // 放可點擊音符按鈕（放在每個品的中間）
-          const midi = TUNING_MIDI[5-s] + f; // UI 顯示上面為高音 e4 → index 5
-          const note = midiToNoteName(midi);
-          const btn=document.createElement('div');
-          btn.className='note-btn';
-          btn.dataset.note = note;
-          btn.style.top = `calc(${y}% )`;
-          btn.style.left = f===0 ? '22px' : '32px'; // 0品靠近上枕
-          btn.addEventListener('pointerdown', ev=>{
-            if(!unlocked) unlockAudio();
-            trigger(note);
-            btn.classList.add('active');
-          });
-          btn.addEventListener('pointerup', ()=>btn.classList.remove('active'));
+          const y=(s+1)*(100/7);
+          const str=document.createElement('div'); str.className='string'; str.style.top=`calc(${y}%)`; col.appendChild(str);
+          const midi=TUNING_MIDI[5-s]+f; const note=midiToNoteName(midi);
+          const btn=document.createElement('div'); btn.className='note-btn'; btn.dataset.note=note;
+          btn.style.top=`calc(${y}%)`; btn.style.left=f===0?'22px':'32px';
+          btn.addEventListener('pointerdown',ev=>{ if(!unlocked) unlockAudio(); trigger(note); btn.classList.add('active'); });
+          btn.addEventListener('pointerup',()=>btn.classList.remove('active'));
           col.appendChild(btn);
         }
-
-        // 指板標記（3/5/7/9/12）
-        if([3,5,7,9].includes(f)){
-          const mk=document.createElement('div'); mk.className='marker'; mk.textContent=f;
-          mk.style.left='50%'; mk.style.bottom='8px';
-          col.appendChild(mk);
+        if([3,5,7,9,12].includes(f)){
+          const mk=document.createElement('div'); mk.className='marker'; mk.textContent=f; mk.style.left='50%'; mk.style.bottom='8px'; col.appendChild(mk);
         }
-        if(f===12){
-          const mk=document.createElement('div'); mk.className='marker'; mk.textContent='12';
-          mk.style.left='50%'; mk.style.bottom='8px';
-          col.appendChild(mk);
-        }
-
         kb.appendChild(col);
       }
-
-      // 自適應寬度：桌機滿版、手機可捲動
-      const minWidth = FRETS * 64 + 16; // 每品64px
-      kb.style.minWidth = minWidth + 'px';
+      kb.style.minWidth=(FRETS*64+16)+'px';
     }
 
-    // ===== UI 事件 =====
-    $('#instrument').addEventListener('change', ()=>{
-      currentInstrument = $('#instrument').value;
-      loadSampler(currentInstrument);
-      if(currentInstrument==='guitar') renderGuitar();
-      else renderPiano();
-    });
-
+    $('#instrument').addEventListener('change', ()=>{currentInstrument=$('#instrument').value;loadSampler(currentInstrument);if(currentInstrument==='guitar')renderGuitar();else renderPiano();});
     $('#unlockBtn').addEventListener('click', unlockAudio, {once:true});
-
-    // ===== 啟動 =====
-    window.addEventListener('resize', ()=>{
-      if(currentInstrument==='piano') sizePiano();
-    });
-    window.addEventListener('orientationchange', ()=>{
-      if(currentInstrument==='piano') sizePiano();
-    });
-    window.addEventListener('DOMContentLoaded', ()=>{
-      renderPiano();           // 預設先顯示鋼琴
-      sizePiano();
-      setStatus('初始化完成。請先啟用聲音或點擊琴鍵/指板。');
-    });
+    window.addEventListener('resize', ()=>{if(currentInstrument==='piano') sizePiano();});
+    window.addEventListener('orientationchange', ()=>{if(currentInstrument==='piano') sizePiano();});
+    window.addEventListener('DOMContentLoaded', ()=>{renderPiano();sizePiano();setStatus('初始化完成。請先啟用聲音或點擊琴鍵/指板。');});
   </script>
 </body>
 </html>
