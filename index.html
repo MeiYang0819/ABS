@@ -17,14 +17,18 @@
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .row label{opacity:.92;white-space:nowrap;font-weight:400;-webkit-text-stroke:0;text-shadow:none}
   .row input,.row select,.row button{
-    width:120px; height:38px;                 /* ✅ 全部同寬同高 120×38 */
-    padding:8px 10px; border:1px solid var(--rim); border-radius:10px;
-    font-size:14px; background:#fff; -webkit-text-stroke:.25px rgba(0,0,0,.12); text-shadow:0 1px 0 rgba(255,255,255,.5);
+    height:38px; font-size:14px; background:#fff; padding:8px 10px;
+    border:1px solid var(--rim); border-radius:10px;
+    -webkit-text-stroke:.25px rgba(0,0,0,.12); text-shadow:0 1px 0 rgba(255,255,255,.5);
   }
-  .row input{font-weight:400;-webkit-text-stroke:0;text-shadow:none}
-  .row select{text-align:center;text-align-last:center;-webkit-text-stroke:0;text-shadow:none}
+  /* 三個 input 同寬 120 */
+  .row input{ width:120px; font-weight:400; -webkit-text-stroke:0; text-shadow:none }
+  /* 樂器選單：自適應文字寬，置中 */
+  .row select{ width:auto; min-width:88px; text-align:center; text-align-last:center; -webkit-text-stroke:0; text-shadow:none; }
   .row select option{text-align:center}
-  .row button{cursor:pointer;font-weight:600}
+  /* 一般按鈕寬：120；兩顆半寬用 .btn-compact 覆寫為 60 */
+  .row button{ width:120px; cursor:pointer; font-weight:600 }
+  .btn-compact{ width:60px !important; }
   .row button:disabled{opacity:.55;cursor:not-allowed}
 
   #status{ background:#eef2f7;border:1px solid var(--rim); border-radius:12px;padding:10px;margin-top:10px; font-size:14px;white-space:pre-wrap;color:#334155;text-align:center; }
@@ -34,7 +38,7 @@
 
   /* 鋼琴鍵盤 */
   .white{ position:absolute; bottom:0; height:100%; background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5); border-radius:0 0 12px 12px;
-    box-shadow:inset 0 -12px 16px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.9), 0 1px 0 rgba(0,0,0,.04);}
+    box-shadow:inset 0 -12px 16px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.9), 0 1px 0 rgba(0,0,0,.04); }
   .white::after{ content:""; position:absolute; top:0; bottom:0; right:0; width:var(--sep); background:linear-gradient(transparent,#cfd3dc 50%,transparent); }
   .white:first-child::before{ content:""; position:absolute; top:0; bottom:0; left:0; width:var(--sep); background:linear-gradient(transparent,#cfd3dc 50%,transparent); }
   .white.active{filter:brightness(1.06)}
@@ -86,8 +90,8 @@
       <label for="lastNote">音符紀錄：</label>
       <input id="lastNote" placeholder="— , — , —" readonly />
 
-      <button id="resetBtn" type="button">重設</button>
-      <button id="lockBtn" type="button" disabled>確認鎖定</button>
+      <button id="resetBtn" type="button" class="btn-compact">重設</button>
+      <button id="lockBtn" type="button" class="btn-compact" disabled>鎖定</button>
     </div>
 
     <p id="status">尚未初始化</p>
@@ -95,7 +99,7 @@
     <div class="kb-wrap"><div id="keyboard"></div></div>
   </div>
 
-  <!-- 彈跳 Overlay -->
+  <!-- 解鎖彈窗 -->
   <div id="unlockOverlay" role="dialog" aria-modal="true" aria-labelledby="unlockTitle">
     <div id="unlockCard">
       <div id="unlockTitle" style="font-size:16px;opacity:.92">請開啟音量並點擊「確定」啟用聲音</div>
@@ -175,10 +179,10 @@
       else selectedNotes[2] = note;
 
       refreshNotesDisplay();
-      validateLockBtn();                  // 每次彈奏都重新驗證
+      validateLockBtn();
     }
 
-    // 確認鎖定啟用條件（只有三音 + 姓名 + 代號才開）
+    // 只有三音 + 姓名 + 代號才開
     function validateLockBtn(){
       const nameOk = ($('#displayName').value || '').trim().length > 0;
       const codeOk = ($('#code').value || '').trim().length > 0;
@@ -256,7 +260,7 @@
       currentInstrument=$('#instrument').value;
       loadSampler(currentInstrument);
       if(currentInstrument==='guitar') renderGuitar(); else renderPiano();
-      validateLockBtn();                   // 切換樂器後也重新驗證（保持按鈕狀態正確）
+      validateLockBtn();
     });
     $('#displayName').addEventListener('input', validateLockBtn);
     $('#code').addEventListener('input', validateLockBtn);
@@ -270,18 +274,30 @@
     $('#confirmUnlock').addEventListener('click', unlockAudio, {once:true});
     window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') $('#unlockOverlay').classList.add('hidden'); });
 
+    // ✅ 快速反應鎖定：先鎖 UI，再送資料
     $('#lockBtn').addEventListener('click', async ()=>{
       if(hardLocked) return;
       const name = ($('#displayName').value||'').trim();
       const code = ($('#code').value||'').trim();
       if(!name || !code || selectedNotes.length!==3){ alert('請填姓名、代號並彈滿 3 個音再鎖定'); return; }
-      $('#lockBtn').disabled = true;
+
+      setStatus('送出中…');
+      enterHardLock(); // 立刻鎖住 UI（不等網路）
 
       const payload={ userId: code, displayName: name, instrument: currentInstrument, note: selectedNotes.join('|'), velocity: 1, sessionId: 'demo' };
+
+      // 設定 6 秒逾時
+      const controller = new AbortController();
+      const timer = setTimeout(()=>controller.abort(), 6000);
+
       try{
-        const r = await fetch(WEBHOOK,{ method:'POST', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(payload) });
-        if(r.ok){ setStatus('已送出，可以退出囉'); enterHardLock(); } else { setStatus('送出失敗，請稍後再試'); $('#lockBtn').disabled=false; }
-      }catch(e){ setStatus('送出失敗：'+e.message); $('#lockBtn').disabled=false; }
+        const r = await fetch(WEBHOOK,{ method:'POST', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(payload), signal: controller.signal });
+        clearTimeout(timer);
+        if(r.ok){ setStatus('已送出，可以退出囉'); }
+        else { setStatus('送出失敗（已鎖定）'); }
+      }catch(e){
+        setStatus('送出逾時或失敗（已鎖定）');
+      }
     });
 
     function enterHardLock(){
@@ -299,7 +315,7 @@
     window.addEventListener('DOMContentLoaded', ()=>{
       renderPiano(); sizePiano(); refreshNotesDisplay();
       setStatus('等待啟用聲音…');
-      validateLockBtn();                   // ✅ 初始即確保鎖定鍵為 disabled
+      validateLockBtn();
     });
   </script>
 </body>
