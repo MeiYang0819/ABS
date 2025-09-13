@@ -34,7 +34,7 @@
     text-shadow:0 3px 4px rgba(255,255,255,.85);
   }
 
-  /* 控制列：依你指定的排序 */
+  /* 控制列（依你指定的排序） */
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .row label{opacity:.92;white-space:nowrap;font-weight:400;-webkit-text-stroke:0;text-shadow:none}
   .row input,.row select,.row button{
@@ -44,7 +44,7 @@
     text-shadow:0 1px 0 rgba(255,255,255,.5);
   }
   .row input{width:100px;font-weight:400;-webkit-text-stroke:0;text-shadow:none}
-  #lastNote{ width:160px; } /* 音符紀錄欄位稍寬一點，顯示三個音 */
+  #lastNote{ width:160px; } /* 顯示三個音，略寬 */
   .row select{width:120px;text-align:center;text-align-last:center;-webkit-text-stroke:0;text-shadow:none}
   .row select option{text-align:center}
   .row button{width:120px;cursor:pointer;font-weight:600}
@@ -57,7 +57,7 @@
     font-size:14px;white-space:pre-wrap;color:#334155;text-align:center;
   }
 
-  /* 鍵盤外框 / 指板外框（共用容器） */
+  /* 鍵盤/指板容器 */
   .kb-wrap{
     overflow-x:auto; -webkit-overflow-scrolling:touch;
     background:linear-gradient(180deg,#f7f2ff 0%, #ede9fe 100%);
@@ -124,7 +124,7 @@
   }
   .note-btn:active, .note-btn.active{ filter:brightness(1.1); }
 
-  /* ==== 解鎖彈跳視窗（含 確定 / 取消） ==== */
+  /* ==== 解鎖彈窗（含 確定/取消） ==== */
   #unlockOverlay{
     position: fixed; inset: 0; z-index: 9999;
     display: flex; align-items: center; justify-content: center;
@@ -140,13 +140,13 @@
     text-align: center;
   }
   .unlock-actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
-  .btn{
+  .dialog-btn{
     width: 120px; height: 38px; border-radius: 10px; border: 1px solid var(--rim);
     background: #fff; cursor: pointer; font-weight: 600;
   }
-  .btn.primary{ background:#f8f5ff; }
+  .dialog-btn.primary{ background:#f8f5ff; }
 
-  /* 鎖定後的全頁不可點遮罩 */
+  /* 鎖定後遮罩（阻擋互動） */
   #lockScreen{
     position:fixed; inset:0; z-index:9998; display:none;
     background:transparent;
@@ -162,7 +162,7 @@
   <div class="panel">
     <h2>互動音符</h2>
 
-    <!-- 依你要的排序：親友姓名｜取得代號｜樂器轉換｜音符紀錄｜重設｜鎖定 -->
+    <!-- 排序：親友姓名｜取得代號｜樂器轉換｜音符紀錄｜重設｜鎖定 -->
     <div class="row">
       <label for="displayName">親友姓名：</label>
       <input id="displayName" placeholder="例如：小明" />
@@ -179,29 +179,29 @@
       <label for="lastNote">音符紀錄：</label>
       <input id="lastNote" placeholder="— , — , —" readonly />
 
-      <button id="resetBtn" class="btn">重設</button>
-      <button id="lockBtn" class="btn primary" disabled>確認鎖定</button>
+      <button id="resetBtn">重設</button>
+      <button id="lockBtn" disabled>確認鎖定</button>
     </div>
 
-    <!-- 狀態列：彈奏時不改變；只有載入完成/錯誤/鎖定後才改 -->
+    <!-- 狀態列：只在載入/錯誤/鎖定完成時更新 -->
     <p id="status">尚未初始化</p>
 
     <div class="kb-wrap"><div id="keyboard"></div></div>
   </div>
 
-  <!-- 彈跳 Overlay（含 確定 / 取消） -->
+  <!-- 彈跳 Overlay -->
   <div id="unlockOverlay" role="dialog" aria-modal="true" aria-labelledby="unlockTitle">
     <div id="unlockCard">
-      <div id="unlockTitle" style="font-size:16px;opacity:.92">請開啟音量並點擊「確定啟用聲音」</div>
+      <div id="unlockTitle" style="font-size:16px;opacity:.92">請開啟音量並點擊「確定」啟用聲音</div>
       <div style="font-size:12px;opacity:.72;margin-top:6px">iPhone 請確認側邊靜音鍵關閉</div>
       <div class="unlock-actions">
-        <button id="cancelUnlock" class="btn">取消</button>
-        <button id="confirmUnlock" class="btn primary">確定</button>
+        <button id="cancelUnlock" class="dialog-btn">取消</button>
+        <button id="confirmUnlock" class="dialog-btn primary">確定</button>
       </div>
     </div>
   </div>
 
-  <!-- 鎖定後的遮罩（阻擋任何互動） -->
+  <!-- 鎖定後的遮罩 -->
   <div id="lockScreen" aria-hidden="true"></div>
 
   <footer>© Copyright 2025 MY‘s Version:b1.0.0</footer>
@@ -216,7 +216,7 @@
 
     let audioCtx=null, sampler=null, samplerReady=false, unlocked=false, hardLocked=false;
     let currentInstrument='piano';
-    let selectedNotes = []; // 最多三個音，依序收集
+    let selectedNotes = []; // 最多三個音
 
     // 取樣路徑
     const PIANO_BASE=new URL('./piano/',location.href).href;
@@ -252,7 +252,7 @@
         loadSampler(currentInstrument);
         unlocked=true;
         $('#unlockOverlay').classList.add('hidden');
-        setStatus('音訊已啟用，音色載入中…');
+        // 不顯示多餘訊息，待 onload 改成「鋼琴/吉他取樣已載入 ✅」
       }catch(e){ setStatus('啟用失敗：'+e.message); }
     }
 
@@ -267,29 +267,26 @@
       }).toDestination();
     }
 
-    // 更新音符紀錄欄位（顯示三格）
+    // 顯示三格
     function refreshNotesDisplay(){
       const parts = [selectedNotes[0]||'—', selectedNotes[1]||'—', selectedNotes[2]||'—'];
       $('#lastNote').value = parts.join(' , ');
     }
 
-    // 彈一個音：播放 + 收集最多三個（不觸發送出、不改狀態列）
+    // 彈一個音：播放 + 收集（不改狀態列）
     function trigger(note){
       if(hardLocked) return;
       if(!samplerReady){ setStatus('音色載入中…'); return; }
       sampler.triggerAttackRelease(note,'8n');
 
-      if(selectedNotes.length < 3){
-        selectedNotes.push(note);
-      }else{
-        // 已滿三格就覆蓋最後一格（第三格）
-        selectedNotes[2] = note;
-      }
+      if(selectedNotes.length < 3) selectedNotes.push(note);
+      else selectedNotes[2] = note; // 超過三個覆蓋最後一格
+
       refreshNotesDisplay();
       validateLockBtn();
     }
 
-    // 驗證是否可鎖定：需姓名、代號、三個音齊全
+    // 是否可鎖定：需 姓名 + 代號 + 三個音
     function validateLockBtn(){
       const nameOk = ($('#displayName').value || '').trim().length > 0;
       const codeOk = ($('#code').value || '').trim().length > 0;
@@ -374,46 +371,40 @@
       loadSampler(currentInstrument);
       if(currentInstrument==='guitar') renderGuitar(); else renderPiano();
     });
-
-    // 表單輸入變動就檢查是否可鎖定
     $('#displayName').addEventListener('input', validateLockBtn);
     $('#code').addEventListener('input', validateLockBtn);
 
-    // 重設：逐步清空（先清第三格，再第二、再第一格）
+    // 重設：逐步清空（第三→第二→第一）
     $('#resetBtn').addEventListener('click', ()=>{
       if(hardLocked) return;
       if(selectedNotes.length>0){
-        selectedNotes.pop(); // 移除最後一個音
+        selectedNotes.pop();
         refreshNotesDisplay();
         validateLockBtn();
       }
     });
 
-    // 彈窗按鈕：取消 / 確定
+    // 彈窗按鈕
     $('#cancelUnlock').addEventListener('click', ()=>{ $('#unlockOverlay').classList.add('hidden'); });
     $('#confirmUnlock').addEventListener('click', unlockAudio, {once:true});
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') $('#unlockOverlay').classList.add('hidden'); });
 
-    // Esc 鍵可關閉彈窗（不解鎖）
-    window.addEventListener('keydown', (e)=>{
-      if(e.key==='Escape') $('#unlockOverlay').classList.add('hidden');
-    });
-
-    // 鎖定送出：一次寫入，note 以三個音用「|」連接（單欄位）
+    // 鎖定送出（一次、三音）
     $('#lockBtn').addEventListener('click', async ()=>{
       if(hardLocked) return;
-
       const name = ($('#displayName').value||'').trim();
       const code = ($('#code').value||'').trim();
       if(!name || !code || selectedNotes.length!==3){
         alert('請填「親友姓名」與「取得代號」，並先彈三個音再鎖定。');
         return;
       }
+      $('#lockBtn').disabled = true; // 防雙擊
 
       const payload={
-        userId: code,                       // 用代號當 userId（可改回 'guest'）
-        displayName: name || 'Guest',
+        userId: code,                       // 以代號當 userId（可改回 'guest'）
+        displayName: name,
         instrument: currentInstrument,
-        note: selectedNotes.join('|'),      // 例如 "C4|E4|G4"
+        note: selectedNotes.join('|'),      // e.g. "B3|E4|G3"
         velocity: 1,
         sessionId: 'demo'
       };
@@ -429,13 +420,14 @@
           enterHardLock();
         }else{
           setStatus('送出失敗，請稍後再試');
+          $('#lockBtn').disabled = false;
         }
       }catch(e){
         setStatus('送出失敗：'+ e.message);
+        $('#lockBtn').disabled = false;
       }
     });
 
-    // 鎖定後：整個頁面不可再互動
     function enterHardLock(){
       hardLocked = true;
       $('#displayName').disabled = true;
@@ -443,7 +435,7 @@
       $('#instrument').disabled = true;
       $('#resetBtn').disabled = true;
       $('#lockBtn').disabled = true;
-      $('#lockScreen').style.display = 'block'; // 阻擋任何點擊
+      $('#lockScreen').style.display = 'block'; // 阻擋任何互動
     }
 
     // 啟動
@@ -451,7 +443,8 @@
     window.addEventListener('orientationchange', ()=>{if(currentInstrument==='piano') sizePiano();});
     window.addEventListener('DOMContentLoaded', ()=>{
       renderPiano(); sizePiano(); refreshNotesDisplay();
-      setStatus('初始化完成。請按「確定啟用聲音」。載入完成後會顯示「鋼琴取樣已載入 ✅」。');
+      // 初始不顯示多餘文字；待音色載入成功 → 顯示「鋼琴取樣已載入 ✅」
+      setStatus('等待啟用聲音…');
     });
   </script>
 </body>
