@@ -252,15 +252,27 @@
       $('#lastNote').value = note;
       $('#lockBtn').disabled = false;
 
-      // 目前仍為每鍵即時送出（之後可改為鎖定才送）
+      // 偵錯版：送出後把狀態碼 + 回應前 100 字顯示在狀態列
       const payload={
         userId:'guest',
         displayName:$('#displayName').value||'Guest',
         instrument:currentInstrument,
         note:note, velocity:1, sessionId:'demo'
       };
-      fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
-        .catch(err=>setStatus('記錄失敗：'+err.message));
+      fetch(WEBHOOK, {
+        method:'POST',
+        headers:{'Content-Type':'text/plain'},
+        body: JSON.stringify(payload)
+      })
+      .then(async r => {
+        const t = await r.text();
+        setStatus(`已送出，狀態 ${r.status}：${t.slice(0,100)}${t.length>100?'…':''}`);
+        console.log('Webhook response:', r.status, t);
+      })
+      .catch(err => {
+        setStatus('記錄失敗：'+ err.message);
+        console.error('Webhook error:', err);
+      });
     }
 
     /* ====== 鋼琴渲染 ====== */
@@ -365,5 +377,3 @@
   </script>
 </body>
 </html>
-
-
