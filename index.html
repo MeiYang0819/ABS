@@ -49,7 +49,7 @@
   .row button{width:120px;cursor:pointer;font-weight:600}
   .row button:disabled{opacity:.55;cursor:not-allowed}
 
-  /* 狀態列置中，只顯示取樣/錯誤 */
+  /* 狀態列置中：僅顯示取樣/錯誤/送出成功 */
   #status{
     background:#eef2f7;border:1px solid var(--rim);
     border-radius:12px;padding:10px;margin-top:10px;
@@ -144,6 +144,18 @@
     background: #fff; cursor: pointer; font-weight: 600;
   }
   .btn.primary{ background:#f8f5ff; }
+
+  /* 鎖定後的全頁不可點遮罩 */
+  #lockScreen{
+    position:fixed; inset:0; z-index:9998; display:none;
+    background:transparent; /* 透明，只負責阻擋互動 */
+  }
+
+  /* footer */
+  footer{
+    max-width:1060px;margin:8px auto 22px; text-align:center; color:#475569;
+    font-size:12px; opacity:.9;
+  }
 </style>
 <body>
   <div class="panel">
@@ -185,6 +197,11 @@
     </div>
   </div>
 
+  <!-- 鎖定後的遮罩（阻擋任何互動） -->
+  <div id="lockScreen" aria-hidden="true"></div>
+
+  <footer>© Copyright 2025 MY‘s Version:b1.0.0</footer>
+
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
   <script>
     // === 你的 Apps Script Webhook ===
@@ -193,8 +210,9 @@
     const $ = s => document.querySelector(s);
     const setStatus = m => $('#status').textContent = m;
 
-    let audioCtx=null, sampler=null, samplerReady=false, unlocked=false;
-    let currentInstrument='piano', lastNote='';
+    let audioCtx=null, sampler=null, samplerReady=false, unlocked=false, hardLocked=false;
+    let currentInstrument='piano';
+    let selectedNotes = []; // 收集三個音
 
     // 取樣路徑
     const PIANO_BASE=new URL('./piano/',location.href).href;
@@ -245,34 +263,30 @@
       }).toDestination();
     }
 
+    // 彈一個音：播放 + 收集最多三個 + 更新紀錄欄位
     function trigger(note){
+      if(hardLocked) return;
       if(!samplerReady){ setStatus('音色載入中…'); return; }
       sampler.triggerAttackRelease(note,'8n');
-      lastNote = note;
-      $('#lastNote').value = note;
-      $('#lockBtn').disabled = false;
 
-      // 偵錯版：送出後把狀態碼 + 回應前 100 字顯示在狀態列
-      const payload={
-        userId:'guest',
-        displayName:$('#displayName').value||'Guest',
-        instrument:currentInstrument,
-        note:note, velocity:1, sessionId:'demo'
-      };
-      fetch(WEBHOOK, {
-        method:'POST',
-        headers:{'Content-Type':'text/plain'},
-        body: JSON.stringify(payload)
-      })
-      .then(async r => {
-        const t = await r.text();
-        setStatus(`已送出，狀態 ${r.status}：${t.slice(0,100)}${t.length>100?'…':''}`);
-        console.log('Webhook response:', r.status, t);
-      })
-      .catch(err => {
-        setStatus('記錄失敗：'+ err.message);
-        console.error('Webhook error:', err);
-      });
+      // 收集到 3 個為止
+      if(selectedNotes.length < 3){
+        selectedNotes.push(note);
+      }else{
+        // 若超過，替換最後一個（也可以選擇忽略；這邊以替換邏輯）
+        selectedNotes[2] = note;
+      }
+      $('#lastNote').value = selectedNotes.join(' , ');
+
+      // 當滿 3 個音時才允許鎖定（另需姓名+代號）
+      validateLockBtn();
+    }
+
+    function validateLockBtn(){
+      const nameOk = ($('#displayName').value || '').trim().length > 0;
+      const codeOk = ($('#code').value || '').trim().length > 0;
+      const notesOk = selectedNotes.length === 3;
+      $('#lockBtn').disabled = !(nameOk && codeOk && notesOk);
     }
 
     /* ====== 鋼琴渲染 ====== */
@@ -285,6 +299,12 @@
         if(note[0]==='C'||note[0]==='G'){
           const lab=document.createElement('div'); lab.className='label'; lab.textContent=note; w.appendChild(lab);
         }
+        w.addEventListener('pointerdown', e=>{
+          if(hardLocked) return;
+          if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; }
+          trigger(note); w.classList.add('active');
+        });
+        w.addEventListener('pointerup', ()=>w.classList.remove('active'));
         kb.appendChild(w);
       });
       WHITE.forEach((note,i)=>{
@@ -292,24 +312,15 @@
         if(!sharp||(l==='A'&&i===TOTAL_WHITE-1)) return;
         const b=document.createElement('div'); b.className='black'; b.dataset.note=sharp;
         b.style.left=`calc(${i*keyW}% + ${keyW*0.68}%)`;
+        b.addEventListener('pointerdown', e=>{
+          if(hardLocked) return;
+          if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; }
+          trigger(sharp); b.classList.add('active');
+        });
+        b.addEventListener('pointerup', ()=>b.classList.remove('active'));
         kb.appendChild(b);
       });
-      kb.addEventListener('pointerdown',onPianoDown);
-      kb.addEventListener('pointerup',onPianoUp);
-      kb.addEventListener('touchstart',onPianoTouchStart,{passive:true});
-      kb.addEventListener('touchend',onPianoTouchEnd,{passive:true});
     }
-    function onPianoDown(e){
-      const k=e.target?.closest('.black,.white'); if(!k) return;
-      if(!unlocked){ // 尚未解鎖 → 顯示彈窗
-        $('#unlockOverlay').classList.remove('hidden');
-        return;
-      }
-      trigger(k.dataset.note); k.classList.add('active');
-    }
-    function onPianoUp(e){ const k=e.target?.closest('.black,.white'); if(k) k.classList.remove('active'); }
-    function onPianoTouchStart(e){ const t=e.touches[0]; const el=document.elementFromPoint(t.clientX,t.clientY); onPianoDown({target:el}); }
-    function onPianoTouchEnd(e){ const t=e.changedTouches[0]; const el=document.elementFromPoint(t.clientX,t.clientY); onPianoUp({target:el}); }
     function sizePiano(){
       const wrap=document.querySelector('.kb-wrap');
       const kb=document.querySelector('#keyboard');
@@ -333,6 +344,7 @@
           const btn=document.createElement('div'); btn.className='note-btn'; btn.dataset.note=note;
           btn.style.top=`calc(${y}%)`; btn.style.left=f===0?'22px':'32px';
           btn.addEventListener('pointerdown',ev=>{
+            if(hardLocked) return;
             if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; }
             trigger(note); btn.classList.add('active');
           });
@@ -349,16 +361,20 @@
 
     /* ===== UI 事件 ===== */
     $('#instrument').addEventListener('change', ()=>{
+      if(hardLocked) return;
       currentInstrument=$('#instrument').value;
       loadSampler(currentInstrument);
       if(currentInstrument==='guitar') renderGuitar(); else renderPiano();
     });
 
+    // 表單輸入變動就檢查是否可鎖定
+    $('#displayName').addEventListener('input', validateLockBtn);
+    $('#code').addEventListener('input', validateLockBtn);
+
     // 彈窗按鈕：取消 / 確定
     $('#cancelUnlock').addEventListener('click', ()=>{
-      // 僅關閉彈窗，不解鎖
       $('#unlockOverlay').classList.add('hidden');
-      setStatus('未啟用音訊。點擊琴鍵/指板或右上方按鈕可再啟用。');
+      // 保持狀態列不變
     });
     $('#confirmUnlock').addEventListener('click', unlockAudio, {once:true});
 
@@ -367,12 +383,62 @@
       if(e.key==='Escape') $('#unlockOverlay').classList.add('hidden');
     });
 
+    // 鎖定送出：一次寫入，note 以三個音用「|」連接，維持原欄位格式
+    $('#lockBtn').addEventListener('click', async ()=>{
+      if(hardLocked) return;
+
+      const name = ($('#displayName').value||'').trim();
+      const code = ($('#code').value||'').trim();
+      if(!name || !code || selectedNotes.length!==3){
+        alert('請填「親友姓名」與「取得代號」，並先彈三個音再鎖定。');
+        return;
+      }
+
+      const payload={
+        userId: code,                       // 你原本是 'guest'，這裡用代號放 userId 會更有意義；也可改回 'guest'
+        displayName: name || 'Guest',
+        instrument: currentInstrument,
+        note: selectedNotes.join('|'),      // 三個音以 | 連接，符合單一欄位格式
+        velocity: 1,
+        sessionId: 'demo'
+      };
+
+      try{
+        const r = await fetch(WEBHOOK,{
+          method:'POST',
+          headers:{'Content-Type':'text/plain'},
+          body: JSON.stringify(payload)
+        });
+        // 成功或失敗都以簡短訊息顯示，不曝露回應碼/內文
+        if(r.ok){
+          setStatus('已送出，可以退出囉');
+          enterHardLock();
+        }else{
+          setStatus('送出失敗，請稍後再試');
+        }
+      }catch(e){
+        setStatus('送出失敗：'+ e.message);
+      }
+    });
+
+    // 鎖定後：整個頁面不可再互動
+    function enterHardLock(){
+      hardLocked = true;
+      // 所有可互動元素 disabled
+      $('#displayName').disabled = true;
+      $('#code').disabled = true;
+      $('#instrument').disabled = true;
+      $('#lockBtn').disabled = true;
+      // 蓋上透明遮罩，阻擋任何點擊
+      $('#lockScreen').style.display = 'block';
+    }
+
     // 啟動
     window.addEventListener('resize', ()=>{if(currentInstrument==='piano') sizePiano();});
     window.addEventListener('orientationchange', ()=>{if(currentInstrument==='piano') sizePiano();});
     window.addEventListener('DOMContentLoaded', ()=>{
       renderPiano(); sizePiano();
-      setStatus('初始化完成。請按「確定啟用聲音」，或點擊琴鍵/指板將顯示彈跳視窗。');
+      setStatus('初始化完成。請按「確定啟用聲音」。載入完成後會顯示「鋼琴取樣已載入 ✅」。');
     });
   </script>
 </body>
