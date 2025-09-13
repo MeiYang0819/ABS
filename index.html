@@ -123,26 +123,27 @@
   }
   .note-btn:active, .note-btn.active{ filter:brightness(1.1); }
 
-  /* ==== 解鎖彈跳視窗 ==== */
+  /* ==== 解鎖彈跳視窗（含 確定 / 取消） ==== */
   #unlockOverlay{
     position: fixed; inset: 0; z-index: 9999;
     display: flex; align-items: center; justify-content: center;
     background: rgba(17,24,39,.35); backdrop-filter: blur(3px);
   }
+  #unlockOverlay.hidden{ display:none; }
   #unlockCard{
-    min-width:260px; max-width:90vw;
-    background:rgba(255,255,255,.92);
-    border:1px solid rgba(255,255,255,.8);
-    border-radius:14px; padding:18px 18px 16px;
-    box-shadow:0 16px 40px rgba(0,0,0,.18);
-    text-align:center;
+    min-width: 280px; max-width: 92vw;
+    background: rgba(255,255,255,.96);
+    border: 1px solid rgba(255,255,255,.85);
+    border-radius: 14px; padding: 18px 18px 14px;
+    box-shadow: 0 18px 44px rgba(0,0,0,.18);
+    text-align: center;
   }
-  #unlockCard #unlockBtn{
-    margin-top:12px;
-    width:160px; height:40px;
-    border-radius:10px; border:1px solid var(--rim);
-    background:#fff; cursor:pointer; font-weight:600;
+  .unlock-actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
+  .btn{
+    width: 140px; height: 40px; border-radius: 10px; border: 1px solid var(--rim);
+    background: #fff; cursor: pointer; font-weight: 600;
   }
+  .btn.primary{ background:#f8f5ff; }
 </style>
 <body>
   <div class="panel">
@@ -172,18 +173,22 @@
     <div class="kb-wrap"><div id="keyboard"></div></div>
   </div>
 
-  <!-- 彈跳 Overlay -->
-  <div id="unlockOverlay">
+  <!-- 彈跳 Overlay（含 確定 / 取消） -->
+  <div id="unlockOverlay" role="dialog" aria-modal="true" aria-labelledby="unlockTitle">
     <div id="unlockCard">
-      <div style="font-size:16px;opacity:.9">請開啟音量並點擊下方按鈕啟用聲音</div>
-      <div style="font-size:12px;opacity:.7;margin-top:6px">iPhone 請確認側邊靜音鍵關閉</div>
-      <button id="unlockBtn">啟用聲音</button>
+      <div id="unlockTitle" style="font-size:16px;opacity:.92">請開啟音量並點擊「確定啟用聲音」</div>
+      <div style="font-size:12px;opacity:.72;margin-top:6px">iPhone 請確認側邊靜音鍵關閉</div>
+      <div class="unlock-actions">
+        <button id="cancelUnlock" class="btn">取消</button>
+        <button id="confirmUnlock" class="btn primary">確定啟用聲音</button>
+      </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
   <script>
-    const WEBHOOK = "YOUR_GAS_WEBHOOK_URL";
+    // === 你的 Apps Script Webhook ===
+    const WEBHOOK = "https://script.google.com/macros/s/AKfycbw3rDKy-mjN93ValBMs28ndCFv5IbqjupDgn9rHvqYOqJwo5If3DdB1zVervdluT8YW/exec";
 
     const $ = s => document.querySelector(s);
     const setStatus = m => $('#status').textContent = m;
@@ -191,6 +196,7 @@
     let audioCtx=null, sampler=null, samplerReady=false, unlocked=false;
     let currentInstrument='piano', lastNote='';
 
+    // 取樣路徑
     const PIANO_BASE=new URL('./piano/',location.href).href;
     const PIANO_URLS={'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3',
                       'C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3',
@@ -198,11 +204,13 @@
     const GUITAR_BASE=new URL('./guitar/',location.href).href;
     const GUITAR_URLS={'E2':'E2.wav','A2':'A2.wav','D3':'D3.wav','G3':'G3.wav','B3':'B3.wav','E4':'E4.wav'};
 
+    // 鋼琴鍵盤資料
     const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
     const BLACK_AFTER={ 'C':'C#','D':'D#','F':'F#','G':'G#','A':'A#' };
     const MIN_WHITE_PX=64, TOTAL_WHITE=WHITE.length;
 
-    const TUNING_MIDI = [40,45,50,55,59,64];
+    // 吉他資料
+    const TUNING_MIDI = [40,45,50,55,59,64]; // E2 A2 D3 G3 B3 E4
     const NOTE_NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
     const FRETS = 13;
 
@@ -221,7 +229,7 @@
         await Tone.start();
         loadSampler(currentInstrument);
         unlocked=true;
-        $('#unlockOverlay').style.display='none';
+        $('#unlockOverlay').classList.add('hidden');
         setStatus('音訊已啟用，音色載入中…');
       }catch(e){ setStatus('啟用失敗：'+e.message); }
     }
@@ -244,17 +252,21 @@
       $('#lastNote').value = note;
       $('#lockBtn').disabled = false;
 
-      const payload={userId:'guest',displayName:$('#displayName').value||'Guest',
-                     instrument:currentInstrument,note:note,velocity:1,sessionId:'demo'};
+      // 目前仍為每鍵即時送出（之後可改為鎖定才送）
+      const payload={
+        userId:'guest',
+        displayName:$('#displayName').value||'Guest',
+        instrument:currentInstrument,
+        note:note, velocity:1, sessionId:'demo'
+      };
       fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)})
         .catch(err=>setStatus('記錄失敗：'+err.message));
     }
 
+    /* ====== 鋼琴渲染 ====== */
     function renderPiano(){
-      const kb=$('#keyboard'); kb.innerHTML='';
-      kb.className=''; sizePiano();
+      const kb=$('#keyboard'); kb.innerHTML=''; kb.className=''; sizePiano();
       const keyW=100/TOTAL_WHITE;
-
       WHITE.forEach((note,i)=>{
         const w=document.createElement('div'); w.className='white'; w.dataset.note=note;
         w.style.left=`${i*keyW}%`; w.style.width=`${keyW}%`;
@@ -263,7 +275,6 @@
         }
         kb.appendChild(w);
       });
-
       WHITE.forEach((note,i)=>{
         const l=note[0],sharp=BLACK_AFTER[l]?BLACK_AFTER[l]+note.slice(1):null;
         if(!sharp||(l==='A'&&i===TOTAL_WHITE-1)) return;
@@ -271,7 +282,6 @@
         b.style.left=`calc(${i*keyW}% + ${keyW*0.68}%)`;
         kb.appendChild(b);
       });
-
       kb.addEventListener('pointerdown',onPianoDown);
       kb.addEventListener('pointerup',onPianoUp);
       kb.addEventListener('touchstart',onPianoTouchStart,{passive:true});
@@ -279,7 +289,10 @@
     }
     function onPianoDown(e){
       const k=e.target?.closest('.black,.white'); if(!k) return;
-      if(!unlocked) unlockAudio();
+      if(!unlocked){ // 尚未解鎖 → 顯示彈窗
+        $('#unlockOverlay').classList.remove('hidden');
+        return;
+      }
       trigger(k.dataset.note); k.classList.add('active');
     }
     function onPianoUp(e){ const k=e.target?.closest('.black,.white'); if(k) k.classList.remove('active'); }
@@ -295,10 +308,9 @@
       kb.style.height='var(--kb-h)';
     }
 
+    /* ====== 吉他渲染 ====== */
     function renderGuitar(){
-      const kb=$('#keyboard'); kb.innerHTML='';
-      kb.className='fretboard'; kb.style.height='var(--kb-h)';
-
+      const kb=$('#keyboard'); kb.innerHTML=''; kb.className='fretboard'; kb.style.height='var(--kb-h)';
       for(let f=0; f<FRETS; f++){
         const col=document.createElement('div'); col.className='fret-col';
         if(f===0){ const nut=document.createElement('div'); nut.className='nut'; col.appendChild(nut); }
@@ -308,7 +320,10 @@
           const midi=TUNING_MIDI[5-s]+f; const note=midiToNoteName(midi);
           const btn=document.createElement('div'); btn.className='note-btn'; btn.dataset.note=note;
           btn.style.top=`calc(${y}%)`; btn.style.left=f===0?'22px':'32px';
-          btn.addEventListener('pointerdown',ev=>{ if(!unlocked) unlockAudio(); trigger(note); btn.classList.add('active'); });
+          btn.addEventListener('pointerdown',ev=>{
+            if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; }
+            trigger(note); btn.classList.add('active');
+          });
           btn.addEventListener('pointerup',()=>btn.classList.remove('active'));
           col.appendChild(btn);
         }
@@ -320,11 +335,35 @@
       kb.style.minWidth=(FRETS*64+16)+'px';
     }
 
-    $('#instrument').addEventListener('change', ()=>{currentInstrument=$('#instrument').value;loadSampler(currentInstrument);if(currentInstrument==='guitar')renderGuitar();else renderPiano();});
-    $('#unlockBtn').addEventListener('click', unlockAudio, {once:true});
+    /* ===== UI 事件 ===== */
+    $('#instrument').addEventListener('change', ()=>{
+      currentInstrument=$('#instrument').value;
+      loadSampler(currentInstrument);
+      if(currentInstrument==='guitar') renderGuitar(); else renderPiano();
+    });
+
+    // 彈窗按鈕：取消 / 確定
+    $('#cancelUnlock').addEventListener('click', ()=>{
+      // 僅關閉彈窗，不解鎖
+      $('#unlockOverlay').classList.add('hidden');
+      setStatus('未啟用音訊。點擊琴鍵/指板或右上方按鈕可再啟用。');
+    });
+    $('#confirmUnlock').addEventListener('click', unlockAudio, {once:true});
+
+    // Esc 鍵可關閉彈窗（不解鎖）
+    window.addEventListener('keydown', (e)=>{
+      if(e.key==='Escape') $('#unlockOverlay').classList.add('hidden');
+    });
+
+    // 啟動
     window.addEventListener('resize', ()=>{if(currentInstrument==='piano') sizePiano();});
     window.addEventListener('orientationchange', ()=>{if(currentInstrument==='piano') sizePiano();});
-    window.addEventListener('DOMContentLoaded', ()=>{renderPiano();sizePiano();setStatus('初始化完成。請先啟用聲音或點擊琴鍵/指板。');});
+    window.addEventListener('DOMContentLoaded', ()=>{
+      renderPiano(); sizePiano();
+      setStatus('初始化完成。請按「確定啟用聲音」，或點擊琴鍵/指板將顯示彈跳視窗。');
+    });
   </script>
 </body>
 </html>
+
+
