@@ -13,7 +13,7 @@
   .panel{ max-width:1060px;margin:22px auto;background:rgba(255,255,255,.58);border:1px solid rgba(255,255,255,.65);border-radius:16px; padding:18px 18px 26px;box-shadow:0 10px 30px rgba(98,76,171,.12);backdrop-filter:blur(10px) saturate(120%); }
   h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; letter-spacing:1px; -webkit-text-stroke:.7px var(--stroke); text-shadow:0 3px 4px rgba(255,255,255,.85); }
 
-  /* 控制列（親友→代號→樂器→音符→重設→鎖定） */
+  /* 控制列 */
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .row label{opacity:.92;white-space:nowrap;font-weight:400;-webkit-text-stroke:0;text-shadow:none}
   .row input,.row select,.row button{
@@ -23,15 +23,12 @@
   }
   /* 三個輸入框統一 96px */
   #displayName,#code,#lastNote{ width:96px; font-weight:400; -webkit-text-stroke:0; text-shadow:none }
-  /* 樂器選單：自適應文字寬，置中 */
   .row select{ width:auto; min-width:88px; text-align:center; text-align-last:center; -webkit-text-stroke:0; text-shadow:none; }
   .row select option{text-align:center}
-  /* 按鈕：重設與鎖定 60px 半寬 */
   .row button{ width:120px; cursor:pointer; font-weight:600 }
   .btn-compact{ width:60px !important; }
   .row button:disabled{opacity:.55;cursor:not-allowed}
 
-  /* 狀態列：只顯示載入/送出狀態 */
   #status{ background:#eef2f7;border:1px solid var(--rim); border-radius:12px;padding:10px;margin-top:10px; font-size:14px;white-space:pre-wrap;color:#334155;text-align:center; }
 
   .kb-wrap{ overflow-x:hidden; background:linear-gradient(180deg,#f7f2ff 0%, #ede9fe 100%); border:1px solid var(--rim); border-radius:14px; margin-top:14px; }
@@ -55,55 +52,35 @@
     border:1px solid #0b0d11; border-top:none;
     border-radius:0 0 10px 10px; z-index:5;
     box-shadow:inset 0 -6px 10px rgba(0,0,0,.45), 0 3px 10px rgba(0,0,0,.35);
-    transform: translateX(-50%); /* left 作為中心 */
+    transform: translateX(-50%);
   }
   .black.active{filter:brightness(1.22)}
-  .label{
-    position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
-    font-size:11px; color:#475569; background:#ffffffee; border:1px solid var(--rim);
-    padding:2px 6px; border-radius:8px; -webkit-text-stroke:.25px rgba(0,0,0,.12); text-shadow:0 1px 0 rgba(255,255,255,.6);
-  }
+  .label{ position:absolute; bottom:12px; left:50%; transform:translateX(-50%); font-size:11px; color:#475569; background:#ffffffee; border:1px solid var(--rim); padding:2px 6px; border-radius:8px; }
 
-  /* ===== 吉他（1~12 品、整條弦可點、輕微上下震動） ===== */
-  .fretboard{
-    position:relative; display:grid; grid-template-columns: repeat(12, 1fr);
-    width:100%; height:var(--kb-h); background:#ececf3; border-radius:12px;
-  }
-  /* 左側木質頭枕 + 上枕裝飾 */
-  .head{
-    position:absolute; left:0; top:0; bottom:0; width:86px; z-index:2;
-    background:
+  /* ===== 吉他（1~12 品；整條弦可點；弦震動） ===== */
+  .fretboard{ position:relative; display:grid; grid-template-columns: repeat(12, 1fr); width:100%; height:var(--kb-h); background:#ececf3; border-radius:12px; }
+  .head{ position:absolute; left:0; top:0; bottom:0; width:86px; z-index:2; background:
       linear-gradient(180deg, rgba(0,0,0,.08), transparent 40%),
       linear-gradient(180deg,#f0d6b8 0%, #e4c29a 55%, #d8b283 100%);
     border-right:1px solid rgba(120,90,60,.35); box-shadow: inset -8px 0 16px rgba(0,0,0,.08);
-    border-radius:12px 0 0 12px; pointer-events:none;
-  }
-  .nut{
-    position:absolute; left:86px; top:0; bottom:0; width:8px; z-index:3;
-    background:linear-gradient(180deg,#e5e1d6,#c9c5ba);
-    box-shadow: inset -1px 0 0 rgba(0,0,0,.25), inset 1px 0 0 rgba(255,255,255,.6);
-    border-right:2px solid rgba(120,120,120,.45); pointer-events:none;
-  }
-  /* 每一品的欄位：右側金屬品絲 */
-  .fret-col{
-    position:relative; background:linear-gradient(180deg,#f7f7fb,#ececf3);
-    box-shadow: inset -2px 0 0 rgba(170,170,170,.95), inset -4px 0 0 rgba(255,255,255,.55);
-  }
+    border-radius:12px 0 0 12px; pointer-events:none; }
+  .nut{ position:absolute; left:86px; top:0; bottom:0; width:8px; z-index:3; background:linear-gradient(180deg,#e5e1d6,#c9c5ba);
+    box-shadow: inset -1px 0 0 rgba(0,0,0,.25), inset 1px 0 0 rgba(255,255,255,.6); border-right:2px solid rgba(120,120,120,.45); pointer-events:none; }
+  .fret-col{ position:relative; background:linear-gradient(180deg,#f7f7fb,#ececf3); box-shadow: inset -2px 0 0 rgba(170,170,170,.95), inset -4px 0 0 rgba(255,255,255,.55); }
 
-  /* 六條弦（上細下粗） */
   .string{
     position:absolute; left:0; right:0; height:0; z-index:1;
     border-top:2px solid #6b7280; opacity:.9; filter:drop-shadow(0 1px 0 rgba(0,0,0,.1));
     transform-origin:center;
   }
-  .string:nth-of-type(1){ border-top-width:2px; }   /* e4 最細（最上）*/
-  .string:nth-of-type(2){ border-top-width:2px; }   /* b3 */
-  .string:nth-of-type(3){ border-top-width:2.5px; } /* g3 */
-  .string:nth-of-type(4){ border-top-width:3px; }   /* d3 */
-  .string:nth-of-type(5){ border-top-width:3.5px; } /* a2 */
-  .string:nth-of-type(6){ border-top-width:4px; }   /* E2 最粗（最下）*/
+  .string[data-s="0"]{ border-top-width:2px; }     /* e4 最細（最上） */
+  .string[data-s="1"]{ border-top-width:2px; }     /* b3 */
+  .string[data-s="2"]{ border-top-width:2.5px; }   /* g3 */
+  .string[data-s="3"]{ border-top-width:3px; }     /* d3 */
+  .string[data-s="4"]{ border-top-width:3.5px; }   /* a2 */
+  .string[data-s="5"]{ border-top-width:4px; }     /* E2 最粗（最下） */
 
-  /* 輕微上下震動動畫 */
+  /* 輕微上下震動 */
   .string.vibrate{ animation: vibr 160ms ease-out; }
   @keyframes vibr{
     0%{ transform:translateY(0); }
@@ -113,22 +90,23 @@
     100%{ transform:translateY(0); }
   }
 
-  /* 彈跳視窗 */
-  #unlockOverlay{
+  /* ===== 兩個彈跳視窗 ===== */
+  .overlay{
     position: fixed; inset: 0; z-index: 9999;
     display:flex; align-items:center; justify-content:center;
     background: rgba(17,24,39,.35); backdrop-filter: blur(3px);
   }
-  #unlockOverlay.hidden{ display:none; }
-  #unlockCard{
-    min-width: 280px; max-width: 92vw;
-    background: rgba(255,255,255,.96); border: 1px solid rgba(255,255,255,.85);
-    border-radius: 14px; padding: 18px 18px 14px;
-    box-shadow: 0 18px 44px rgba(0,0,0,.18); text-align: center;
+  .overlay.hidden{ display:none; }
+  .dialog{
+    min-width: 300px; max-width: 92vw; background: rgba(255,255,255,.96);
+    border:1px solid rgba(255,255,255,.85); border-radius:14px; padding:18px;
+    box-shadow:0 18px 44px rgba(0,0,0,.18); text-align:center;
   }
-  .unlock-actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
-  .dialog-btn{ width: 120px; height: 38px; border-radius: 10px; border: 1px solid var(--rim); background: #fff; cursor: pointer; font-weight: 600; }
-  .dialog-btn.primary{ background:#f8f5ff; }
+  .dialog h3{ margin:0 0 8px; font-size:18px; }
+  .dialog p{ margin:6px 0; line-height:1.6; }
+  .dialog .actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
+  .dialog button{ width:120px; height:38px; border-radius:10px; border:1px solid var(--rim); background:#fff; cursor:pointer; font-weight:600; }
+  .dialog button.primary{ background:#f8f5ff; }
 
   /* 鎖定後遮罩 */
   #lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:transparent; }
@@ -165,14 +143,34 @@
     <div class="kb-wrap"><div id="keyboard"></div></div>
   </div>
 
-  <!-- 解鎖彈窗（置中） -->
-  <div id="unlockOverlay" role="dialog" aria-modal="true" aria-labelledby="unlockTitle">
-    <div id="unlockCard">
-      <div id="unlockTitle" style="font-size:16px;opacity:.92">請開啟音量並點擊「確定」啟用聲音</div>
-      <div style="font-size:12px;opacity:.72;margin-top:6px">iPhone 請確認側邊靜音鍵關閉</div>
-      <div class="unlock-actions">
-        <button id="cancelUnlock" class="dialog-btn" type="button">取消</button>
-        <button id="confirmUnlock" class="dialog-btn primary" type="button">確定</button>
+  <!-- 彈跳視窗 ①：操作說明 -->
+  <div id="guideOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+    <div class="dialog">
+      <h3 id="guideTitle">📍操作說明📍</h3>
+      <p>🔻填入姓名及取得的代號</p>
+      <p>↓</p>
+      <p>🔻限定同一種樂器選三個音</p>
+      <p>↓</p>
+      <p>🔻三個音確認後即按鎖定</p>
+      <p>↓</p>
+      <p>🔻跳通知已完成即可退出</p>
+      <p>↓</p>
+      <p>❗️最後若沒按鎖定不會送出</p>
+      <div class="actions">
+        <button id="guideOk" class="primary">了解</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 彈跳視窗 ②：啟用聲音 / 音色載入 -->
+  <div id="unlockOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="unlockTitle">
+    <div class="dialog">
+      <h3 id="unlockTitle">啟用聲音</h3>
+      <p>請開啟音量並點擊「確定」啟用聲音</p>
+      <p style="font-size:12px;opacity:.72;">iPhone 請確認側邊靜音鍵關閉</p>
+      <div class="actions">
+        <button id="cancelUnlock">取消</button>
+        <button id="confirmUnlock" class="primary">確定</button>
       </div>
     </div>
   </div>
@@ -183,14 +181,14 @@
 
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
   <script>
-    /* ======= 主程式（維持既有邏輯） ======= */
+    /* ===== 主程式（維持你先前確認的行為） ===== */
     const WEBHOOK = "https://script.google.com/macros/s/AKfycbw3rDKy-mjN93ValBMs28ndCFv5IbqjupDgn9rHvqYOqJwo5If3DdB1zVervdluT8YW/exec";
     const $ = s => document.querySelector(s);
     const setStatus = m => $('#status').textContent = m;
 
     let audioCtx=null, sampler=null, samplerReady=false, unlocked=false, hardLocked=false;
     let currentInstrument='piano';
-    let selectedNotes = []; // 收集 3 個音
+    let selectedNotes = [];
 
     const PIANO_BASE=new URL('./piano/',location.href).href;
     const PIANO_URLS={'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3','C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3','C4':'C4.mp3','D#4':'Ds4.mp3','F#4':'Fs4.mp3','A4':'A4.mp3','C5':'C5.mp3'};
@@ -201,13 +199,14 @@
     const BLACK_AFTER={ 'C':'C#','D':'D#','F':'F#','G':'G#','A':'A#' };
     const MIN_WHITE_PX=64, TOTAL_WHITE=WHITE.length;
 
+    // 吉他
     const TUNING_MIDI = [40,45,50,55,59,64]; // E2 A2 D3 G3 B3 E4（自下而上）
     const NOTE_NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
     const FRETS = 12; // 1~12
 
     function midiToNoteName(midi){ const n = NOTE_NAMES[midi % 12]; const octave = Math.floor(midi/12) - 1; return n + octave; }
 
-    // 解鎖
+    // ===== 解鎖音訊 =====
     async function unlockAudio(){
       try{
         const Ctx=window.webkitAudioContext||window.AudioContext;
@@ -256,12 +255,11 @@
       $('#lockBtn').disabled = !(nameOk && codeOk && notesOk);
     }
 
-    /* ===== 鋼琴渲染（黑鍵置中） ===== */
+    /* ===== 鋼琴（黑鍵置中） ===== */
     function renderPiano(){
       const kb=$('#keyboard'); kb.innerHTML=''; kb.className=''; sizePiano();
-      const keyW=100/TOTAL_WHITE; // 每白鍵寬度（%）
+      const keyW=100/TOTAL_WHITE;
 
-      // 白鍵
       WHITE.forEach((note,i)=>{
         const w=document.createElement('div'); w.className='white'; w.dataset.note=note;
         w.style.left=`${i*keyW}%`; w.style.width=`${keyW}%`;
@@ -275,7 +273,6 @@
         kb.appendChild(w);
       });
 
-      // 黑鍵（置中在兩白鍵之間）
       WHITE.forEach((note,i)=>{
         const l=note[0],sharp=BLACK_AFTER[l]?BLACK_AFTER[l]+note.slice(1):null;
         if(!sharp||(l==='A'&&i===TOTAL_WHITE-1)) return;
@@ -296,10 +293,10 @@
     function sizePiano(){
       const wrap=document.querySelector('.kb-wrap'); const kb=document.querySelector('#keyboard');
       const wrapW=wrap.clientWidth; const sep=parseInt(getComputedStyle(kb).getPropertyValue('--sep')||'2');
-      const minW=TOTAL_WHITE*(MIN_WHITE_PX+sep); kb.style.width=(wrapW>=minW?wrapW-1:minW)+'px'; kb.style.height='var(--kb-h)';
+      const minW=WHITE.length*(64+sep); kb.style.width=(wrapW>=minW?wrapW-1:minW)+'px'; kb.style.height='var(--kb-h)';
     }
 
-    /* ===== 吉他渲染（1~12 品；整條弦可點；弦震動） ===== */
+    /* ===== 吉他：1~12 品；點一格 → 全條弦震動 ===== */
     function renderGuitar(){
       const kb=$('#keyboard'); kb.innerHTML=''; kb.className='fretboard'; kb.style.height='var(--kb-h)';
 
@@ -307,32 +304,37 @@
       const head=document.createElement('div'); head.className='head'; kb.appendChild(head);
       const nut =document.createElement('div');  nut.className='nut';  kb.appendChild(nut);
 
-      // 品 1~12
+      // 先建 12 個品位欄
       for(let f=1; f<=FRETS; f++){
         const col=document.createElement('div'); col.className='fret-col';
 
-        // 六條弦位置（由上細到下粗）
+        // 六條弦（放上 data-s 方便同條選取）
         for(let s=0; s<6; s++){
           const y=(s+1)*(100/7);
           const str=document.createElement('div');
           str.className='string';
+          str.dataset.s = String(s);
           str.style.top=`calc(${y}%)`;
           col.appendChild(str);
 
-          // 撥弦＝在該品位的該弦出聲
+          // 點這一格 → 播對應音 + 讓「同一條弦」全欄位一起震動
           str.addEventListener('pointerdown',()=>{
             if(hardLocked) return;
             if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; }
-            const midi = TUNING_MIDI[5-s] + f; // 5-s：UI 上方是高音弦
+
+            const midi = TUNING_MIDI[5-s] + f;
             const note = midiToNoteName(midi);
             trigger(note);
-            // 輕微上下震動
-            str.classList.add('vibrate');
-            setTimeout(()=>str.classList.remove('vibrate'),180);
+
+            // 讓同一條弦在所有欄位一起震動
+            document.querySelectorAll(`.fret-col .string[data-s="${s}"]`).forEach(el=>{
+              el.classList.add('vibrate');
+              setTimeout(()=>el.classList.remove('vibrate'),180);
+            });
           });
         }
 
-        // 指板圓點：3/5/7/9 單點；12 雙點
+        // 指板圓點：在 3 / 5 / 7 / 9 / 12 格
         if([3,5,7,9].includes(f)){
           const dot=document.createElement('div');
           dot.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#7a7f89;opacity:.85;box-shadow:0 1px 0 rgba(0,0,0,.25);pointer-events:none;';
@@ -342,8 +344,8 @@
           const dd=document.createElement('div');
           dd.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#7a7f89;opacity:.85;box-shadow:0 1px 0 rgba(0,0,0,.25);pointer-events:none;';
           const before=document.createElement('div'), after=document.createElement('div');
-          Object.assign(before.style, {position:'absolute',width:'16px',height:'16px',borderRadius:'50%',background:'#7a7f89',top:'50%',transform:'translateY(-50%)',left:'-14px',boxShadow:'0 1px 0 rgba(0,0,0,.25)'} );
-          Object.assign(after .style, {position:'absolute',width:'16px',height:'16px',borderRadius:'50%',background:'#7a7f89',top:'50%',transform:'translateY(-50%)',right:'-14px',boxShadow:'0 1px 0 rgba(0,0,0,.25)'} );
+          Object.assign(before.style,{position:'absolute',width:'16px',height:'16px',borderRadius:'50%',background:'#7a7f89',top:'50%',transform:'translateY(-50%)',left:'-14px',boxShadow:'0 1px 0 rgba(0,0,0,.25)'} );
+          Object.assign(after .style,{position:'absolute',width:'16px',height:'16px',borderRadius:'50%',background:'#7a7f89',top:'50%',transform:'translateY(-50%)',right:'-14px',boxShadow:'0 1px 0 rgba(0,0,0,.25)'} );
           dd.appendChild(before); dd.appendChild(after); col.appendChild(dd);
         }
 
@@ -368,10 +370,16 @@
       if(selectedNotes.length>0){ selectedNotes.pop(); refreshNotesDisplay(); validateLockBtn(); }
     });
 
-    // Overlay
+    // 彈跳視窗：操作說明
+    $('#guideOk').addEventListener('click', ()=>{
+      $('#guideOverlay').classList.add('hidden');
+      // 不馬上解鎖音訊，等用戶第一次互動再叫出第二個彈窗
+    });
+
+    // 彈跳視窗：啟用聲音
     $('#cancelUnlock').addEventListener('click', ()=>{ $('#unlockOverlay').classList.add('hidden'); });
     $('#confirmUnlock').addEventListener('click', unlockAudio, {once:true});
-    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') $('#unlockOverlay').classList.add('hidden'); });
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ $('#guideOverlay').classList.add('hidden'); $('#unlockOverlay').classList.add('hidden'); } });
 
     // 鎖定：立刻鎖 UI，再送資料
     $('#lockBtn').addEventListener('click', async ()=>{
@@ -381,21 +389,16 @@
       if(!name || !code || selectedNotes.length!==3){ alert('請填姓名、代號並彈滿 3 個音再鎖定'); return; }
 
       setStatus('送出中…');
-      enterHardLock(); // 立刻鎖住 UI
+      enterHardLock();
 
       const payload={ userId: code, displayName: name, instrument: currentInstrument, note: selectedNotes.join('|'), velocity: 1, sessionId: 'demo' };
-
-      // 6 秒逾時
-      const controller = new AbortController();
-      const timer = setTimeout(()=>controller.abort(), 6000);
+      const controller = new AbortController(); const timer = setTimeout(()=>controller.abort(), 6000);
 
       try{
         const r = await fetch(WEBHOOK,{ method:'POST', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(payload), signal: controller.signal });
         clearTimeout(timer);
-        if(r.ok){ setStatus('已送出，可以退出囉'); } else { setStatus('送出失敗（已鎖定）'); }
-      }catch(e){
-        setStatus('送出逾時或失敗（已鎖定）');
-      }
+        setStatus(r.ok ? '已送出，可以退出囉' : '送出失敗（已鎖定）');
+      }catch(e){ setStatus('送出逾時或失敗（已鎖定）'); }
     });
 
     function enterHardLock(){
@@ -412,9 +415,11 @@
     window.addEventListener('orientationchange', ()=>{ if(currentInstrument==='piano') sizePiano(); });
 
     window.addEventListener('DOMContentLoaded', ()=>{
-      renderPiano();           // 預設先顯示鋼琴
+      renderPiano();                  // 預設顯示鋼琴
       setStatus('等待啟用聲音…');
       validateLockBtn();
+      // 一進來先顯示「操作說明」彈窗
+      $('#guideOverlay').classList.remove('hidden');
     });
   </script>
 </body>
