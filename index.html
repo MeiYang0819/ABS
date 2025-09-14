@@ -252,9 +252,9 @@
 
     function loadSampler(inst='piano'){
       sampler?.dispose?.(); sampler=null; samplerReady=false;
-      let urls=PIANO_URLS, base=PIANO_BASE, label='🎹';
-      if(inst==='guitar'){ urls=GUITAR_URLS; base=GUITAR_BASE; label='🎸'; }
-      setStatus(label+'取樣載入中…');
+      let urls=PIANO_URLS, base=PIANO_BASE, label='🎹 ';
+      if(inst==='guitar'){ urls=GUITAR_URLS; base=GUITAR_BASE; label='🎸 '; }
+      setStatus(label+'載入中…');
       sampler=new Tone.Sampler({ urls, release:1, baseUrl:base, onload:()=>{ samplerReady=true; setStatus(label+'已載入 ✅'); } }).toDestination();
     }
 
@@ -431,6 +431,7 @@
   </script>
 </body>
 </html>
+
 
 
 
