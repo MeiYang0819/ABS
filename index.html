@@ -355,7 +355,7 @@
           const down=document.createElement('div');
           const base='position:absolute;left:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#7a7f89;opacity:.85;box-shadow:0 1px 0 rgba(0,0,0,.25);pointer-events:none;';
           up.style.cssText   = base + 'top:calc(100% * 1.5 / 7);';
-          down.style.cssText = base + 'top:calc(100% * 5.5 / 7);';
+          down.style.cssText = base + 'top:calc(100% * 5.6 / 7);';
           col.appendChild(up); col.appendChild(down);
         }
 
@@ -407,7 +407,7 @@
       const name=($('#displayName').value||'').trim(); const code=($('#code').value||'').trim();
       if(!name||!code||selectedNotes.length!==3){ alert('請填姓名、代號並彈滿 3 個音再鎖定'); return; }
       setStatus('送出中…'); enterHardLock();
-      const payload={ userId: code, displayName: name, instrument: currentInstrument, note: selectedNotes.join('|'), velocity: 1, sessionId: 'demo' };
+      const payload={ userId: code, displayName: name, instrument: currentInstrument, note: selectedNotes.join(','), velocity: 1, sessionId: 'demo' };
       const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),6000);
       try{
         const r=await fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload),signal:controller.signal});
@@ -429,4 +429,3 @@
   </script>
 </body>
 </html>
-
