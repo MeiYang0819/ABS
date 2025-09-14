@@ -7,161 +7,415 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --rim:#e4e7ef; --ink:#0f172a; --kb-h:280px; --sep:2px;
-    --stroke:rgba(0,0,0,.18); --glow:rgba(255,255,255,.65);
-  }
-  *{box-sizing:border-box;font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif !important;}
-  html,body{margin:0;color:var(--ink);background:linear-gradient(135deg,#e6dfff 0%, #dcd4ff 100%);}
-  .panel{max-width:1060px;margin:22px auto;background:rgba(255,255,255,.58);border:1px solid rgba(255,255,255,.65);
-    border-radius:16px;padding:18px 18px 26px;box-shadow:0 10px 30px rgba(98,76,171,.12);backdrop-filter:blur(10px) saturate(120%);}
-  h2{margin:4px 0 20px;text-align:center;font-size:2.8rem;font-weight:700;letter-spacing:1px;}
+  :root{ --rim:#e4e7ef; --ink:#0f172a; --kb-h:280px; --sep:2px; --stroke:rgba(0,0,0,.18); --glow:rgba(255,255,255,.65); }
+  *{ box-sizing:border-box; font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif !important; -webkit-text-stroke:.35px var(--stroke); text-shadow:0 1px 0 var(--glow); }
+  html,body{ margin:0; color:var(--ink); background:linear-gradient(135deg,#e6dfff 0%, #dcd4ff 100%); }
+  .panel{ max-width:1060px;margin:22px auto;background:rgba(255,255,255,.58);border:1px solid rgba(255,255,255,.65);border-radius:16px; padding:18px 18px 26px;box-shadow:0 10px 30px rgba(98,76,171,.12);backdrop-filter:blur(10px) saturate(120%); }
+  h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; letter-spacing:1px; -webkit-text-stroke:.7px var(--stroke); text-shadow:0 3px 4px rgba(255,255,255,.85); }
 
+  /* 控制列（親友→代號→樂器→音符→重設→鎖定） */
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .row input,.row select,.row button{height:38px;font-size:14px;border:1px solid var(--rim);border-radius:10px;background:#fff;}
-  .row input{width:90px;}
-  .row select{width:auto;min-width:80px;text-align:center;text-align-last:center;}
-  #resetBtn,#lockBtn{width:80px;font-weight:600;cursor:pointer;}
-  #lockBtn:disabled{opacity:.55;cursor:not-allowed}
-
-  #status{background:#eef2f7;border:1px solid var(--rim);border-radius:12px;padding:10px;margin-top:10px;
-    font-size:14px;white-space:pre-wrap;color:#334155;text-align:center;}
-
-  .kb-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;background:linear-gradient(180deg,#f7f2ff 0%, #ede9fe 100%);
-    border:1px solid var(--rim);border-radius:14px;margin-top:14px;}
-  #keyboard{position:relative;height:var(--kb-h);user-select:none;touch-action:pan-x;}
-
-  /* 鋼琴樣式（略） */
-  .white{position:absolute;bottom:0;height:100%;background:linear-gradient(#fff,#eceef3 72%,#d9dde5);
-    border-radius:0 0 12px 12px;}
-  .black{position:absolute;bottom:38%;height:62%;background:linear-gradient(#2d2f36,#0e0f13);
-    border:1px solid #0b0d11;border-top:none;border-radius:0 0 10px 10px;z-index:5;transform:translateX(-50%);}
-  .label{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);font-size:11px;color:#475569;}
-
-  /* 吉他指板樣式 */
-  .fretboard{position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:64px;height:var(--kb-h);
-    background:linear-gradient(#f5f3ff,#ede9fe);}
-  .fret-col{position:relative;border-left:2px solid rgba(0,0,0,.15);}
-  .nut{position:absolute;left:0;top:0;bottom:0;width:6px;background:linear-gradient(#ddd,#bbb);
-    border-right:2px solid #9aa0a6;z-index:3;}
-  .string{position:absolute;left:0;right:0;transform-origin:center;
-    background:linear-gradient(#444,#111);opacity:.9;}
-  .string.vibrate{animation:vibrate .15s ease-out;}
-  @keyframes vibrate{
-    0%{transform:translateY(0);}
-    25%{transform:translateY(-2px);}
-    50%{transform:translateY(0);}
-    75%{transform:translateY(2px);}
-    100%{transform:translateY(0);}
+  .row label{opacity:.92;white-space:nowrap;font-weight:400;-webkit-text-stroke:0;text-shadow:none}
+  .row input,.row select,.row button{
+    height:38px; font-size:14px; background:#fff; padding:8px 10px;
+    border:1px solid var(--rim); border-radius:10px;
+    -webkit-text-stroke:.25px rgba(0,0,0,.12); text-shadow:0 1px 0 rgba(255,255,255,.5);
   }
-  .marker{position:absolute;left:50%;transform:translateX(-50%);bottom:6px;font-size:12px;
-    color:#6b7280;background:#ffffffd0;border-radius:999px;padding:1px 6px;}
-  footer{text-align:center;margin:20px 0;color:#555;font-size:13px;}
+  /* 三個輸入框統一 96px */
+  #displayName,#code,#lastNote{ width:96px; font-weight:400; -webkit-text-stroke:0; text-shadow:none }
+  /* 樂器選單：自適應文字寬，置中 */
+  .row select{ width:auto; min-width:88px; text-align:center; text-align-last:center; -webkit-text-stroke:0; text-shadow:none; }
+  .row select option{text-align:center}
+  /* 按鈕：重設與鎖定 60px 半寬 */
+  .row button{ width:120px; cursor:pointer; font-weight:600 }
+  .btn-compact{ width:60px !important; }
+  .row button:disabled{opacity:.55;cursor:not-allowed}
+
+  /* 狀態列：只顯示載入/送出狀態 */
+  #status{ background:#eef2f7;border:1px solid var(--rim); border-radius:12px;padding:10px;margin-top:10px; font-size:14px;white-space:pre-wrap;color:#334155;text-align:center; }
+
+  .kb-wrap{ overflow-x:hidden; background:linear-gradient(180deg,#f7f2ff 0%, #ede9fe 100%); border:1px solid var(--rim); border-radius:14px; margin-top:14px; }
+  #keyboard{ position:relative; height:var(--kb-h); user-select:none; -webkit-user-select:none; touch-action:pan-x; }
+
+  /* ===== 鋼琴（黑鍵精準置中） ===== */
+  .white{
+    position:absolute; bottom:0; height:100%;
+    background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5);
+    border-radius:0 0 12px 12px;
+    box-shadow:inset 0 -12px 16px rgba(0,0,0,.12),
+               inset 0 1px 0 rgba(255,255,255,.9),
+               0 1px 0 rgba(0,0,0,.04);
+  }
+  .white::after{ content:""; position:absolute; top:0; bottom:0; right:0; width:var(--sep); background:linear-gradient(transparent,#cfd3dc 50%,transparent); }
+  .white:first-child::before{ content:""; position:absolute; top:0; bottom:0; left:0; width:var(--sep); background:linear-gradient(transparent,#cfd3dc 50%,transparent); }
+  .white.active{filter:brightness(1.06)}
+  .black{
+    position:absolute; bottom:38%; height:62%;
+    background:linear-gradient(#2d2f36,#0e0f13);
+    border:1px solid #0b0d11; border-top:none;
+    border-radius:0 0 10px 10px; z-index:5;
+    box-shadow:inset 0 -6px 10px rgba(0,0,0,.45), 0 3px 10px rgba(0,0,0,.35);
+    transform: translateX(-50%); /* left 作為中心 */
+  }
+  .black.active{filter:brightness(1.22)}
+  .label{
+    position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
+    font-size:11px; color:#475569; background:#ffffffee; border:1px solid var(--rim);
+    padding:2px 6px; border-radius:8px; -webkit-text-stroke:.25px rgba(0,0,0,.12); text-shadow:0 1px 0 rgba(255,255,255,.6);
+  }
+
+  /* ===== 吉他（1~12 品、整條弦可點、輕微上下震動） ===== */
+  .fretboard{
+    position:relative; display:grid; grid-template-columns: repeat(12, 1fr);
+    width:100%; height:var(--kb-h); background:#ececf3; border-radius:12px;
+  }
+  /* 左側木質頭枕 + 上枕裝飾 */
+  .head{
+    position:absolute; left:0; top:0; bottom:0; width:86px; z-index:2;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,.08), transparent 40%),
+      linear-gradient(180deg,#f0d6b8 0%, #e4c29a 55%, #d8b283 100%);
+    border-right:1px solid rgba(120,90,60,.35); box-shadow: inset -8px 0 16px rgba(0,0,0,.08);
+    border-radius:12px 0 0 12px; pointer-events:none;
+  }
+  .nut{
+    position:absolute; left:86px; top:0; bottom:0; width:8px; z-index:3;
+    background:linear-gradient(180deg,#e5e1d6,#c9c5ba);
+    box-shadow: inset -1px 0 0 rgba(0,0,0,.25), inset 1px 0 0 rgba(255,255,255,.6);
+    border-right:2px solid rgba(120,120,120,.45); pointer-events:none;
+  }
+  /* 每一品的欄位：右側金屬品絲 */
+  .fret-col{
+    position:relative; background:linear-gradient(180deg,#f7f7fb,#ececf3);
+    box-shadow: inset -2px 0 0 rgba(170,170,170,.95), inset -4px 0 0 rgba(255,255,255,.55);
+  }
+
+  /* 六條弦（上細下粗） */
+  .string{
+    position:absolute; left:0; right:0; height:0; z-index:1;
+    border-top:2px solid #6b7280; opacity:.9; filter:drop-shadow(0 1px 0 rgba(0,0,0,.1));
+    transform-origin:center;
+  }
+  .string:nth-of-type(1){ border-top-width:2px; }   /* e4 最細（最上）*/
+  .string:nth-of-type(2){ border-top-width:2px; }   /* b3 */
+  .string:nth-of-type(3){ border-top-width:2.5px; } /* g3 */
+  .string:nth-of-type(4){ border-top-width:3px; }   /* d3 */
+  .string:nth-of-type(5){ border-top-width:3.5px; } /* a2 */
+  .string:nth-of-type(6){ border-top-width:4px; }   /* E2 最粗（最下）*/
+
+  /* 輕微上下震動動畫 */
+  .string.vibrate{ animation: vibr 160ms ease-out; }
+  @keyframes vibr{
+    0%{ transform:translateY(0); }
+    25%{ transform:translateY(-2px); }
+    50%{ transform:translateY(0); }
+    75%{ transform:translateY(2px); }
+    100%{ transform:translateY(0); }
+  }
+
+  /* 彈跳視窗 */
+  #unlockOverlay{
+    position: fixed; inset: 0; z-index: 9999;
+    display:flex; align-items:center; justify-content:center;
+    background: rgba(17,24,39,.35); backdrop-filter: blur(3px);
+  }
+  #unlockOverlay.hidden{ display:none; }
+  #unlockCard{
+    min-width: 280px; max-width: 92vw;
+    background: rgba(255,255,255,.96); border: 1px solid rgba(255,255,255,.85);
+    border-radius: 14px; padding: 18px 18px 14px;
+    box-shadow: 0 18px 44px rgba(0,0,0,.18); text-align: center;
+  }
+  .unlock-actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
+  .dialog-btn{ width: 120px; height: 38px; border-radius: 10px; border: 1px solid var(--rim); background: #fff; cursor: pointer; font-weight: 600; }
+  .dialog-btn.primary{ background:#f8f5ff; }
+
+  /* 鎖定後遮罩 */
+  #lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:transparent; }
+
+  footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#475569; font-size:12px; opacity:.9; }
 </style>
 <body>
   <div class="panel">
     <h2>互動音符</h2>
+
+    <!-- 排序：親友姓名｜取得代號｜樂器轉換｜音符紀錄｜重設｜鎖定 -->
     <div class="row">
-      <input id="displayName" placeholder="姓名" />
-      <input id="code" placeholder="代號" />
-      <select id="instrument"><option value="piano">鋼琴</option><option value="guitar">吉他</option></select>
-      <input id="notes" placeholder="音符紀錄" readonly />
-      <button id="resetBtn">重設</button>
-      <button id="lockBtn" disabled>鎖定</button>
+      <label for="displayName">親友姓名：</label>
+      <input id="displayName" placeholder="例如：小明" />
+
+      <label for="code">取得代號：</label>
+      <input id="code" placeholder="請輸入代號" />
+
+      <label for="instrument">樂器轉換：</label>
+      <select id="instrument">
+        <option value="piano" selected>鋼琴</option>
+        <option value="guitar">吉他</option>
+      </select>
+
+      <label for="lastNote">音符紀錄：</label>
+      <input id="lastNote" placeholder="— , — , —" readonly />
+
+      <button id="resetBtn" type="button" class="btn-compact">重設</button>
+      <button id="lockBtn" type="button" class="btn-compact" disabled>鎖定</button>
     </div>
+
     <p id="status">尚未初始化</p>
+
     <div class="kb-wrap"><div id="keyboard"></div></div>
   </div>
-  <footer>© Copyright 2025 MY‘s Version:b1.0.0</footer>
 
-  <div id="unlockOverlay"><div id="unlockCard">
-    <div>請開啟音量並點擊下方按鈕啟用聲音</div>
-    <div style="font-size:12px;opacity:.7;margin-top:6px">iPhone 請確認側邊靜音鍵關閉</div>
-    <button id="unlockBtn">確定啟用聲音</button>
-  </div></div>
+  <!-- 解鎖彈窗（置中） -->
+  <div id="unlockOverlay" role="dialog" aria-modal="true" aria-labelledby="unlockTitle">
+    <div id="unlockCard">
+      <div id="unlockTitle" style="font-size:16px;opacity:.92">請開啟音量並點擊「確定」啟用聲音</div>
+      <div style="font-size:12px;opacity:.72;margin-top:6px">iPhone 請確認側邊靜音鍵關閉</div>
+      <div class="unlock-actions">
+        <button id="cancelUnlock" class="dialog-btn" type="button">取消</button>
+        <button id="confirmUnlock" class="dialog-btn primary" type="button">確定</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="lockScreen" aria-hidden="true"></div>
+
+  <footer>© Copyright 2025 MY‘s Version:b1.0.0</footer>
 
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
   <script>
-    const WEBHOOK="YOUR_WEBHOOK_URL";
-    const $=s=>document.querySelector(s);
-    const setStatus=m=>$('#status').textContent=m;
-    let unlocked=false,audioCtx=null,sampler=null,samplerReady=false,currentInstrument='piano';
-    let notes=[];
+    /* ======= 主程式（維持既有邏輯） ======= */
+    const WEBHOOK = "https://script.google.com/macros/s/AKfycbw3rDKy-mjN93ValBMs28ndCFv5IbqjupDgn9rHvqYOqJwo5If3DdB1zVervdluT8YW/exec";
+    const $ = s => document.querySelector(s);
+    const setStatus = m => $('#status').textContent = m;
+
+    let audioCtx=null, sampler=null, samplerReady=false, unlocked=false, hardLocked=false;
+    let currentInstrument='piano';
+    let selectedNotes = []; // 收集 3 個音
 
     const PIANO_BASE=new URL('./piano/',location.href).href;
-    const PIANO_URLS={'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3',
-                      'C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3',
-                      'C4':'C4.mp3','D#4':'Ds4.mp3','F#4':'Fs4.mp3','A4':'A4.mp3','C5':'C5.mp3'};
+    const PIANO_URLS={'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3','C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3','C4':'C4.mp3','D#4':'Ds4.mp3','F#4':'Fs4.mp3','A4':'A4.mp3','C5':'C5.mp3'};
     const GUITAR_BASE=new URL('./guitar/',location.href).href;
     const GUITAR_URLS={'E2':'E2.wav','A2':'A2.wav','D3':'D3.wav','G3':'G3.wav','B3':'B3.wav','E4':'E4.wav'};
+
     const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
-    const BLACK_AFTER={'C':'C#','D':'D#','F':'F#','G':'G#','A':'A#'};const TOTAL_WHITE=WHITE.length;
-    const TUNING_MIDI=[40,45,50,55,59,64];const NOTE_NAMES=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
-    const FRETS=12;
+    const BLACK_AFTER={ 'C':'C#','D':'D#','F':'F#','G':'G#','A':'A#' };
+    const MIN_WHITE_PX=64, TOTAL_WHITE=WHITE.length;
 
-    function midiToNoteName(m){const n=NOTE_NAMES[m%12];const o=Math.floor(m/12)-1;return n+o;}
+    const TUNING_MIDI = [40,45,50,55,59,64]; // E2 A2 D3 G3 B3 E4（自下而上）
+    const NOTE_NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+    const FRETS = 12; // 1~12
 
+    function midiToNoteName(midi){ const n = NOTE_NAMES[midi % 12]; const octave = Math.floor(midi/12) - 1; return n + octave; }
+
+    // 解鎖
     async function unlockAudio(){
-      const Ctx=window.AudioContext||window.webkitAudioContext;
-      if(!audioCtx) audioCtx=new Ctx({latencyHint:'interactive'});
-      if(audioCtx.state!=='running') await audioCtx.resume();
-      Tone.setContext(new Tone.Context(audioCtx));await Tone.start();
-      loadSampler(currentInstrument);unlocked=true;$('#unlockOverlay').style.display='none';
-      setStatus('音訊已啟用，音色載入中…');
+      try{
+        const Ctx=window.webkitAudioContext||window.AudioContext;
+        if(!audioCtx) audioCtx=new Ctx({latencyHint:'interactive'});
+        if(audioCtx.state!=='running') await audioCtx.resume();
+        Tone.setContext(new Tone.Context(audioCtx));
+        await Tone.start();
+        loadSampler(currentInstrument);
+        unlocked=true;
+        $('#unlockOverlay').classList.add('hidden');
+      }catch(e){ setStatus('啟用失敗：'+e.message); }
     }
 
     function loadSampler(inst='piano'){
-      sampler?.dispose?.();sampler=null;samplerReady=false;
-      let urls=PIANO_URLS,base=PIANO_BASE,label='鋼琴';
-      if(inst==='guitar'){urls=GUITAR_URLS;base=GUITAR_BASE;label='吉他';}
+      sampler?.dispose?.(); sampler=null; samplerReady=false;
+      let urls=PIANO_URLS, base=PIANO_BASE, label='鋼琴';
+      if(inst==='guitar'){ urls=GUITAR_URLS; base=GUITAR_BASE; label='吉他'; }
       setStatus(label+'取樣載入中…');
-      sampler=new Tone.Sampler({urls,release:1,baseUrl:base,onload:()=>{samplerReady=true;setStatus(label+'取樣已載入 ✅');}}).toDestination();
+      sampler=new Tone.Sampler({
+        urls, release:1, baseUrl:base,
+        onload:()=>{ samplerReady=true; setStatus(label+'取樣已載入 ✅'); }
+      }).toDestination();
+    }
+
+    function refreshNotesDisplay(){
+      const parts = [selectedNotes[0]||'—', selectedNotes[1]||'—', selectedNotes[2]||'—'];
+      $('#lastNote').value = parts.join(' , ');
     }
 
     function trigger(note){
-      if(!samplerReady){setStatus('音色載入中…');return;}
+      if(hardLocked) return;
+      if(!samplerReady){ setStatus('音色載入中…'); return; }
       sampler.triggerAttackRelease(note,'8n');
-      if(notes.length<3){notes.push(note);$('#notes').value=notes.join(', ');}
-      $('#lockBtn').disabled=(notes.length<3);
+
+      if(selectedNotes.length < 3) selectedNotes.push(note);
+      else selectedNotes[2] = note;
+
+      refreshNotesDisplay();
+      validateLockBtn();
     }
 
+    function validateLockBtn(){
+      const nameOk = ($('#displayName').value || '').trim().length > 0;
+      const codeOk = ($('#code').value || '').trim().length > 0;
+      const notesOk = selectedNotes.length === 3;
+      $('#lockBtn').disabled = !(nameOk && codeOk && notesOk);
+    }
+
+    /* ===== 鋼琴渲染（黑鍵置中） ===== */
     function renderPiano(){
-      const kb=$('#keyboard');kb.innerHTML='';kb.className='';const keyW=100/TOTAL_WHITE;
-      WHITE.forEach((note,i)=>{const w=document.createElement('div');w.className='white';w.dataset.note=note;
-        w.style.left=`${i*keyW}%`;w.style.width=`${keyW}%`;if(note[0]==='C'||note[0]==='G'){
-          const lab=document.createElement('div');lab.className='label';lab.textContent=note;w.appendChild(lab);}kb.appendChild(w);});
-      WHITE.forEach((note,i)=>{const l=note[0],sharp=BLACK_AFTER[l]?BLACK_AFTER[l]+note.slice(1):null;
-        if(!sharp||(l==='A'&&i===TOTAL_WHITE-1))return;
-        const b=document.createElement('div');b.className='black';b.dataset.note=sharp;
-        b.style.left=`calc(${i*keyW+keyW/2}%)`;b.style.width=`${keyW*0.62}%`;kb.appendChild(b);});
-      kb.onpointerdown=e=>{const k=e.target.closest('.white,.black');if(!k)return;if(!unlocked)unlockAudio();trigger(k.dataset.note);k.classList.add('active');};
-      kb.onpointerup=e=>{const k=e.target.closest('.white,.black');if(k)k.classList.remove('active');};
+      const kb=$('#keyboard'); kb.innerHTML=''; kb.className=''; sizePiano();
+      const keyW=100/TOTAL_WHITE; // 每白鍵寬度（%）
+
+      // 白鍵
+      WHITE.forEach((note,i)=>{
+        const w=document.createElement('div'); w.className='white'; w.dataset.note=note;
+        w.style.left=`${i*keyW}%`; w.style.width=`${keyW}%`;
+        if(note[0]==='C'||note[0]==='G'){ const lab=document.createElement('div'); lab.className='label'; lab.textContent=note; w.appendChild(lab); }
+        w.addEventListener('pointerdown', ()=>{
+          if(hardLocked) return;
+          if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; }
+          trigger(note); w.classList.add('active');
+        });
+        w.addEventListener('pointerup', ()=>w.classList.remove('active'));
+        kb.appendChild(w);
+      });
+
+      // 黑鍵（置中在兩白鍵之間）
+      WHITE.forEach((note,i)=>{
+        const l=note[0],sharp=BLACK_AFTER[l]?BLACK_AFTER[l]+note.slice(1):null;
+        if(!sharp||(l==='A'&&i===TOTAL_WHITE-1)) return;
+        const b=document.createElement('div'); b.className='black'; b.dataset.note=sharp;
+        const blackWidthPct = keyW*0.62;
+        b.style.width = `${blackWidthPct}%`;
+        b.style.left  = `${(i+1)*keyW}%`;
+        b.addEventListener('pointerdown', ()=>{
+          if(hardLocked) return;
+          if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; }
+          trigger(sharp); b.classList.add('active');
+        });
+        b.addEventListener('pointerup', ()=>b.classList.remove('active'));
+        kb.appendChild(b);
+      });
     }
 
+    function sizePiano(){
+      const wrap=document.querySelector('.kb-wrap'); const kb=document.querySelector('#keyboard');
+      const wrapW=wrap.clientWidth; const sep=parseInt(getComputedStyle(kb).getPropertyValue('--sep')||'2');
+      const minW=TOTAL_WHITE*(MIN_WHITE_PX+sep); kb.style.width=(wrapW>=minW?wrapW-1:minW)+'px'; kb.style.height='var(--kb-h)';
+    }
+
+    /* ===== 吉他渲染（1~12 品；整條弦可點；弦震動） ===== */
     function renderGuitar(){
-      const kb=$('#keyboard');kb.innerHTML='';kb.className='fretboard';
-      for(let f=0;f<=FRETS;f++){
-        const col=document.createElement('div');col.className='fret-col';if(f===0){const nut=document.createElement('div');nut.className='nut';col.appendChild(nut);}
-        for(let s=0;s<6;s++){const y=(s+1)*14;const str=document.createElement('div');str.className='string';str.style.top=y+'%';
-          str.style.height=(6-s)*1.2+1+'px';col.appendChild(str);
-          str.addEventListener('pointerdown',()=>{if(!unlocked)unlockAudio();const midi=TUNING_MIDI[5-s]+f;const note=midiToNoteName(midi);
-            trigger(note);str.classList.add('vibrate');setTimeout(()=>str.classList.remove('vibrate'),200);});
+      const kb=$('#keyboard'); kb.innerHTML=''; kb.className='fretboard'; kb.style.height='var(--kb-h)';
+
+      // 裝飾
+      const head=document.createElement('div'); head.className='head'; kb.appendChild(head);
+      const nut =document.createElement('div');  nut.className='nut';  kb.appendChild(nut);
+
+      // 品 1~12
+      for(let f=1; f<=FRETS; f++){
+        const col=document.createElement('div'); col.className='fret-col';
+
+        // 六條弦位置（由上細到下粗）
+        for(let s=0; s<6; s++){
+          const y=(s+1)*(100/7);
+          const str=document.createElement('div');
+          str.className='string';
+          str.style.top=`calc(${y}%)`;
+          col.appendChild(str);
+
+          // 撥弦＝在該品位的該弦出聲
+          str.addEventListener('pointerdown',()=>{
+            if(hardLocked) return;
+            if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; }
+            const midi = TUNING_MIDI[5-s] + f; // 5-s：UI 上方是高音弦
+            const note = midiToNoteName(midi);
+            trigger(note);
+            // 輕微上下震動
+            str.classList.add('vibrate');
+            setTimeout(()=>str.classList.remove('vibrate'),180);
+          });
         }
-        if([3,5,7,9,12].includes(f)){const mk=document.createElement('div');mk.className='marker';mk.textContent=f;col.appendChild(mk);}
+
+        // 指板圓點：3/5/7/9 單點；12 雙點
+        if([3,5,7,9].includes(f)){
+          const dot=document.createElement('div');
+          dot.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#7a7f89;opacity:.85;box-shadow:0 1px 0 rgba(0,0,0,.25);pointer-events:none;';
+          col.appendChild(dot);
+        }
+        if(f===12){
+          const dd=document.createElement('div');
+          dd.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#7a7f89;opacity:.85;box-shadow:0 1px 0 rgba(0,0,0,.25);pointer-events:none;';
+          const before=document.createElement('div'), after=document.createElement('div');
+          Object.assign(before.style, {position:'absolute',width:'16px',height:'16px',borderRadius:'50%',background:'#7a7f89',top:'50%',transform:'translateY(-50%)',left:'-14px',boxShadow:'0 1px 0 rgba(0,0,0,.25)'} );
+          Object.assign(after .style, {position:'absolute',width:'16px',height:'16px',borderRadius:'50%',background:'#7a7f89',top:'50%',transform:'translateY(-50%)',right:'-14px',boxShadow:'0 1px 0 rgba(0,0,0,.25)'} );
+          dd.appendChild(before); dd.appendChild(after); col.appendChild(dd);
+        }
+
         kb.appendChild(col);
       }
-      kb.style.minWidth=(FRETS*64+16)+'px';
     }
 
-    $('#instrument').addEventListener('change',()=>{currentInstrument=$('#instrument').value;loadSampler(currentInstrument);
-      if(currentInstrument==='guitar')renderGuitar();else renderPiano();});
-    $('#unlockBtn').addEventListener('click',unlockAudio,{once:true});
-    $('#resetBtn').addEventListener('click',()=>{notes=[];$('#notes').value='';$('#lockBtn').disabled=true;setStatus(currentInstrument==='piano'?'鋼琴取樣已載入 ✅':'吉他取樣已載入 ✅');});
-    $('#lockBtn').addEventListener('click',()=>{const payload={userId:'guest',displayName:$('#displayName').value||'Guest',
-        instrument:currentInstrument,note:notes.join(', '),velocity:1,sessionId:'demo'};
-      fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
-      setStatus('已送出，可以退出囉');$('#lockBtn').disabled=true;document.querySelectorAll('input,select,button').forEach(el=>el.disabled=true);});
-    window.addEventListener('DOMContentLoaded',()=>{renderPiano();setStatus('初始化完成。請先啟用聲音或點擊琴鍵/指板。');});
+    /* 事件 */
+    $('#instrument').addEventListener('change', ()=>{
+      if(hardLocked) return;
+      currentInstrument=$('#instrument').value;
+      loadSampler(currentInstrument);
+      if(currentInstrument==='guitar') renderGuitar(); else renderPiano();
+      validateLockBtn();
+    });
+    $('#displayName').addEventListener('input', validateLockBtn);
+    $('#code').addEventListener('input', validateLockBtn);
+
+    // 重設：倒退 1 顆音
+    $('#resetBtn').addEventListener('click', ()=>{
+      if(hardLocked) return;
+      if(selectedNotes.length>0){ selectedNotes.pop(); refreshNotesDisplay(); validateLockBtn(); }
+    });
+
+    // Overlay
+    $('#cancelUnlock').addEventListener('click', ()=>{ $('#unlockOverlay').classList.add('hidden'); });
+    $('#confirmUnlock').addEventListener('click', unlockAudio, {once:true});
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') $('#unlockOverlay').classList.add('hidden'); });
+
+    // 鎖定：立刻鎖 UI，再送資料
+    $('#lockBtn').addEventListener('click', async ()=>{
+      if(hardLocked) return;
+      const name = ($('#displayName').value||'').trim();
+      const code = ($('#code').value||'').trim();
+      if(!name || !code || selectedNotes.length!==3){ alert('請填姓名、代號並彈滿 3 個音再鎖定'); return; }
+
+      setStatus('送出中…');
+      enterHardLock(); // 立刻鎖住 UI
+
+      const payload={ userId: code, displayName: name, instrument: currentInstrument, note: selectedNotes.join('|'), velocity: 1, sessionId: 'demo' };
+
+      // 6 秒逾時
+      const controller = new AbortController();
+      const timer = setTimeout(()=>controller.abort(), 6000);
+
+      try{
+        const r = await fetch(WEBHOOK,{ method:'POST', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(payload), signal: controller.signal });
+        clearTimeout(timer);
+        if(r.ok){ setStatus('已送出，可以退出囉'); } else { setStatus('送出失敗（已鎖定）'); }
+      }catch(e){
+        setStatus('送出逾時或失敗（已鎖定）');
+      }
+    });
+
+    function enterHardLock(){
+      hardLocked = true;
+      $('#displayName').disabled = true;
+      $('#code').disabled = true;
+      $('#instrument').disabled = true;
+      $('#resetBtn').disabled = true;
+      $('#lockBtn').disabled = true;
+      $('#lockScreen').style.display = 'block';
+    }
+
+    window.addEventListener('resize', ()=>{ if(currentInstrument==='piano') sizePiano(); });
+    window.addEventListener('orientationchange', ()=>{ if(currentInstrument==='piano') sizePiano(); });
+
+    window.addEventListener('DOMContentLoaded', ()=>{
+      renderPiano();           // 預設先顯示鋼琴
+      setStatus('等待啟用聲音…');
+      validateLockBtn();
+    });
   </script>
 </body>
 </html>
