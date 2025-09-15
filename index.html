@@ -207,7 +207,7 @@
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
   <script>
     /* ===== 主程式（不改接口；新增 email 欄位與訊息對應） ===== */
-    const WEBHOOK = "https://script.google.com/macros/s/AKfycbxv-CKy39ArctTdS3x1fUJV4p6sEHp-7iEe7ggA9uiOj74chgdmQ_gePyN0RIegx2ab/exec";
+    const WEBHOOK = "https://script.google.com/macros/s/AKfycbzI7ofbT-s6MgN4nJEis8TFQcrGk1cJw436WcODrNW4ITjjg8NtaDd-8xqRadwGodc0/exec";
     const $ = s => document.querySelector(s);
     const setStatus = m => $('#status').textContent = m;
 
@@ -393,33 +393,50 @@
     $('#confirmUnlock').addEventListener('click', unlockAudio, {once:true});
     window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ $('#guideOverlay').classList.add('hidden'); $('#unlockOverlay').classList.add('hidden'); } });
 
-    // 鎖定：立即鎖 UI，再送出
+    // 鎖定：成功才鎖（修改點）
     $('#lockBtn').addEventListener('click', async ()=>{
       if(hardLocked) return;
       const name=($('#displayName').value||'').trim();
       const code=($('#code').value||'').trim();
       const email=($('#email').value||'').trim();
       if(!name||!code||!validEmail(email)||selectedNotes.length!==3){ alert('請填姓名、代號、Email 並彈滿 3 個音再鎖定'); return; }
-      setStatus('⏳ 送出中…'); enterHardLock();
+      setStatus('⏳ 送出中…');
+
       const payload={ userId: code, displayName: name, instrument: currentInstrument, note: selectedNotes.join(','), velocity: 1, sessionId: 'demo', email };
       const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),6000);
       try{
         const r=await fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload),signal:controller.signal});
         clearTimeout(timer);
-        let msg = '✅ 已送出成功，可退出此介面';
         if(r.headers.get('content-type')?.includes('application/json')){
           const data = await r.json();
-          if(!data.ok){
-            if(data.error==='duplicate') msg='⚠️ 已填寫過囉，想要重新填寫可洽詢ㄟ咪呢，也可以在這繼續玩耍呢！';
-            else if(data.error==='email_required') msg='⚠️ Email缺少或格式不正確！';
-            else if(data.error==='deadline_passed') msg='📣 非常抱歉，已過了填寫截止日了呢，但還是可以在這繼續玩耍呢！';
-            else if(data.error==='code_not_found') msg='⚠️ 找尋不到代號，請洽新人唷！';
-            else if(data.error==='busy') msg='⚠️ 系統忙碌，請稍後再試！';
-            else msg='❌ 送出失敗';
+          if(data.ok){
+            setStatus('✅ 已送出成功，可退出此介面');
+            enterHardLock(); // 成功才鎖（新增）
+          }else{
+            // 合併錯誤優先：
+            // duplicate+deadline_passed / duplicate+code_not_found / 其餘單一
+            let msg='❌ 送出失敗';
+            const err = String(data.error||'');
+            if(err.includes('duplicate+deadline_passed')) msg='⚠️ 您已填寫過囉，重要的是，已過填寫截止日💔';
+            else if(err.includes('duplicate+code_not_found')) msg='⚠️ 您已填寫過囉，且您輸入的這組代號找尋不到💔';
+            else if(err==='duplicate') msg='⚠️ 已填寫過囉，想要重新填寫請洽ㄟ咪！';
+            else if(err==='email_required') msg='⚠️ Email缺少或格式不正確！';
+            else if(err==='deadline_passed') msg='📣 非常抱歉，已過了填寫截止日，但還是可以在這玩耍唷！';
+            else if(err==='code_not_found') msg='⚠️ 找尋不到代號，請洽新人唷！';
+            else if(err==='busy') msg='⚠️ 系統忙碌，請稍後再試！';
+            setStatus(msg); // 錯誤不鎖
           }
-        }else if(!r.ok){ msg='❌ 送出失敗）'; }
-        setStatus(msg);
-      }catch(e){ setStatus('❌ 送出逾時或失敗'); }
+        }else{
+          if(r.ok){
+            setStatus('✅ 已送出成功，可退出此介面');
+            enterHardLock(); // 成功才鎖
+          }else{
+            setStatus('❌ 送出失敗');
+          }
+        }
+      }catch(e){
+        setStatus('❌ 送出逾時或失敗');
+      }
     });
 
     function enterHardLock(){
@@ -436,5 +453,3 @@
   </script>
 </body>
 </html>
-
-
