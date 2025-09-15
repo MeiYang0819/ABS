@@ -402,23 +402,23 @@
       const code=($('#code').value||'').trim();
       const email=($('#email').value||'').trim();
       if(!name||!code||!validEmail(email)||selectedNotes.length!==3){ alert('請填姓名、代號、Email 並彈滿 3 個音再鎖定'); return; }
-      setStatus('送出中…'); enterHardLock();
+      setStatus('⏳ 送出中…'); enterHardLock();
       const payload={ userId: code, displayName: name, instrument: currentInstrument, note: selectedNotes.join(','), velocity: 1, sessionId: 'demo', email };
       const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),6000);
       try{
         const r=await fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload),signal:controller.signal});
         clearTimeout(timer);
-        let msg = '已送出成功，可退出此介面';
+        let msg = '✅ 已送出成功，可退出此介面';
         if(r.headers.get('content-type')?.includes('application/json')){
           const data = await r.json();
           if(!data.ok){
             if(data.error==='duplicate') msg='已填寫過，若要刪除請找管理者';
             else if(data.error==='email_required') msg='Email 缺少或格式不正確（已鎖定）';
-            else msg='送出失敗（已鎖定）';
+            else msg='⚠️　送出失敗';
           }
-        }else if(!r.ok){ msg='送出失敗（已鎖定）'; }
+        }else if(!r.ok){ msg='⚠️　送出失敗'; }
         setStatus(msg);
-      }catch(e){ setStatus('送出逾時或失敗（已鎖定）'); }
+      }catch(e){ setStatus('⚠️ 送出逾時或失敗，請重新整理，重新填寫'); }
     });
 
     function enterHardLock(){
@@ -435,5 +435,3 @@
   </script>
 </body>
 </html>
-
-
