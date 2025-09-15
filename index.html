@@ -65,7 +65,7 @@
   .fretboard{
     position:relative; display:grid; grid-template-columns: repeat(13, 1fr);
     width:100%; height:var(--kb-h);
-    background:linear-gradient(180deg,#6b4f2e 0%, #5b4429 50%, #533c24 100%); /* 咖啡木頭色 */
+    background:linear-gradient(180deg,#6b4f2e 0%, #5b4429 50%, #533c24 100%);
     border-radius:12px;
     box-shadow:inset 0 10px 20px rgba(0,0,0,.25), inset 0 -8px 16px rgba(0,0,0,.2);
   }
@@ -73,7 +73,7 @@
     position:absolute; left:0; top:0; bottom:0; width:86px; z-index:2;
     background:
       linear-gradient(180deg, rgba(0,0,0,.12), transparent 40%),
-      linear-gradient(180deg,#7a5534 0%, #6b4f2e 55%, #5a3f24 100%); /* 木頭頭枕更深 */
+      linear-gradient(180deg,#7a5534 0%, #6b4f2e 55%, #5a3f24 100%);
     border-right:1px solid rgba(40,22,8,.35); box-shadow: inset -8px 0 16px rgba(0,0,0,.18);
     border-radius:12px 0 0 12px; pointer-events:none;
   }
@@ -87,12 +87,12 @@
     pointer-events:none; border-left:1px solid rgba(0,0,0,.18); }
 
   .fret-col{ position:relative; background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
-    box-shadow: inset -2px 0 0 rgba(255,255,255,.18), inset -4px 0 0 rgba(0,0,0,.28);} /* 木板亮暗 */
+    box-shadow: inset -2px 0 0 rgba(255,255,255,.18), inset -4px 0 0 rgba(0,0,0,.28);}
 
   /* 金色弦（border 顏色＋微光） */
   .string{
     position:absolute; left:94px; right:0; height:0; z-index:3;
-    border-top:2px solid #d4af37; /* 金色 */
+    border-top:2px solid #d4af37;
     opacity:.96; filter:drop-shadow(0 1px 0 rgba(0,0,0,.18));
     transform-origin:center;
     background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.35) 50%, rgba(255,255,255,0) 100%);
@@ -103,7 +103,7 @@
   .string[data-s="4"]{ border-top-width:3.5px; }
   .string[data-s="5"]{ border-top-width:4px; }
 
-  /* 琴頭淡線（對齊主弦，金色更淡） */
+  /* 琴頭淡線 */
   .head-line{ position:absolute; left:0; width:86px; height:0; border-top:2px solid rgba(212,175,55,.55);
     filter:drop-shadow(0 1px 0 rgba(0,0,0,.06)); pointer-events:none; z-index:2; }
   .head-line[data-s="2"]{ border-top-width:2.5px; }
@@ -178,10 +178,11 @@
   <div id="guideOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
     <div class="dialog">
       <h3 id="guideTitle">📍操作說明📍</h3>
-      <p>🔻填入姓名、Email 與取得的代號</p><p>↓</p>
-      <p>🔻限定同種樂器選三個音</p><p>↓</p>
-      <p>🔻三個音確認後可按鎖定</p><p>↓</p>
-      <p>🔻跳通知已完成即可退出</p><p>↓</p>
+      <p>🔻填入姓名、Email與取得的代號</p><p>↓</p>
+      <p>🔻可選擇鋼琴或吉他中的三個音階</p><p>↓</p>
+      <p>🔻三個音階確認後，就可進行鎖定</p><p>↓</p>
+      <p>🔻鎖定完成後，會行通知是否成功</p><p>↓</p>
+      <p>🔻若成功即可退出介面；反之在試</p><p>↓</p>
       <p>❗️沒按鎖定就是沒有送出就是彈個寂寞</p>
       <div class="actions"><button id="guideOk" class="primary">了解</button></div>
     </div>
@@ -191,8 +192,7 @@
   <div id="unlockOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="unlockTitle">
     <div class="dialog">
       <h3 id="unlockTitle">啟用聲音</h3>
-      <p>請開啟音量並點擊「確定」啟用聲音</p>
-      <p style="font-size:12px;opacity:.72;color:#dc2626;">‼️iPhone請確認側邊「靜音鍵」有開啟響鈴模式</p>
+      <p style="font-size:12px;opacity:.72;color:#dc2626;">iPhone請確保側邊「靜音鍵」有開啟響鈴模式</p>
       <div class="actions">
         <button id="cancelUnlock">取消</button>
         <button id="confirmUnlock" class="primary">確定</button>
@@ -206,8 +206,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
   <script>
-    /* ===== 主程式（不改接口；新增 email 欄位與 duplicate 訊息處理） ===== */
-    const WEBHOOK = "https://script.google.com/macros/s/AKfycbzu8mMa7GcppP7XfWku4sVQHSWxzqDWuELbKYuypAtTVTeNhwsRaKtFyjLddENLcCTU/exec";
+    /* ===== 主程式（不改接口；新增 email 欄位與訊息對應） ===== */
+    const WEBHOOK = "https://script.google.com/macros/s/AKfycbxv-CKy39ArctTdS3x1fUJV4p6sEHp-7iEe7ggA9uiOj74chgdmQ_gePyN0RIegx2ab/exec";
     const $ = s => document.querySelector(s);
     const setStatus = m => $('#status').textContent = m;
 
@@ -230,7 +230,6 @@
     const FRETS = 12; // 1~12 品（第 13 空格不發聲）
 
     function midiToNoteName(midi){ const n = NOTE_NAMES[midi % 12]; const octave = Math.floor(midi/12) - 1; return n + octave; }
-
     function validEmail(v){ return /.+@.+\..+/.test((v||'').trim()); }
 
     async function unlockAudio(){
@@ -345,7 +344,7 @@
         if(f===13){
           const up=document.createElement('div');
           const down=document.createElement('div');
-          const base='位置:absolute;left:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#dbc6a4;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.35);pointer-events:none;';
+          const base='position:absolute;left:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#dbc6a4;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.35);pointer-events:none;';
           up.style.cssText   = base + 'top:calc(100% * 1.5 / 7);';
           down.style.cssText = base + 'top:calc(100% * 5.6 / 7);';
           col.appendChild(up); col.appendChild(down);
@@ -401,7 +400,7 @@
       const code=($('#code').value||'').trim();
       const email=($('#email').value||'').trim();
       if(!name||!code||!validEmail(email)||selectedNotes.length!==3){ alert('請填姓名、代號、Email 並彈滿 3 個音再鎖定'); return; }
-      setStatus('⏳ 送出中…'); enterHardLock();
+      setStatus('送出中…'); enterHardLock();
       const payload={ userId: code, displayName: name, instrument: currentInstrument, note: selectedNotes.join(','), velocity: 1, sessionId: 'demo', email };
       const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),6000);
       try{
@@ -411,13 +410,16 @@
         if(r.headers.get('content-type')?.includes('application/json')){
           const data = await r.json();
           if(!data.ok){
-            if(data.error==='duplicate') msg='已填寫過，若要刪除請找管理者';
-            else if(data.error==='email_required') msg='Email 缺少或格式不正確（已鎖定）';
-            else msg='⚠️　送出失敗';
+            if(data.error==='duplicate') msg='⚠️ 已填寫過囉，想要重填可洽詢ㄟ咪';
+            else if(data.error==='email_required') msg='⚠️ Email缺少或格式不正確';
+            else if(data.error==='deadline_passed') msg='📣 非常抱歉，已過了填寫截止日了呢';
+            else if(data.error==='code_not_found') msg='⚠️ 找尋不到代號，請洽新人';
+            else if(data.error==='busy') msg='⚠️ 系統忙碌，請稍後再試';
+            else msg='❌ 送出失敗';
           }
-        }else if(!r.ok){ msg='⚠️　送出失敗'; }
+        }else if(!r.ok){ msg='❌ 送出失敗）'; }
         setStatus(msg);
-      }catch(e){ setStatus('⚠️ 送出逾時或失敗，請重新整理，重新填寫'); }
+      }catch(e){ setStatus('❌ 送出逾時或失敗'); }
     });
 
     function enterHardLock(){
@@ -434,6 +436,3 @@
   </script>
 </body>
 </html>
-
-
-
