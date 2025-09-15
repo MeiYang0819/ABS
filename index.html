@@ -7,37 +7,58 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  :root{ --rim:#e4e7ef; --ink:#0f172a; --kb-h:280px; --sep:2px; --stroke:rgba(0,0,0,.18); --glow:rgba(255,255,255,.65); }
+  /* ===== 調色盤（依你的色碼） ===== */
+  :root{
+    --brand:#D4BFAA;   /* 主色：整頁底色 */
+    --title:#A68A7C;   /* 標題字色 */
+    --neutral:#E4E4E4; /* 區塊背景 */
+    --soft:#F5F1EC;    /* 內頁/容器底 */
+    --accent:#BFA5A0;  /* 提亮色（載入完成） */
+    --rim:#E4E4E4;
+    --ink:#0f172a;
+    --kb-h:280px; --sep:2px; --stroke:rgba(0,0,0,.18); --glow:rgba(255,255,255,.65);
+  }
+
   *{ box-sizing:border-box; font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif !important; -webkit-text-stroke:.35px var(--stroke); text-shadow:0 1px 0 var(--glow); }
-  html,body{ margin:0; color:var(--ink); background:linear-gradient(135deg,#e6dfff 0%, #dcd4ff 100%); }
-  /* 背景裝飾層（不密集、超淡） */
+  html,body{ margin:0; color:var(--ink); background:var(--brand); }
+
+  /* 背景裝飾層（不密集、超淡；顏色依前面約定） */
   .bg-decor{ position:fixed; inset:0; z-index:0; pointer-events:none; }
   .bg-note{
     position:absolute; right:3vw; top:-24px; font-size:200px; line-height:1;
-    color:#fff; opacity:.08; filter:blur(.2px);
+    color:#A68A7C; opacity:.10; filter:blur(.2px); /* 可可淺褐、極淡 */
   }
   .bg-piano{
-    position:absolute; left:-64px; bottom:-10px; width:62vw; max-width:920px; height:120px; opacity:.06; border-radius:16px;
+    position:absolute; left:-64px; bottom:-10px; width:62vw; max-width:920px; height:120px; opacity:.05; border-radius:16px;
     background:
       /* 鍵盤分隔線（抽象） */
-      repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 1px, transparent 1px 7.14%),
-      linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,0));
-    box-shadow: 0 10px 30px rgba(0,0,0,.08);
+      repeating-linear-gradient(90deg, rgba(166,138,124,.25) 0 1px, transparent 1px 7.14%),
+      linear-gradient(180deg, rgba(166,138,124,.12), rgba(166,138,124,0));
+    box-shadow: 0 10px 30px rgba(0,0,0,.06);
   }
   .bg-strings{
     position:absolute; left:-8vw; top:8vh; width:78vw; max-width:1080px; height:160px; opacity:.06; transform:rotate(-8deg);
     background:
-      linear-gradient(#fff 0 0) left 12%/100% 2px no-repeat,
-      linear-gradient(#fff 0 0) left 30%/100% 2px no-repeat,
-      linear-gradient(#fff 0 0) left 48%/100% 2px no-repeat,
-      linear-gradient(#fff 0 0) left 66%/100% 2px no-repeat,
-      linear-gradient(#fff 0 0) left 84%/100% 2px no-repeat,
-      linear-gradient(#fff 0 0) left 96%/100% 2px no-repeat;
+      linear-gradient(#BFA5A0 0 0) left 12%/100% 2px no-repeat,
+      linear-gradient(#BFA5A0 0 0) left 30%/100% 2px no-repeat,
+      linear-gradient(#BFA5A0 0 0) left 48%/100% 2px no-repeat,
+      linear-gradient(#BFA5A0 0 0) left 66%/100% 2px no-repeat,
+      linear-gradient(#BFA5A0 0 0) left 84%/100% 2px no-repeat,
+      linear-gradient(#BFA5A0 0 0) left 96%/100% 2px no-repeat;
     filter: blur(0.3px);
   }
 
-  .panel{ position:relative; z-index:1; max-width:1060px;margin:22px auto;background:rgba(255,255,255,.58);border:1px solid rgba(255,255,255,.65);border-radius:16px; padding:18px 18px 26px;box-shadow:0 10px 30px rgba(98,76,171,.12);backdrop-filter:blur(10px) saturate(120%); }
-  h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; letter-spacing:1px; -webkit-text-stroke:.7px var(--stroke); text-shadow:0 3px 4px rgba(255,255,255,.85); }
+  .panel{
+    position:relative; z-index:1; max-width:1060px; margin:22px auto;
+    background:var(--neutral); border:1px solid var(--neutral);
+    border-radius:16px; padding:18px 18px 26px;
+    box-shadow:0 10px 26px rgba(0,0,0,.10);
+    backdrop-filter:blur(8px) saturate(115%);
+  }
+  h2{
+    margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; letter-spacing:1px;
+    color:var(--title); -webkit-text-stroke:.6px rgba(0,0,0,.12); text-shadow:0 3px 4px rgba(255,255,255,.75);
+  }
 
   /* 控制列（拆成兩行） */
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap; margin-top:10px}
@@ -59,10 +80,16 @@
   .btn-compact{ width:60px !important; }
   .row button:disabled{opacity:.55;cursor:not-allowed}
 
-  /* 狀態列 */
-  #status{ background:#eef2f7;border:1px solid var(--rim); border-radius:12px;padding:10px;margin-top:10px; font-size:14px;white-space:pre-wrap;color:#334155;text-align:center; }
+  /* 狀態列（底色用 soft；ok/busy/err 以 class 著色） */
+  #status{
+    background:var(--soft); border:1px solid var(--neutral); border-radius:12px;
+    padding:10px; margin-top:10px; font-size:14px; white-space:pre-wrap; color:#6b5e52; text-align:center;
+  }
+  #status.ok{ color:var(--accent); font-weight:600; }
+  #status.busy{ color:var(--title); }
+  #status.err{ color:#8b5e52; }
 
-  .kb-wrap{ overflow-x:hidden; background:linear-gradient(180deg,#f7f2ff 0%, #ede9fe 100%); border:1px solid var(--rim); border-radius:14px; margin-top:14px; }
+  .kb-wrap{ overflow-x:hidden; background:var(--soft); border:1px solid var(--rim); border-radius:14px; margin-top:14px; }
   #keyboard{ position:relative; height:var(--kb-h); user-select:none; -webkit-user-select:none; touch-action:none; }
 
   /* ===== 鋼琴（黑鍵置中） ===== */
@@ -160,18 +187,18 @@
   }
   @keyframes shine{ 0%{ background-position:-160px 0; opacity:.95 } 100%{ background-position:160px 0; opacity:.96 } }
 
-  /* 兩個彈跳視窗 */
+  /* 兩個彈跳視窗（背景改 soft / 邊線 neutral） */
   .overlay{ position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; background:rgba(17,24,39,.35); backdrop-filter:blur(3px); }
   .overlay.hidden{ display:none; }
-  .dialog{ min-width:300px; max-width:92vw; background:rgba(255,255,255,.96); border:1px solid rgba(255,255,255,.85); border-radius:14px; padding:18px; box-shadow:0 18px 44px rgba(0,0,0,.18); text-align:center; }
-  .dialog h3{ margin:0 0 8px; font-size:18px; }
+  .dialog{ min-width:300px; max-width:92vw; background:var(--soft); border:1px solid var(--neutral); border-radius:14px; padding:18px; box-shadow:0 18px 44px rgba(0,0,0,.18); text-align:center; }
+  .dialog h3{ margin:0 0 8px; font-size:18px; color:var(--title); }
   .dialog p{ margin:6px 0; line-height:1.6; }
   .dialog .actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
   .dialog button{ width:120px; height:38px; border-radius:10px; border:1px solid var(--rim); background:#fff; cursor:pointer; font-weight:600; }
-  .dialog button.primary{ background:#f8f5ff; }
+  .dialog button.primary{ background:#fff; }
 
   #lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:transparent; }
-  footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#475569; font-size:12px; opacity:.9; }
+  footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
 </style>
 <body>
   <!-- 背景裝飾：不密集 -->
@@ -234,7 +261,7 @@
   <div id="unlockOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="unlockTitle">
     <div class="dialog">
       <h3 id="unlockTitle">啟用聲音</h3>
-      <p style="font-size:12px;opacity:.72;color:#dc2626;">iPhone請確保側邊「靜音鍵」有開啟響鈴模式</p>
+      <p style="font-size:12px;opacity:.72;color:#a96060;">iPhone請確保側邊「靜音鍵」有開啟響鈴模式</p>
       <div class="actions">
         <button id="cancelUnlock">取消</button>
         <button id="confirmUnlock" class="primary">確定</button>
@@ -251,7 +278,14 @@
     /* ===== 主程式（不改接口；邏輯不動） ===== */
     const WEBHOOK = "https://script.google.com/macros/s/AKfycbxxw3vbCEdC7DjF19blGXfQPr0dMEFhVo020XLI4sfQaBKe0fW388JAh3k77WufGim-/exec";
     const $ = s => document.querySelector(s);
-    const setStatus = m => $('#status').textContent = m;
+    const setStatus = m => {
+      const el = $('#status');
+      el.textContent = m;
+      el.classList.remove('ok','busy','err');
+      if(/已載入/.test(m)) el.classList.add('ok');
+      else if(/送出中/.test(m)) el.classList.add('busy');
+      else if(/❌|失敗|逾時|找尋不到|已過|格式不正確|忙碌/.test(m)) el.classList.add('err');
+    };
 
     let audioCtx=null, sampler=null, samplerReady=false, unlocked=false, hardLocked=false;
     let currentInstrument='piano';
@@ -461,7 +495,7 @@
             else if(err.includes('duplicate+code_not_found')) msg='🔎 您已填寫過囉，且您輸入的這組代號找尋不到👀';
             else if(err==='duplicate') msg='📝 已填寫過囉，想要重新填寫請洽ㄟ咪🙏';
             else if(err==='email_required') msg='⚠️ Email缺少或格式不正確📧';
-            else if(err==='email_domain_invalid') msg='🔐 Email網域無法收信，請確認拼字或改用另一個 Email'; /* NEW */
+            else if(err==='email_domain_invalid') msg='🔐 Email網域無法收信，請確認拼字或改用另一個 Email';
             else if(err==='deadline_passed') msg='📣 非常抱歉，已過了填寫截止日，但還是可以在這玩耍唷👣';
             else if(err==='code_not_found') msg='🔎 找尋不到代號，請洽新人唷🤵🏻👰🏻‍♀';
             else if(err==='busy') msg='⚠️ 系統忙碌，請稍後再試⏳';
