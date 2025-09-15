@@ -191,8 +191,8 @@
   <div id="unlockOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="unlockTitle">
     <div class="dialog">
       <h3 id="unlockTitle">啟用聲音</h3>
-      <p>請開啟音量並點擊「確定」啟用聲音</p>
-      <p style="font-size:12px;opacity:.72;">iPhone請確認側邊靜音鍵須關閉</p>
+      <p style="font-size:12px;opacity:.72;color:#dc2626;">‼️iPhone請確認側邊靜音鍵須關閉</p>
+      <p style="font-size:12px;opacity:.72;color:#dc2626;">‼️開啟靜音音量有開起也不會有聲音</p>
       <div class="actions">
         <button id="cancelUnlock">取消</button>
         <button id="confirmUnlock" class="primary">確定</button>
@@ -345,7 +345,7 @@
         if(f===13){
           const up=document.createElement('div');
           const down=document.createElement('div');
-          const base='position:absolute;left:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#dbc6a4;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.35);pointer-events:none;';
+          const base='位置:absolute;left:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#dbc6a4;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.35);pointer-events:none;';
           up.style.cssText   = base + 'top:calc(100% * 1.5 / 7);';
           down.style.cssText = base + 'top:calc(100% * 5.6 / 7);';
           col.appendChild(up); col.appendChild(down);
@@ -434,4 +434,3 @@
   </script>
 </body>
 </html>
-
