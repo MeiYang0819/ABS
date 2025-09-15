@@ -180,9 +180,9 @@
       <h3 id="guideTitle">📍操作說明📍</h3>
       <p>🔻填入姓名、Email與取得的代號</p><p>↓</p>
       <p>🔻可選擇鋼琴或吉他中的三個音階</p><p>↓</p>
-      <p>🔻三個音階確認後，就可進行鎖定</p><p>↓</p>
-      <p>🔻鎖定完成後，會行通知是否成功</p><p>↓</p>
-      <p>🔻若成功即可退出介面；反之再試</p><p>↓</p>
+      <p>🔻三個音階確認後，一定要按鎖定</p><p>↓</p>
+      <p>🔻鎖定完成後，會有通知是否成功</p><p>↓</p>
+      <p>🔺若成功即可退出介面；反之再試</p><p>↓</p>
       <p>❗️沒按鎖定就是沒有送出就是彈個寂寞</p>
       <div class="actions"><button id="guideOk" class="primary">了解</button></div>
     </div>
@@ -207,7 +207,7 @@
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
   <script>
     /* ===== 主程式（不改接口；新增 email 欄位與訊息對應） ===== */
-    const WEBHOOK = "https://script.google.com/macros/s/AKfycbzI7ofbT-s6MgN4nJEis8TFQcrGk1cJw436WcODrNW4ITjjg8NtaDd-8xqRadwGodc0/exec";
+    const WEBHOOK = "https://script.google.com/macros/s/AKfycbxxw3vbCEdC7DjF19blGXfQPr0dMEFhVo020XLI4sfQaBKe0fW388JAh3k77WufGim-/exec";
     const $ = s => document.querySelector(s);
     const setStatus = m => $('#status').textContent = m;
 
@@ -417,13 +417,14 @@
             // duplicate+deadline_passed / duplicate+code_not_found / 其餘單一
             let msg='❌ 送出失敗';
             const err = String(data.error||'');
-            if(err.includes('duplicate+deadline_passed')) msg='⚠️ 您已填寫過囉，重要的是，已過填寫截止日💔';
-            else if(err.includes('duplicate+code_not_found')) msg='⚠️ 您已填寫過囉，且您輸入的這組代號找尋不到💔';
-            else if(err==='duplicate') msg='⚠️ 已填寫過囉，想要重新填寫請洽ㄟ咪！';
-            else if(err==='email_required') msg='⚠️ Email缺少或格式不正確！';
-            else if(err==='deadline_passed') msg='📣 非常抱歉，已過了填寫截止日，但還是可以在這玩耍唷！';
-            else if(err==='code_not_found') msg='⚠️ 找尋不到代號，請洽新人唷！';
-            else if(err==='busy') msg='⚠️ 系統忙碌，請稍後再試！';
+            if(err.includes('duplicate+deadline_passed')) msg='📅 您已填寫過囉，重要的是，已過填寫截止日💔';
+            else if(err.includes('duplicate+code_not_found')) msg='🔎 您已填寫過囉，且您輸入的這組代號找尋不到👀';
+            else if(err==='duplicate') msg='📝 已填寫過囉，想要重新填寫請洽ㄟ咪🙏';
+            else if(err==='email_required') msg='⚠️ Email缺少或格式不正確📧';
+            else if(err==='email_domain_invalid') msg='🔐 Email網域無法收信，請確認拼字或改用另一個 Email'; /* NEW */
+            else if(err==='deadline_passed') msg='📣 非常抱歉，已過了填寫截止日，但還是可以在這玩耍唷👣';
+            else if(err==='code_not_found') msg='🔎 找尋不到代號，請洽新人唷🤵🏻👰🏻‍♀';
+            else if(err==='busy') msg='⚠️ 系統忙碌，請稍後再試⏳';
             setStatus(msg); // 錯誤不鎖
           }
         }else{
