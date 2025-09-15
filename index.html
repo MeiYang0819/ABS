@@ -25,14 +25,24 @@
   /* === 只用你的圖當裝飾層；背景看起來等於只剩音符 ===
      - 若未真正去背：因為圖底色≈主色，看起來就只有音符
      - 若之後換成透明底 PNG/SVG：會自動只顯示音符
-  */
-  .bg-img{
-    position:fixed; inset:0; z-index:0; pointer-events:none;
-    background-image:url("./assets/notes.png"); /* ← 改成你的檔案路徑 */
-    background-size:cover; background-position:center; background-repeat:no-repeat;
-    opacity:.12;  /* 淡淡地顯示；想更淡可調 .08~.10，想明顯些 .14~.18 */
-    /* 若日後換透明底檔，可微調到 .16 也不突兀 */
-  }
+/* 讓底色仍是你的主色 */
+html,body{ margin:0; color:var(--ink); background:var(--brand); }
+
+/* 用 body::before 疊音符圖，最穩定的做法 */
+body::before{
+  content:"";
+  position:fixed; inset:0;
+  pointer-events:none;
+  background-image:url("./assets/notes.png?v=1"); /* ← 你的圖片路徑，附 '?v=1' 破快取 */
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  opacity:.14;  /* 想更淡可調 0.10~0.12；想明顯 0.16~0.18 */
+  z-index:0;
+}
+
+/* 確保主要內容在上層 */
+.panel, .overlay, footer { position:relative; z-index:1; }
 
   .panel{
     position:relative; z-index:1; max-width:1060px; margin:22px auto;
@@ -482,3 +492,4 @@
   </script>
 </body>
 </html>
+
