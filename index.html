@@ -10,18 +10,49 @@
   :root{ --rim:#e4e7ef; --ink:#0f172a; --kb-h:280px; --sep:2px; --stroke:rgba(0,0,0,.18); --glow:rgba(255,255,255,.65); }
   *{ box-sizing:border-box; font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif !important; -webkit-text-stroke:.35px var(--stroke); text-shadow:0 1px 0 var(--glow); }
   html,body{ margin:0; color:var(--ink); background:linear-gradient(135deg,#e6dfff 0%, #dcd4ff 100%); }
-  .panel{ max-width:1060px;margin:22px auto;background:rgba(255,255,255,.58);border:1px solid rgba(255,255,255,.65);border-radius:16px; padding:18px 18px 26px;box-shadow:0 10px 30px rgba(98,76,171,.12);backdrop-filter:blur(10px) saturate(120%); }
+  /* 背景裝飾層（不密集、超淡） */
+  .bg-decor{ position:fixed; inset:0; z-index:0; pointer-events:none; }
+  .bg-note{
+    position:absolute; right:3vw; top:-24px; font-size:200px; line-height:1;
+    color:#fff; opacity:.08; filter:blur(.2px);
+  }
+  .bg-piano{
+    position:absolute; left:-64px; bottom:-10px; width:62vw; max-width:920px; height:120px; opacity:.06; border-radius:16px;
+    background:
+      /* 鍵盤分隔線（抽象） */
+      repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 1px, transparent 1px 7.14%),
+      linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,0));
+    box-shadow: 0 10px 30px rgba(0,0,0,.08);
+  }
+  .bg-strings{
+    position:absolute; left:-8vw; top:8vh; width:78vw; max-width:1080px; height:160px; opacity:.06; transform:rotate(-8deg);
+    background:
+      linear-gradient(#fff 0 0) left 12%/100% 2px no-repeat,
+      linear-gradient(#fff 0 0) left 30%/100% 2px no-repeat,
+      linear-gradient(#fff 0 0) left 48%/100% 2px no-repeat,
+      linear-gradient(#fff 0 0) left 66%/100% 2px no-repeat,
+      linear-gradient(#fff 0 0) left 84%/100% 2px no-repeat,
+      linear-gradient(#fff 0 0) left 96%/100% 2px no-repeat;
+    filter: blur(0.3px);
+  }
+
+  .panel{ position:relative; z-index:1; max-width:1060px;margin:22px auto;background:rgba(255,255,255,.58);border:1px solid rgba(255,255,255,.65);border-radius:16px; padding:18px 18px 26px;box-shadow:0 10px 30px rgba(98,76,171,.12);backdrop-filter:blur(10px) saturate(120%); }
   h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; letter-spacing:1px; -webkit-text-stroke:.7px var(--stroke); text-shadow:0 3px 4px rgba(255,255,255,.85); }
 
-  /* 控制列 */
-  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  /* 控制列（拆成兩行） */
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap; margin-top:10px}
   .row label{opacity:.92;white-space:nowrap;font-weight:400;-webkit-text-stroke:0;text-shadow:none}
   .row input,.row select,.row button{
     height:38px; font-size:14px; background:#fff; padding:8px 10px;
     border:1px solid var(--rim); border-radius:10px;
     -webkit-text-stroke:.25px rgba(0,0,0,.12); text-shadow:0 1px 0 rgba(255,255,255,.5);
   }
+  /* 基本寬度 */
   #displayName,#code,#email,#lastNote{ width:152px; font-weight:400; -webkit-text-stroke:0; text-shadow:none }
+  /* 第二行：Email 加倍寬 */
+  .row-line2 #email{ width:304px; }
+  /* 第三行：音符紀錄縮短 */
+  .row-line3 #lastNote{ width:132px; }
   .row select{ width:auto; min-width:88px; text-align:center; text-align-last:center; -webkit-text-stroke:0; text-shadow:none; }
   .row select option{text-align:center}
   .row button{ width:120px; cursor:pointer; font-weight:600 }
@@ -143,10 +174,18 @@
   footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#475569; font-size:12px; opacity:.9; }
 </style>
 <body>
+  <!-- 背景裝飾：不密集 -->
+  <div class="bg-decor" aria-hidden="true" role="presentation">
+    <div class="bg-note">♪</div>
+    <div class="bg-piano"></div>
+    <div class="bg-strings"></div>
+  </div>
+
   <div class="panel">
     <h2>🎼互動音符🎼</h2>
 
-    <div class="row">
+    <!-- 第二行：姓名 → Email(加寬) → 代號 -->
+    <div class="row row-line2">
       <label for="displayName">親友姓名：</label>
       <input id="displayName" placeholder="例：張咩揚" />
 
@@ -155,7 +194,10 @@
 
       <label for="code">取得代號：</label>
       <input id="code" placeholder="請輸入代號" />
+    </div>
 
+    <!-- 第三行：樂器 → 音符紀錄(縮短) → 重設 → 鎖定 -->
+    <div class="row row-line3">
       <label for="instrument">樂器轉換：</label>
       <select id="instrument">
         <option value="piano" selected>鋼琴</option>
@@ -182,7 +224,7 @@
       <p>🔻可選擇鋼琴或吉他中的三個音階</p><p>↓</p>
       <p>🔻三個音階確認後，一定要按鎖定</p><p>↓</p>
       <p>🔻鎖定完成後，會有通知是否成功</p><p>↓</p>
-      <p>🔺若成功即可退出介面；反之再試</p><p>↓</p>
+      <p>🔻若成功即可退出介面；反之再試</p><p>↓</p>
       <p>❗️沒按鎖定就是沒有送出就是彈個寂寞</p>
       <div class="actions"><button id="guideOk" class="primary">了解</button></div>
     </div>
@@ -206,7 +248,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
   <script>
-    /* ===== 主程式（不改接口；新增 email 欄位與訊息對應） ===== */
+    /* ===== 主程式（不改接口；邏輯不動） ===== */
     const WEBHOOK = "https://script.google.com/macros/s/AKfycbxxw3vbCEdC7DjF19blGXfQPr0dMEFhVo020XLI4sfQaBKe0fW388JAh3k77WufGim-/exec";
     const $ = s => document.querySelector(s);
     const setStatus = m => $('#status').textContent = m;
@@ -393,7 +435,7 @@
     $('#confirmUnlock').addEventListener('click', unlockAudio, {once:true});
     window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ $('#guideOverlay').classList.add('hidden'); $('#unlockOverlay').classList.add('hidden'); } });
 
-    // 鎖定：成功才鎖（修改點）
+    // 鎖定：成功才鎖（維持你的邏輯）
     $('#lockBtn').addEventListener('click', async ()=>{
       if(hardLocked) return;
       const name=($('#displayName').value||'').trim();
@@ -411,10 +453,8 @@
           const data = await r.json();
           if(data.ok){
             setStatus('✅ 已送出成功，可退出此介面');
-            enterHardLock(); // 成功才鎖（新增）
+            enterHardLock(); // 成功才鎖
           }else{
-            // 合併錯誤優先：
-            // duplicate+deadline_passed / duplicate+code_not_found / 其餘單一
             let msg='❌ 送出失敗';
             const err = String(data.error||'');
             if(err.includes('duplicate+deadline_passed')) msg='📅 您已填寫過囉，重要的是，已過填寫截止日💔';
