@@ -6,10 +6,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
-<!-- 背景符號字型，確保休止符可顯示 -->
-<link href="https://fonts.googleapis.com/css2?family=Noto+Music&display=swap" rel="stylesheet">
 <style>
-  /* ===== 調色盤（依你的色碼） ===== */
+  /* ===== 調色盤（你的色碼） ===== */
   :root{
     --brand:#D4BFAA;   /* 主色：整頁底色 */
     --title:#A68A7C;   /* 標題字色 */
@@ -24,26 +22,26 @@
   *{ box-sizing:border-box; font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif !important; -webkit-text-stroke:.35px var(--stroke); text-shadow:0 1px 0 var(--glow); }
   html,body{ margin:0; color:var(--ink); background:var(--brand); }
 
-  /* === 背景裝飾（10 個音符/休止符，偏淡、稍小、不密集） === */
-  .bg-decor{ position:fixed; inset:0; z-index:0; pointer-events:none; }
-  .bg-sym{
-    position:absolute; color:var(--title); opacity:.11;  /* 再淡一點 */
-    font-family:"Noto Music","Segoe UI Symbol","Apple Color Emoji",sans-serif;
-    filter:blur(.15px); line-height:1; user-select:none;
+  /* === 只有音符的透明裝飾層（共 10 個） === */
+  .bg-notes{ position:fixed; inset:0; z-index:0; pointer-events:none; }
+  .bg-notes .n{
+    position:absolute; color:#fff; opacity:.055;   /* 再淡一點點 */
+    font-size:clamp(18px, 2.2vw, 34px);            /* 比原來再小一些 */
+    filter:blur(.15px); line-height:1;
+    transform:rotate(var(--r,0deg)) scale(var(--s,1));
+    font-family: "Noto Music","Segoe UI Symbol","Apple Symbols","Arial Unicode MS","Zen Maru Gothic",sans-serif;
   }
-  .bg-sym::before{ display:block; content:attr(data-glyph); }
-
-  /* 位置 & 大小（比前一版更小） */
-  .sym1 { font-size:140px; left:2vw;  top:2vh;   transform:rotate(-12deg); }
-  .sym2 { font-size:115px; right:8vw; top:10vh;  transform:rotate(8deg); }
-  .sym3 { font-size:150px; left:14vw; top:34vh;  transform:rotate(-6deg); opacity:.10; }
-  .sym4 { font-size:125px; right:12vw; top:56vh; transform:rotate(4deg); }
-  .sym5 { font-size:130px; left:6vw;  bottom:6vh; transform:rotate(-8deg); }
-  .sym6 { font-size:105px; right:4vw; bottom:8vh; transform:rotate(10deg); opacity:.10; }
-  .sym7 { font-size:110px; left:45vw; top:18vh;  transform:rotate(-5deg); }
-  .sym8 { font-size:120px; right:40vw; bottom:14vh; transform:rotate(7deg); }
-  .sym9 { font-size:100px; left:28vw;  bottom:18vh; transform:rotate(-9deg); opacity:.10; }
-  .sym10{ font-size:115px; right:28vw; top:36vh; transform:rotate(3deg); }
+  /* 分散位置（10 顆） */
+  .n1{ left:8vw;  top:10vh; --r:-10deg; --s:1.15 }
+  .n2{ left:22vw; top:18vh; --r:8deg;   --s:1    }
+  .n3{ left:36vw; top:9vh;  --r:-6deg;  --s:1.1  }
+  .n4{ left:54vw; top:14vh; --r:12deg;  --s:1.05 }
+  .n5{ left:74vw; top:8vh;  --r:-14deg; --s:1    }
+  .n6{ left:14vw; top:56vh; --r:7deg;   --s:1.1  }
+  .n7{ left:34vw; top:48vh; --r:-12deg; --s:1.05 }
+  .n8{ left:58vw; top:52vh; --r:9deg;   --s:1.12 }
+  .n9{ left:78vw; top:46vh; --r:-8deg;  --s:1.08 }
+  .n10{left:48vw; top:72vh; --r:5deg;   --s:1.15 }
 
   .panel{
     position:relative; z-index:1; max-width:1060px; margin:22px auto;
@@ -77,7 +75,7 @@
   .btn-compact{ width:60px !important; }
   .row button:disabled{opacity:.55;cursor:not-allowed}
 
-  /* 狀態列（底色用 soft；ok/busy/err 以 class 著色） */
+  /* 狀態列 */
   #status{
     background:var(--soft); border:1px solid var(--neutral); border-radius:12px;
     padding:10px; margin-top:10px; font-size:14px; white-space:pre-wrap; color:#6b5e52; text-align:center;
@@ -89,7 +87,7 @@
   .kb-wrap{ overflow-x:hidden; background:var(--soft); border:1px solid var(--rim); border-radius:14px; margin-top:14px; }
   #keyboard{ position:relative; height:var(--kb-h); user-select:none; -webkit-user-select:none; touch-action:none; }
 
-  /* ===== 鋼琴（黑鍵置中） ===== */
+  /* ===== 鋼琴 ===== */
   .white{
     position:absolute; bottom:0; height:100%;
     background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5);
@@ -116,7 +114,7 @@
     padding:2px 6px; border-radius:8px;
   }
 
-  /* ===== 吉他（視覺樣式保留） ===== */
+  /* ===== 吉他（樣式保留） ===== */
   .fretboard{
     position:relative; display:grid; grid-template-columns: repeat(13, 1fr);
     width:100%; height:var(--kb-h);
@@ -124,14 +122,10 @@
     border-radius:12px;
     box-shadow:inset 0 10px 20px rgba(0,0,0,.25), inset 0 -8px 16px rgba(0,0,0,.2);
   }
-  .head{
-    position:absolute; left:0; top:0; bottom:0; width:86px; z-index:2;
-    background:
-      linear-gradient(180deg, rgba(0,0,0,.12), transparent 40%),
-      linear-gradient(180deg,#7a5534 0%, #6b4f2e 55%, #5a3f24 100%);
+  .head{ position:absolute; left:0; top:0; bottom:0; width:86px; z-index:2;
+    background:linear-gradient(180deg, rgba(0,0,0,.12), transparent 40%),linear-gradient(180deg,#7a5534 0%, #6b4f2e 55%, #5a3f24 100%);
     border-right:1px solid rgba(40,22,8,.35); box-shadow: inset -8px 0 16px rgba(0,0,0,.18);
-    border-radius:12px 0 0 12px; pointer-events:none;
-  }
+    border-radius:12px 0 0 12px; pointer-events:none; }
   .nut{ position:absolute; left:86px; top:0; bottom:0; width:8px; z-index:3;
     background:linear-gradient(180deg,#e5e1d6,#c9c5ba);
     box-shadow: inset -1px 0 0 rgba(0,0,0,.35), inset 1px 0 0 rgba(255,255,255,.6);
@@ -177,7 +171,7 @@
   }
   @keyframes shine{ 0%{ background-position:-160px 0; opacity:.95 } 100%{ background-position:160px 0; opacity:.96 } }
 
-  /* 兩個彈跳視窗（背景改 soft / 邊線 neutral） */
+  /* 兩個彈跳視窗 */
   .overlay{ position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; background:rgba(17,24,39,.35); backdrop-filter:blur(3px); }
   .overlay.hidden{ display:none; }
   .dialog{ min-width:300px; max-width:92vw; background:var(--soft); border:1px solid var(--neutral); border-radius:14px; padding:18px; box-shadow:0 18px 44px rgba(0,0,0,.18); text-align:center; }
@@ -191,18 +185,18 @@
   footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
 </style>
 <body>
-  <!-- 背景裝飾：10 個音符/休止符（偏淡、稍小） -->
-  <div class="bg-decor" aria-hidden="true" role="presentation">
-    <div class="bg-sym sym1"  data-glyph="♩"></div>
-    <div class="bg-sym sym2"  data-glyph="♪"></div>
-    <div class="bg-sym sym3"  data-glyph="♫"></div>
-    <div class="bg-sym sym4"  data-glyph="♬"></div>
-    <div class="bg-sym sym5"  data-glyph="𝄽"></div>
-    <div class="bg-sym sym6"  data-glyph="𝄾"></div>
-    <div class="bg-sym sym7"  data-glyph="𝄻"></div>
-    <div class="bg-sym sym8"  data-glyph="𝄼"></div>
-    <div class="bg-sym sym9"  data-glyph="𝄿"></div>
-    <div class="bg-sym sym10" data-glyph="𝄺"></div>
+  <!-- 只有音符的透明裝飾（10 顆） -->
+  <div class="bg-notes" aria-hidden="true">
+    <span class="n n1">♩</span>
+    <span class="n n2">♪</span>
+    <span class="n n3">♫</span>
+    <span class="n n4">♬</span>
+    <span class="n n5">♪</span>
+    <span class="n n6">♩</span>
+    <span class="n n7">♫</span>
+    <span class="n n8">♬</span>
+    <span class="n n9">♪</span>
+    <span class="n n10">♩</span>
   </div>
 
   <div class="panel">
@@ -406,24 +400,7 @@
           const hit=document.createElement('div'); hit.className='hit-row'; hit.style.top=`calc(${y}%)`; col.appendChild(hit);
         }
 
-        // 單點：整體右移一格 → 4/6/8/10
-        if([4,6,8,10].includes(f)){
-          const dot=document.createElement('div');
-          dot.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#dbc6a4;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.35);pointer-events:none;';
-          col.appendChild(dot);
-        }
-
-        // 雙點（上下各一顆）：在第 13 空格，落於 2/7 與 5/7 高度
-        if(f===13){
-          const up=document.createElement('div');
-          const down=document.createElement('div');
-          const base='position:absolute;left:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#dbc6a4;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.35);pointer-events:none;';
-          up.style.cssText   = base + 'top:calc(100% * 1.5 / 7);';
-          down.style.cssText = base + 'top:calc(100% * 5.6 / 7);';
-          col.appendChild(up); col.appendChild(down);
-        }
-
-        // 事件：1–12 品可彈，13 只是視覺
+        // 事件：1–12 品可彈；13 只是視覺
         col.addEventListener('pointerdown',(ev)=>{
           if(hardLocked) return;
           if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; }
@@ -432,9 +409,9 @@
           const y = ev.clientY - rect.top; const slot = rect.height/7;
           let idx = Math.round(y/slot - 1); idx = Math.max(0, Math.min(5, idx));
 
-          if(f<=FRETS){
+          if(f<=12){
             const midi = TUNING_MIDI[5-idx] + f;
-            const note = midiToNoteName(midi);
+            const note = NOTE_NAMES[midi % 12] + (Math.floor(midi/12) - 1);
             trigger(note);
           }
 
