@@ -1,31 +1,3 @@
-# 互動音符 b1.0.2 – Email 限填一次 + guests 代號/截止日檢核 + 指板/弦配色（完整交付）
-
-> 說明：在 **不改動主 Webhook 對外介面與 `logs` 七欄** 的前提下，新增三件事：
->
-> 1. **Email 一次性鎖（duplicate 檢查）** 仍在同一份試算表內用 `locks` 工作表完成（不另開試算表）。
-> 2. **guests 檢核**：於輸入代號時，伺服端查 `guests`（C 欄=代號，自第 2 列起），若找不到→提示「找尋不到代號,請洽新人」；若 E 欄（截止日）已過→提示「已到了截止日囉」。兩者皆會 **禁止送出**（仍可彈琴但不記錄）。
-> 3. **吉他外觀**：指板咖啡色、琴弦金色。
->
-> 相容性：新增了 `doPost` 的「預檢」模式（`action:'precheck'`），老版只送最終資料的流程不受影響；最終送出時伺服端仍會再做同樣檢核以防繞過。
-
----
-
-## 1) 前端（HTML/JS）— Email 欄位、代號預檢、禁送邏輯、咖啡色指板＋金色琴弦
-
-* 新增 **Email** 輸入框（任何 Email 供驗證唯一）。
-* 在 **輸入或改動代號時** 觸發「預檢」：呼叫 `WEBHOOK` 的 `doPost` 帶 `{action:'precheck', code}`。
-* 伺服端回覆：
-
-  * `{ok:true}` → 代號存在且未過截止，**允許送出**。
-  * `{ok:false, error:'code_not_found'}` → 提示一次「找尋不到代號,請洽新人」，**禁止送出**。
-  * `{ok:false, error:'deadline_passed'}` → 提示一次「已到了截止日囉」，**禁止送出**。
-* 即使被禁止送出，**仍可彈琴**（不影響本地播放）；鎖定按鈕會保持 disabled。
-* 最終送出時若伺服端判定 `duplicate/email_required/code_not_found/deadline_passed`，會在狀態列顯示對應訊息。
-* 樣式：指板咖啡色、琴弦金色（含琴頭淡線）。
-
-> 將下列整段覆蓋你的 HTML 檔即可。
-
-```html
 <!doctype html>
 <html lang="zh-Hant">
 <meta charset="utf-8" />
@@ -49,7 +21,7 @@
     border:1px solid var(--rim); border-radius:10px;
     -webkit-text-stroke:.25px rgba(0,0,0,.12); text-shadow:0 1px 0 rgba(255,255,255,.5);
   }
-  #displayName,#email,#code,#lastNote{ width:152px; font-weight:400; -webkit-text-stroke:0; text-shadow:none }
+  #displayName,#code,#email,#lastNote{ width:152px; font-weight:400; -webkit-text-stroke:0; text-shadow:none }
   .row select{ width:auto; min-width:88px; text-align:center; text-align-last:center; -webkit-text-stroke:0; text-shadow:none; }
   .row select option{text-align:center}
   .row button{ width:120px; cursor:pointer; font-weight:600 }
@@ -93,7 +65,7 @@
   .fretboard{
     position:relative; display:grid; grid-template-columns: repeat(13, 1fr);
     width:100%; height:var(--kb-h);
-    background:linear-gradient(180deg,#6b4f2e 0%, #5b4429 50%, #533c24 100%);
+    background:linear-gradient(180deg,#6b4f2e 0%, #5b4429 50%, #533c24 100%); /* 咖啡木頭色 */
     border-radius:12px;
     box-shadow:inset 0 10px 20px rgba(0,0,0,.25), inset 0 -8px 16px rgba(0,0,0,.2);
   }
@@ -101,7 +73,7 @@
     position:absolute; left:0; top:0; bottom:0; width:86px; z-index:2;
     background:
       linear-gradient(180deg, rgba(0,0,0,.12), transparent 40%),
-      linear-gradient(180deg,#7a5534 0%, #6b4f2e 55%, #5a3f24 100%);
+      linear-gradient(180deg,#7a5534 0%, #6b4f2e 55%, #5a3f24 100%); /* 木頭頭枕更深 */
     border-right:1px solid rgba(40,22,8,.35); box-shadow: inset -8px 0 16px rgba(0,0,0,.18);
     border-radius:12px 0 0 12px; pointer-events:none;
   }
@@ -115,28 +87,49 @@
     pointer-events:none; border-left:1px solid rgba(0,0,0,.18); }
 
   .fret-col{ position:relative; background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
-    box-shadow: inset -2px 0 0 rgba(255,255,255,.18), inset -4px 0 0 rgba(0,0,0,.28);} 
+    box-shadow: inset -2px 0 0 rgba(255,255,255,.18), inset -4px 0 0 rgba(0,0,0,.28);} /* 木板亮暗 */
 
-  /* 金色弦 */
-  .string{ position:absolute; left:94px; right:0; height:0; z-index:3; border-top:2px solid #d4af37; opacity:.96; filter:drop-shadow(0 1px 0 rgba(0,0,0,.18)); transform-origin:center; background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.35) 50%, rgba(255,255,255,0) 100%); background-size: 160px 1px; background-repeat:no-repeat; background-position:-160px 0; }
+  /* 金色弦（border 顏色＋微光） */
+  .string{
+    position:absolute; left:94px; right:0; height:0; z-index:3;
+    border-top:2px solid #d4af37; /* 金色 */
+    opacity:.96; filter:drop-shadow(0 1px 0 rgba(0,0,0,.18));
+    transform-origin:center;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.35) 50%, rgba(255,255,255,0) 100%);
+    background-size: 160px 1px; background-repeat:no-repeat; background-position:-160px 0;
+  }
   .string[data-s="2"]{ border-top-width:2.5px; }
   .string[data-s="3"]{ border-top-width:3px; }
   .string[data-s="4"]{ border-top-width:3.5px; }
   .string[data-s="5"]{ border-top-width:4px; }
 
-  .head-line{ position:absolute; left:0; width:86px; height:0; border-top:2px solid rgba(212,175,55,.55); filter:drop-shadow(0 1px 0 rgba(0,0,0,.06)); pointer-events:none; z-index:2; }
+  /* 琴頭淡線（對齊主弦，金色更淡） */
+  .head-line{ position:absolute; left:0; width:86px; height:0; border-top:2px solid rgba(212,175,55,.55);
+    filter:drop-shadow(0 1px 0 rgba(0,0,0,.06)); pointer-events:none; z-index:2; }
   .head-line[data-s="2"]{ border-top-width:2.5px; }
   .head-line[data-s="3"]{ border-top-width:3px; }
   .head-line[data-s="4"]{ border-top-width:3.5px; }
   .head-line[data-s="5"]{ border-top-width:4px; }
 
+  /* 透明全列 hit 區（提升命中） */
   .hit-row{ position:absolute; left:0; right:0; height:28px; transform:translateY(-50%); background:transparent; cursor:pointer; z-index:4; }
   @media (pointer:coarse){ .hit-row{ height:34px; } }
 
+  /* 振動＋微光 */
   .string.vibrate{ animation: vibrCurve 360ms ease-out, shine 360ms ease-out; }
-  @keyframes vibrCurve{ 0%{transform:translateY(0)} 10%{transform:translateY(-3.2px)} 20%{transform:translateY(0)} 30%{transform:translateY(2.6px)} 45%{transform:translateY(0)} 60%{transform:translateY(-1.8px)} 75%{transform:translateY(0.6px)} 100%{transform:translateY(0)} }
+  @keyframes vibrCurve{
+    0%{transform:translateY(0)}
+    10%{transform:translateY(-3.2px)}
+    20%{transform:translateY(0)}
+    30%{transform:translateY(2.6px)}
+    45%{transform:translateY(0)}
+    60%{transform:translateY(-1.8px)}
+    75%{transform:translateY(0.6px)}
+    100%{transform:translateY(0)}
+  }
   @keyframes shine{ 0%{ background-position:-160px 0; opacity:.95 } 100%{ background-position:160px 0; opacity:.96 } }
 
+  /* 兩個彈跳視窗 */
   .overlay{ position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; background:rgba(17,24,39,.35); backdrop-filter:blur(3px); }
   .overlay.hidden{ display:none; }
   .dialog{ min-width:300px; max-width:92vw; background:rgba(255,255,255,.96); border:1px solid rgba(255,255,255,.85); border-radius:14px; padding:18px; box-shadow:0 18px 44px rgba(0,0,0,.18); text-align:center; }
@@ -209,11 +202,11 @@
 
   <div id="lockScreen" aria-hidden="true"></div>
 
-  <footer>© Copyright 2025 MY‘s system Version:b1.0.2</footer>
+  <footer>© Copyright 2025 MY‘s system Version:b1.0.1</footer>
 
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
   <script>
-    /* ===== 主程式（不改對外接口；新增 email/預檢/禁送） ===== */
+    /* ===== 主程式（不改接口；新增 email 欄位與 duplicate 訊息處理） ===== */
     const WEBHOOK = "https://script.google.com/macros/s/AKfycbw3rDKy-mjN93ValBMs28ndCFv5IbqjupDgn9rHvqYOqJwo5If3DdB1zVervdluT8YW/exec";
     const $ = s => document.querySelector(s);
     const setStatus = m => $('#status').textContent = m;
@@ -237,31 +230,8 @@
     const FRETS = 12; // 1~12 品（第 13 空格不發聲）
 
     function midiToNoteName(midi){ const n = NOTE_NAMES[midi % 12]; const octave = Math.floor(midi/12) - 1; return n + octave; }
+
     function validEmail(v){ return /.+@.+\..+/.test((v||'').trim()); }
-
-    // === guests 預檢狀態 ===
-    let submitAllowed = null; // null=未知, true=可送, false=禁送
-    let notifiedNF = false;   // code_not_found 已提示過
-    let notifiedDL = false;   // deadline_passed 已提示過
-    let lastCheckedCode = '';
-
-    async function precheckCode(){
-      const code = ($('#code').value||'').trim();
-      if(!code){ submitAllowed=null; validateLockBtn(); return; }
-      if(code===lastCheckedCode && submitAllowed!==null) { validateLockBtn(); return; }
-      try{
-        const r=await fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'precheck', code})});
-        let ok=false, err='';
-        if(r.headers.get('content-type')?.includes('application/json')){
-          const j = await r.json(); ok=!!j.ok; err=j.error||'';
-        } else { ok=r.ok; }
-        if(ok){ submitAllowed=true; }
-        else if(err==='code_not_found'){ submitAllowed=false; if(!notifiedNF){ alert('找尋不到代號,請洽新人'); notifiedNF=true; } }
-        else if(err==='deadline_passed'){ submitAllowed=false; if(!notifiedDL){ alert('已到了截止日囉'); notifiedDL=true; } }
-        else { submitAllowed=false; }
-      }catch(e){ submitAllowed=false; }
-      finally{ lastCheckedCode=code; validateLockBtn(); }
-    }
 
     async function unlockAudio(){
       try{
@@ -302,8 +272,7 @@
       const codeOk = ($('#code').value || '').trim().length > 0;
       const emailOk = validEmail($('#email').value);
       const notesOk = selectedNotes.length === 3;
-      const allow = (submitAllowed===true);
-      $('#lockBtn').disabled = !(nameOk && codeOk && emailOk && notesOk && allow);
+      $('#lockBtn').disabled = !(nameOk && codeOk && emailOk && notesOk);
     }
 
     /* === 鋼琴（黑鍵置中） === */
@@ -343,30 +312,36 @@
     function renderGuitar(){
       const kb=$('#keyboard'); kb.innerHTML=''; kb.className='fretboard'; kb.style.height='var(--kb-h)';
 
+      // 裝飾
       const head=document.createElement('div'); head.className='head'; kb.appendChild(head);
       const nut =document.createElement('div');  nut.className='nut';  kb.appendChild(nut);
       const bridge=document.createElement('div'); bridge.className='bridge'; kb.appendChild(bridge);
 
+      // 6 條主弦（從 nut 右側開始） + 琴頭 6 條淡線（與主弦對齊）
       for(let s=0;s<6;s++){
         const y=(s+1)*(100/7);
         const str=document.createElement('div'); str.className='string'; str.dataset.s=String(s); str.style.top=`calc(${y}%)`; kb.appendChild(str);
         const hline=document.createElement('div'); hline.className='head-line'; hline.dataset.s=String(s); hline.style.top=`calc(${y}%)`; kb.appendChild(hline);
       }
 
+      // 13 個空格（第 13 空格為雙點，且不發聲）
       for(let f=1; f<=13; f++){
         const col=document.createElement('div'); col.className='fret-col';
 
+        // 六條 hit 區（好按）
         for(let s=0; s<6; s++){
           const y=(s+1)*(100/7);
           const hit=document.createElement('div'); hit.className='hit-row'; hit.style.top=`calc(${y}%)`; col.appendChild(hit);
         }
 
+        // 單點：整體右移一格 → 4/6/8/10
         if([4,6,8,10].includes(f)){
           const dot=document.createElement('div');
           dot.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#dbc6a4;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.35);pointer-events:none;';
           col.appendChild(dot);
         }
 
+        // 雙點（上下各一顆）：在第 13 空格，落於 2/7 與 5/7 高度
         if(f===13){
           const up=document.createElement('div');
           const down=document.createElement('div');
@@ -376,6 +351,7 @@
           col.appendChild(up); col.appendChild(down);
         }
 
+        // 事件：1–12 品可彈，13 只是視覺
         col.addEventListener('pointerdown',(ev)=>{
           if(hardLocked) return;
           if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; }
@@ -407,20 +383,20 @@
       validateLockBtn();
     });
     $('#displayName').addEventListener('input', validateLockBtn);
+    $('#code').addEventListener('input', validateLockBtn);
     $('#email').addEventListener('input', validateLockBtn);
-    $('#code').addEventListener('input', ()=>{ submitAllowed=null; precheckCode(); });
-    $('#code').addEventListener('blur', precheckCode);
 
     $('#resetBtn').addEventListener('click', ()=>{ if(hardLocked) return; if(selectedNotes.length>0){ selectedNotes.pop(); refreshNotesDisplay(); validateLockBtn(); } });
 
+    // 視窗流程：操作說明 → 直接彈出「啟用聲音」
     $('#guideOk').addEventListener('click', ()=>{ $('#guideOverlay').classList.add('hidden'); $('#unlockOverlay').classList.remove('hidden'); });
     $('#cancelUnlock').addEventListener('click', ()=>{ $('#unlockOverlay').classList.add('hidden'); });
     $('#confirmUnlock').addEventListener('click', unlockAudio, {once:true});
     window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ $('#guideOverlay').classList.add('hidden'); $('#unlockOverlay').classList.add('hidden'); } });
 
+    // 鎖定：立即鎖 UI，再送出
     $('#lockBtn').addEventListener('click', async ()=>{
       if(hardLocked) return;
-      if(submitAllowed!==true){ alert(notifiedDL? '已到了截止日囉' : '找尋不到代號,請洽新人'); return; }
       const name=($('#displayName').value||'').trim();
       const code=($('#code').value||'').trim();
       const email=($('#email').value||'').trim();
@@ -437,8 +413,6 @@
           if(!data.ok){
             if(data.error==='duplicate') msg='已填寫過，若要刪除請找管理者';
             else if(data.error==='email_required') msg='Email 缺少或格式不正確（已鎖定）';
-            else if(data.error==='code_not_found') msg='找尋不到代號,請洽新人';
-            else if(data.error==='deadline_passed') msg='已到了截止日囉';
             else msg='送出失敗（已鎖定）';
           }
         }else if(!r.ok){ msg='送出失敗（已鎖定）'; }
@@ -447,7 +421,7 @@
     });
 
     function enterHardLock(){
-      hardLocked=true; $('#displayName').disabled=true; $('#email').disabled=true; $('#code').disabled=true; $('#instrument').disabled=true; $('#resetBtn').disabled=true; $('#lockBtn').disabled=true; $('#lockScreen').style.display='block';
+      hardLocked=true; $('#displayName').disabled=true; $('#code').disabled=true; $('#email').disabled=true; $('#instrument').disabled=true; $('#resetBtn').disabled=true; $('#lockBtn').disabled=true; $('#lockScreen').style.display='block';
     }
 
     window.addEventListener('resize', ()=>{ if(currentInstrument==='piano') sizePiano(); });
@@ -455,164 +429,8 @@
 
     window.addEventListener('DOMContentLoaded', ()=>{
       renderPiano(); setStatus('等待啟用聲音…'); validateLockBtn();
-      $('#guideOverlay').classList.remove('hidden');
+      $('#guideOverlay').classList.remove('hidden'); // 先出操作說明
     });
   </script>
 </body>
 </html>
-```
-
----
-
-## 2) Apps Script（Code.gs）— guests 檢核 + Email 限填一次（同一份試算表）
-
-* **不改對外接口**：`doGet()` 仍回 "ok"；`doPost()` 仍回 `{ok:true}` 或 `{ok:false, error:...}`。
-* **工作表**：
-
-  * `logs`（既有，固定 7 欄）：`timestamp | userId | displayName | instrument | note | velocity | sessionId`
-  * `guests`（既有）：A=南方姓名、B=女方姓名、C=代號（自 C2 起）、D=結婚日期、E=截止日期
-  * `locks`（新增於同一份試算表，不另開）：`code | email | usedAt | status`
-* **流程**：
-
-  * **預檢**：若 `action:'precheck'`，只做 guests 檢核 → 回 `{ok:true}` 或 `{ok:false, error:'code_not_found'|'deadline_passed'}`。
-  * **最終送出**：先檢 `email`、再檢 guests（代號存在且未過期），再檢 `locks`（`(code,email)` 未使用）→ 鎖定 → 寫入 `logs` 七欄 → `{ok:true}`。
-
-> 覆蓋你的 **Code.gs**：
-
-```javascript
-const SHEET_NAME = 'logs';
-const LOCKS_SHEET_NAME = 'locks';
-const GUESTS_SHEET_NAME = 'guests';
-
-// 健康檢查
-function doGet(e) {
-  return ContentService.createTextOutput('ok')
-    .setMimeType(ContentService.MimeType.TEXT);
-}
-
-function doPost(e) {
-  const out = (obj) => ContentService.createTextOutput(JSON.stringify(obj))
-                    .setMimeType(ContentService.MimeType.JSON);
-  const ss = SpreadsheetApp.getActive();
-  const logsSheet = ss.getSheetByName(SHEET_NAME);
-  if (!logsSheet) return out({ ok:false, error:'Sheet logs not found' });
-
-  let data = {};
-  try { data = JSON.parse(e.postData.contents || '{}'); }
-  catch (err) { return out({ ok:false, error:'Invalid JSON' }); }
-
-  const code = (data.userId || data.code || '').toString().trim();
-  const email = normalizeEmail(data.email);
-
-  // === 模式 A：預檢（輸入代號即檢查 guests 與截止日） ===
-  if (data.action === 'precheck') {
-    const chk = checkGuestCode_(code);
-    if (!chk.found) return out({ ok:false, error:'code_not_found' });
-    if (chk.deadlinePassed) return out({ ok:false, error:'deadline_passed' });
-    return out({ ok:true });
-  }
-
-  // === 模式 B：最終送出（完整驗證） ===
-  if (!email) return out({ ok:false, error:'email_required' });
-
-  // guests 檢核：代號存在且未過期
-  const chk = checkGuestCode_(code);
-  if (!chk.found) return out({ ok:false, error:'code_not_found' });
-  if (chk.deadlinePassed) return out({ ok:false, error:'deadline_passed' });
-
-  // locks 限一次（同一 code+email）
-  const locksSheet = getOrCreateLocksSheet_();
-  if (hasUsed_(locksSheet, code, email)) return out({ ok:false, error:'duplicate' });
-  appendLock_(locksSheet, code, email);
-
-  // 寫入 logs 七欄（固定順序）
-  const row = [
-    new Date(),
-    data.userId || '',
-    data.displayName || '',
-    data.instrument || 'piano',
-    data.note || '',
-    data.velocity ?? '',
-    data.sessionId || ''
-  ];
-  try {
-    logsSheet.appendRow(row);
-  } catch (err) {
-    try { removeLastLockIfMatches_(locksSheet, code, email); } catch (e2) {}
-    return out({ ok:false, error:'append_failed' });
-  }
-
-  return out({ ok:true });
-}
-
-/** guests 檢核：找 C 欄代號，取 E 欄截止日是否已過 **/
-function checkGuestCode_(code){
-  const ss = SpreadsheetApp.getActive();
-  const sh = ss.getSheetByName(GUESTS_SHEET_NAME);
-  if (!sh) return { found:false, deadlinePassed:false };
-  const last = sh.getLastRow();
-  if (last < 2) return { found:false, deadlinePassed:false };
-  const codes = sh.getRange(2, 3, last-1, 1).getValues(); // C2:C
-  for (var i=0; i<codes.length; i++){
-    const c = String(codes[i][0]||'').trim();
-    if (c && c === code){
-      const rowIdx = i + 2;
-      const deadlineVal = sh.getRange(rowIdx, 5).getValue(); // E=截止日
-      const passed = isDeadlinePassed_(deadlineVal);
-      return { found:true, deadlinePassed: passed };
-    }
-  }
-  return { found:false, deadlinePassed:false };
-}
-
-function isDeadlinePassed_(deadlineVal){
-  if (!deadlineVal) return false; // 沒填截止日視為未過期
-  const tz = SpreadsheetApp.getActive().getSpreadsheetTimeZone() || 'Asia/Taipei';
-  const now = new Date();
-  let d = deadlineVal instanceof Date ? new Date(deadlineVal) : new Date(deadlineVal);
-  if (isNaN(d.getTime())) return false; // 解析失敗視為未過期（避免誤殺）
-  // 視為「截止日 23:59:59」結束
-  d.setHours(23,59,59,999);
-  return now.getTime() > d.getTime();
-}
-
-/** locks：同一份試算表，不另開 **/
-function normalizeEmail(v){ if (!v) return ''; v = String(v).trim().toLowerCase(); return /.+@.+\..+/.test(v) ? v : ''; }
-function getOrCreateLocksSheet_(){
-  const ss = SpreadsheetApp.getActive();
-  let sh = ss.getSheetByName(LOCKS_SHEET_NAME);
-  if (!sh) { sh = ss.insertSheet(LOCKS_SHEET_NAME); sh.appendRow(['code','email','usedAt','status']); }
-  return sh;
-}
-function hasUsed_(locksSheet, code, email){
-  const rng = locksSheet.getDataRange();
-  const values = rng.getValues();
-  for (var i=1;i<values.length;i++){
-    var row = values[i];
-    if (String(row[0]).trim() === code && String(row[1]).trim().toLowerCase() === email) {
-      if ((row[3]||'').toString().toLowerCase() !== 'revoked') return true;
-    }
-  }
-  return false;
-}
-function appendLock_(locksSheet, code, email){ locksSheet.appendRow([code, email, new Date(), 'used']); }
-function removeLastLockIfMatches_(locksSheet, code, email){
-  const lastRow = locksSheet.getLastRow();
-  if (lastRow <= 1) return;
-  const row = locksSheet.getRange(lastRow,1,1,4).getValues()[0];
-  if (String(row[0]).trim() === code && String(row[1]).trim().toLowerCase() === email) {
-    locksSheet.deleteRow(lastRow);
-  }
-}
-```
-
----
-
-## 3) 驗收重點
-
-* [x] `guests` C 欄代號找不到 → 前端彈一次提示「找尋不到代號,請洽新人」，`鎖定` 按鈕保持 disabled；伺服端最終送出也會擋下並回 `{ok:false,error:'code_not_found'}`。
-* [x] `guests` E 欄截止日已過 → 前端彈一次提示「已到了截止日囉」，`鎖定` disabled；伺服端最終送出回 `{ok:false,error:'deadline_passed'}`。
-* [x] Email 限填一次：同 `(code,email)` 第二次送出回 `{ok:false,error:'duplicate'}`。
-* [x] **同一份試算表**：`logs`（記錄音符）、`guests`（新人/代號/日期）、`locks`（一次性鎖）。
-* [x] 仍可自由彈琴（不影響本地播放），僅禁止送出。
-* [x] 對外接口與 `logs` 七欄未變。
