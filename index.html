@@ -22,26 +22,17 @@
   *{ box-sizing:border-box; font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif !important; -webkit-text-stroke:.35px var(--stroke); text-shadow:0 1px 0 var(--glow); }
   html,body{ margin:0; color:var(--ink); background:var(--brand); }
 
-  /* === 只有音符的透明裝飾層（共 10 個） === */
-  .bg-notes{ position:fixed; inset:0; z-index:0; pointer-events:none; }
-  .bg-notes .n{
-    position:absolute; color:#fff; opacity:.055;   /* 再淡一點點 */
-    font-size:clamp(18px, 2.2vw, 34px);            /* 比原來再小一些 */
-    filter:blur(.15px); line-height:1;
-    transform:rotate(var(--r,0deg)) scale(var(--s,1));
-    font-family: "Noto Music","Segoe UI Symbol","Apple Symbols","Arial Unicode MS","Zen Maru Gothic",sans-serif;
+  /* === 只用你的圖當裝飾層；背景看起來等於只剩音符 ===
+     - 若未真正去背：因為圖底色≈主色，看起來就只有音符
+     - 若之後換成透明底 PNG/SVG：會自動只顯示音符
+  */
+  .bg-img{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:url("./assets/notes.png"); /* ← 改成你的檔案路徑 */
+    background-size:cover; background-position:center; background-repeat:no-repeat;
+    opacity:.12;  /* 淡淡地顯示；想更淡可調 .08~.10，想明顯些 .14~.18 */
+    /* 若日後換透明底檔，可微調到 .16 也不突兀 */
   }
-  /* 分散位置（10 顆） */
-  .n1{ left:8vw;  top:10vh; --r:-10deg; --s:1.15 }
-  .n2{ left:22vw; top:18vh; --r:8deg;   --s:1    }
-  .n3{ left:36vw; top:9vh;  --r:-6deg;  --s:1.1  }
-  .n4{ left:54vw; top:14vh; --r:12deg;  --s:1.05 }
-  .n5{ left:74vw; top:8vh;  --r:-14deg; --s:1    }
-  .n6{ left:14vw; top:56vh; --r:7deg;   --s:1.1  }
-  .n7{ left:34vw; top:48vh; --r:-12deg; --s:1.05 }
-  .n8{ left:58vw; top:52vh; --r:9deg;   --s:1.12 }
-  .n9{ left:78vw; top:46vh; --r:-8deg;  --s:1.08 }
-  .n10{left:48vw; top:72vh; --r:5deg;   --s:1.15 }
 
   .panel{
     position:relative; z-index:1; max-width:1060px; margin:22px auto;
@@ -55,7 +46,7 @@
     color:var(--title); -webkit-text-stroke:.6px rgba(0,0,0,.12); text-shadow:0 3px 4px rgba(255,255,255,.75);
   }
 
-  /* 控制列（拆成兩行） */
+  /* 控制列（第二行＋第三行的排版不變，只調寬度） */
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap; margin-top:10px}
   .row label{opacity:.92;white-space:nowrap;font-weight:400;-webkit-text-stroke:0;text-shadow:none}
   .row input,.row select,.row button{
@@ -185,19 +176,8 @@
   footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
 </style>
 <body>
-  <!-- 只有音符的透明裝飾（10 顆） -->
-  <div class="bg-notes" aria-hidden="true">
-    <span class="n n1">♩</span>
-    <span class="n n2">♪</span>
-    <span class="n n3">♫</span>
-    <span class="n n4">♬</span>
-    <span class="n n5">♪</span>
-    <span class="n n6">♩</span>
-    <span class="n n7">♫</span>
-    <span class="n n8">♬</span>
-    <span class="n n9">♪</span>
-    <span class="n n10">♩</span>
-  </div>
+  <!-- 背景：只用你的圖；視覺上等於只有音符 -->
+  <div class="bg-img" aria-hidden="true"></div>
 
   <div class="panel">
     <h2>🎼互動音符🎼</h2>
