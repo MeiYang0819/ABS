@@ -6,6 +6,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- 只給背景符號用，確保休止符顯示 -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Music&display=swap" rel="stylesheet">
 <style>
   /* ===== 調色盤（依你的色碼） ===== */
   :root{
@@ -22,31 +24,24 @@
   *{ box-sizing:border-box; font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif !important; -webkit-text-stroke:.35px var(--stroke); text-shadow:0 1px 0 var(--glow); }
   html,body{ margin:0; color:var(--ink); background:var(--brand); }
 
-  /* 背景裝飾層（不密集、超淡；顏色依前面約定） */
+  /* 背景裝飾層（不密集、超淡；只保留音符/休止符） */
   .bg-decor{ position:fixed; inset:0; z-index:0; pointer-events:none; }
-  .bg-note{
-    position:absolute; right:3vw; top:-24px; font-size:200px; line-height:1;
-    color:#A68A7C; opacity:.16; filter:blur(.2px); /* 可可淺褐、極淡 */
+  .bg-sym{
+    position:absolute; color:var(--title); opacity:.16; /* 淡一點但清楚 */
+    font-family: "Noto Music","Segoe UI Symbol","Apple Color Emoji",sans-serif;
+    filter: blur(.15px);
+    line-height:1;
+    user-select:none;
   }
-  .bg-piano{
-    position:absolute; left:-64px; bottom:-10px; width:62vw; max-width:920px; height:120px; opacity:.08; border-radius:16px;
-    background:
-      /* 鍵盤分隔線（抽象） */
-      repeating-linear-gradient(90deg, rgba(166,138,124,.25) 0 1px, transparent 1px 7.14%),
-      linear-gradient(180deg, rgba(166,138,124,.12), rgba(166,138,124,0));
-    box-shadow: 0 10px 30px rgba(0,0,0,.06);
-  }
-  .bg-strings{
-    position:absolute; left:-8vw; top:8vh; width:78vw; max-width:1080px; height:160px; opacity:.10; transform:rotate(-8deg);
-    background:
-      linear-gradient(#BFA5A0 0 0) left 12%/100% 2px no-repeat,
-      linear-gradient(#BFA5A0 0 0) left 30%/100% 2px no-repeat,
-      linear-gradient(#BFA5A0 0 0) left 48%/100% 2px no-repeat,
-      linear-gradient(#BFA5A0 0 0) left 66%/100% 2px no-repeat,
-      linear-gradient(#BFA5A0 0 0) left 84%/100% 2px no-repeat,
-      linear-gradient(#BFA5A0 0 0) left 96%/100% 2px no-repeat;
-    filter: blur(0.3px);
-  }
+  .bg-sym.sym1{ content:"♩"; font-size:180px; left:2vw; top:-12px; transform:rotate(-12deg); }
+  .bg-sym.sym2{ content:"♪";  font-size:140px; right:6vw; top:12vh; transform:rotate(10deg); }
+  .bg-sym.sym3{ content:"♫";  font-size:200px; left:12vw; top:34vh; transform:rotate(-6deg); opacity:.14; }
+  .bg-sym.sym4{ content:"♬";  font-size:150px; right:12vw; top:58vh; transform:rotate(4deg); }
+  .bg-sym.sym5{ content:"𝄽";  font-size:170px; left:6vw; bottom:-10px; transform:rotate(-8deg); }  /* Quarter rest */
+  .bg-sym.sym6{ content:"𝄻";  font-size:130px; right:4vw; bottom:6vh; transform:rotate(6deg); }   /* Eighth rest */
+
+  /* 使用 ::before 放入字元，避免 HTML 看到符號本體 */
+  .bg-sym::before{ display:block; content:attr(data-glyph); }
 
   .panel{
     position:relative; z-index:1; max-width:1060px; margin:22px auto;
@@ -119,7 +114,7 @@
     padding:2px 6px; border-radius:8px;
   }
 
-  /* ===== 吉他（咖啡色指板、金色弦；1–12 品可彈，多 1 空格；整條弦） ===== */
+  /* ===== 吉他（樣式保留，僅視覺） ===== */
   .fretboard{
     position:relative; display:grid; grid-template-columns: repeat(13, 1fr);
     width:100%; height:var(--kb-h);
@@ -143,11 +138,8 @@
     background:linear-gradient(180deg,#b9b6ad,#8f8c83);
     box-shadow: inset 1px 0 0 rgba(255,255,255,.5), inset -1px 0 0 rgba(0,0,0,.25);
     pointer-events:none; border-left:1px solid rgba(0,0,0,.18); }
-
   .fret-col{ position:relative; background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
     box-shadow: inset -2px 0 0 rgba(255,255,255,.18), inset -4px 0 0 rgba(0,0,0,.28);}
-
-  /* 金色弦（border 顏色＋微光） */
   .string{
     position:absolute; left:94px; right:0; height:0; z-index:3;
     border-top:2px solid #d4af37;
@@ -160,8 +152,6 @@
   .string[data-s="3"]{ border-top-width:3px; }
   .string[data-s="4"]{ border-top-width:3.5px; }
   .string[data-s="5"]{ border-top-width:4px; }
-
-  /* 琴頭淡線 */
   .head-line{ position:absolute; left:0; width:86px; height:0; border-top:2px solid rgba(212,175,55,.55);
     filter:drop-shadow(0 1px 0 rgba(0,0,0,.06)); pointer-events:none; z-index:2; }
   .head-line[data-s="2"]{ border-top-width:2.5px; }
@@ -169,11 +159,9 @@
   .head-line[data-s="4"]{ border-top-width:3.5px; }
   .head-line[data-s="5"]{ border-top-width:4px; }
 
-  /* 透明全列 hit 區（提升命中） */
   .hit-row{ position:absolute; left:0; right:0; height:28px; transform:translateY(-50%); background:transparent; cursor:pointer; z-index:4; }
   @media (pointer:coarse){ .hit-row{ height:34px; } }
 
-  /* 振動＋微光 */
   .string.vibrate{ animation: vibrCurve 360ms ease-out, shine 360ms ease-out; }
   @keyframes vibrCurve{
     0%{transform:translateY(0)}
@@ -201,11 +189,14 @@
   footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
 </style>
 <body>
-  <!-- 背景裝飾：不密集 -->
+  <!-- 背景裝飾：音符/休止符（5~6個，超淡） -->
   <div class="bg-decor" aria-hidden="true" role="presentation">
-    <div class="bg-note">♪</div>
-    <div class="bg-piano"></div>
-    <div class="bg-strings"></div>
+    <div class="bg-sym sym1" data-glyph="♩"></div>
+    <div class="bg-sym sym2" data-glyph="♪"></div>
+    <div class="bg-sym sym3" data-glyph="♫"></div>
+    <div class="bg-sym sym4" data-glyph="♬"></div>
+    <div class="bg-sym sym5" data-glyph="𝄽"></div>
+    <div class="bg-sym sym6" data-glyph="𝄻"></div>
   </div>
 
   <div class="panel">
@@ -528,4 +519,3 @@
   </script>
 </body>
 </html>
-
