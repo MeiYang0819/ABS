@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
-<!-- 只給背景符號用，確保休止符顯示 -->
+<!-- 背景符號字型，確保休止符可顯示 -->
 <link href="https://fonts.googleapis.com/css2?family=Noto+Music&display=swap" rel="stylesheet">
 <style>
   /* ===== 調色盤（依你的色碼） ===== */
@@ -15,7 +15,7 @@
     --title:#A68A7C;   /* 標題字色 */
     --neutral:#E4E4E4; /* 區塊背景 */
     --soft:#F5F1EC;    /* 內頁/容器底 */
-    --accent:#BFA5A0;  /* 提亮色（載入完成） */
+    --accent:#BFA5A0;  /* 提亮色（載入完成等） */
     --rim:#E4E4E4;
     --ink:#0f172a;
     --kb-h:280px; --sep:2px; --stroke:rgba(0,0,0,.18); --glow:rgba(255,255,255,.65);
@@ -24,24 +24,26 @@
   *{ box-sizing:border-box; font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif !important; -webkit-text-stroke:.35px var(--stroke); text-shadow:0 1px 0 var(--glow); }
   html,body{ margin:0; color:var(--ink); background:var(--brand); }
 
-  /* 背景裝飾層（不密集、超淡；只保留音符/休止符） */
+  /* === 背景裝飾（10 個音符/休止符，偏淡、稍小、不密集） === */
   .bg-decor{ position:fixed; inset:0; z-index:0; pointer-events:none; }
   .bg-sym{
-    position:absolute; color:var(--title); opacity:.16; /* 淡一點但清楚 */
-    font-family: "Noto Music","Segoe UI Symbol","Apple Color Emoji",sans-serif;
-    filter: blur(.15px);
-    line-height:1;
-    user-select:none;
+    position:absolute; color:var(--title); opacity:.11;  /* 再淡一點 */
+    font-family:"Noto Music","Segoe UI Symbol","Apple Color Emoji",sans-serif;
+    filter:blur(.15px); line-height:1; user-select:none;
   }
-  .bg-sym.sym1{ content:"♩"; font-size:180px; left:2vw; top:-12px; transform:rotate(-12deg); }
-  .bg-sym.sym2{ content:"♪";  font-size:140px; right:6vw; top:12vh; transform:rotate(10deg); }
-  .bg-sym.sym3{ content:"♫";  font-size:200px; left:12vw; top:34vh; transform:rotate(-6deg); opacity:.14; }
-  .bg-sym.sym4{ content:"♬";  font-size:150px; right:12vw; top:58vh; transform:rotate(4deg); }
-  .bg-sym.sym5{ content:"𝄽";  font-size:170px; left:6vw; bottom:-10px; transform:rotate(-8deg); }  /* Quarter rest */
-  .bg-sym.sym6{ content:"𝄻";  font-size:130px; right:4vw; bottom:6vh; transform:rotate(6deg); }   /* Eighth rest */
-
-  /* 使用 ::before 放入字元，避免 HTML 看到符號本體 */
   .bg-sym::before{ display:block; content:attr(data-glyph); }
+
+  /* 位置 & 大小（比前一版更小） */
+  .sym1 { font-size:140px; left:2vw;  top:2vh;   transform:rotate(-12deg); }
+  .sym2 { font-size:115px; right:8vw; top:10vh;  transform:rotate(8deg); }
+  .sym3 { font-size:150px; left:14vw; top:34vh;  transform:rotate(-6deg); opacity:.10; }
+  .sym4 { font-size:125px; right:12vw; top:56vh; transform:rotate(4deg); }
+  .sym5 { font-size:130px; left:6vw;  bottom:6vh; transform:rotate(-8deg); }
+  .sym6 { font-size:105px; right:4vw; bottom:8vh; transform:rotate(10deg); opacity:.10; }
+  .sym7 { font-size:110px; left:45vw; top:18vh;  transform:rotate(-5deg); }
+  .sym8 { font-size:120px; right:40vw; bottom:14vh; transform:rotate(7deg); }
+  .sym9 { font-size:100px; left:28vw;  bottom:18vh; transform:rotate(-9deg); opacity:.10; }
+  .sym10{ font-size:115px; right:28vw; top:36vh; transform:rotate(3deg); }
 
   .panel{
     position:relative; z-index:1; max-width:1060px; margin:22px auto;
@@ -114,7 +116,7 @@
     padding:2px 6px; border-radius:8px;
   }
 
-  /* ===== 吉他（樣式保留，僅視覺） ===== */
+  /* ===== 吉他（視覺樣式保留） ===== */
   .fretboard{
     position:relative; display:grid; grid-template-columns: repeat(13, 1fr);
     width:100%; height:var(--kb-h);
@@ -189,14 +191,18 @@
   footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
 </style>
 <body>
-  <!-- 背景裝飾：音符/休止符（5~6個，超淡） -->
+  <!-- 背景裝飾：10 個音符/休止符（偏淡、稍小） -->
   <div class="bg-decor" aria-hidden="true" role="presentation">
-    <div class="bg-sym sym1" data-glyph="♩"></div>
-    <div class="bg-sym sym2" data-glyph="♪"></div>
-    <div class="bg-sym sym3" data-glyph="♫"></div>
-    <div class="bg-sym sym4" data-glyph="♬"></div>
-    <div class="bg-sym sym5" data-glyph="𝄽"></div>
-    <div class="bg-sym sym6" data-glyph="𝄻"></div>
+    <div class="bg-sym sym1"  data-glyph="♩"></div>
+    <div class="bg-sym sym2"  data-glyph="♪"></div>
+    <div class="bg-sym sym3"  data-glyph="♫"></div>
+    <div class="bg-sym sym4"  data-glyph="♬"></div>
+    <div class="bg-sym sym5"  data-glyph="𝄽"></div>
+    <div class="bg-sym sym6"  data-glyph="𝄾"></div>
+    <div class="bg-sym sym7"  data-glyph="𝄻"></div>
+    <div class="bg-sym sym8"  data-glyph="𝄼"></div>
+    <div class="bg-sym sym9"  data-glyph="𝄿"></div>
+    <div class="bg-sym sym10" data-glyph="𝄺"></div>
   </div>
 
   <div class="panel">
