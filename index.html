@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-/* ===== 調色盤 ===== */
+/* ===== 調色盤與尺寸（← 在這裡改各欄位寬度） ===== */
 :root{
   --brand:#D4BFAA;   /* 整頁底色 */
   --title:#A68A7C;   /* 標題字色（可可淺褐） */
@@ -16,7 +16,18 @@
   --accent:#BFA5A0;  /* 成功/完成色 */
   --rim:#E4E4E4;
   --ink:#0f172a;
-  --kb-h:280px;
+
+  /* ↓↓↓ 你要改欄寬就改這裡（px） ↓↓↓ */
+  --w-displayName: 140px;   /* 親友姓名 input */
+  --w-email:       250px;   /* 電子郵件 input */
+  --w-code:        140px;   /* 取得代號 input */
+  --w-instrument:   96px;   /* 樂器轉換 select */
+  --w-lastNote:    140px;   /* 音符紀錄 input */
+  /* ↑↑↑ 你要改欄寬就改這裡（px） ↑↑↑ */
+
+  --label-w: 88px;  /* 統一每個 label 的寬度，確保左緣對齊 */
+  --gap: 10px;      /* 兩個項目間的水平間距 */
+  --kb-h:280px;     /* 樂器區高度 */
   --sep:2px;
   --stroke:rgba(0,0,0,.18);
   --glow:rgba(255,255,255,.65);
@@ -57,26 +68,33 @@ h2{
 }
 
 /* 控制列 */
-.row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px; }
-.row label{ opacity:.92; white-space:nowrap; font-weight:400; -webkit-text-stroke:0; text-shadow:none; }
+.row{
+  display:flex; gap:var(--gap); align-items:center; flex-wrap:wrap; margin-top:10px;
+}
+.row label{
+  width:var(--label-w); /* 統一 label 寬度，保證列內對齊 */
+  opacity:.92; white-space:nowrap; font-weight:400; -webkit-text-stroke:0; text-shadow:none;
+}
 .row input,.row select,.row button{
   height:38px; font-size:14px; background:#fff; padding:8px 10px;
   border:1px solid var(--rim); border-radius:10px;
   -webkit-text-stroke:.25px rgba(0,0,0,.12); text-shadow:0 1px 0 rgba(255,255,255,.5);
 }
 
-/* 基本寬度（啟動時會被後端 config 覆蓋為 inline style） */
-#displayName,#code,#email,#lastNote{
-  width:152px; font-weight:400; -webkit-text-stroke:0; text-shadow:none;
-}
-/* Email 預設加寬；若後端有提供會覆蓋 */
-.row-line2 #email{ width:304px; }
-/* 音符紀錄置中 */
-#lastNote{ text-align:center; letter-spacing:.3px; }
+/* ===== 這裡把每個欄位的寬度「抓出來」可調 ===== */
+#displayName{ width:var(--w-displayName); }
+#email{       width:var(--w-email); }
+#code{        width:var(--w-code); }
+#instrument{  width:var(--w-instrument); }
+#lastNote{    width:var(--w-lastNote); text-align:center; letter-spacing:.3px; }
 #lastNote::placeholder{ text-align:center; }
 
-/* 第二行按鈕 */
-.row select{ width:auto; min-width:88px; text-align:center; text-align-last:center; -webkit-text-stroke:0; text-shadow:none; }
+/* 讓「音符紀錄」四個字對齊到上面「電子郵件」左緣：
+   因為第二行前面是「樂器轉換」，所以把「音符紀錄」這個 label
+   往右推 (姓名input寬 - 樂器select寬)。*/
+.align-to-email{ margin-left: calc(var(--w-displayName) - var(--w-instrument)); }
+
+/* 按鈕 */
 .row select option{text-align:center}
 .row button{ width:120px; cursor:pointer; font-weight:600; }
 .btn-compact{ width:60px !important; }
@@ -173,7 +191,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
         <option value="piano" selected>鋼琴</option>
         <option value="guitar">吉他</option>
       </select>
-      <label for="lastNote">音符紀錄：</label>
+      <label for="lastNote" class="align-to-email">音符紀錄：</label>
       <input id="lastNote" placeholder="— , — , —" readonly />
       <button id="resetBtn" type="button" class="btn-compact">重設</button>
       <button id="lockBtn"  type="button" class="btn-compact" disabled>鎖定</button>
@@ -215,8 +233,8 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
 
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
   <script>
-  /* ===== 主程式（送單接口/行為不變） ===== */
-  const WEBHOOK = "https://script.google.com/macros/s/AKfycbwNWz3qmx5r9lDG6KClfjideaOn_xN8AK0H0Ie5Ra68rUURv8TktIgjiuKxdqDVeLPA/exec";
+  /* ===== 主程式（原邏輯不變） ===== */
+  const WEBHOOK = "https://script.google.com/macros/s/AKfycbxxw3vbCEdC7DjF19blGXfQPr0dMEFhVo020XLI4sfQaBKe0fW388JAh3k77WufGim-/exec";
   const $ = s => document.querySelector(s);
   const setStatus = m => {
     const el = $('#status');
@@ -473,25 +491,13 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   window.addEventListener('resize', ()=>{ if(currentInstrument==='piano') sizePiano(); });
   window.addEventListener('orientationchange', ()=>{ if(currentInstrument==='piano') sizePiano(); });
 
-  // 啟動：載入鍵盤、後端欄寬
-  window.addEventListener('DOMContentLoaded', async ()=>{
+  // 啟動
+  window.addEventListener('DOMContentLoaded', ()=>{
     renderPiano();
     setStatus('等待啟用聲音…');
     validateLockBtn();
     $('#guideOverlay').classList.remove('hidden');
-
-    // 後端指定欄寬（若有提供就覆蓋）
-    try{
-      const r = await fetch(WEBHOOK + '?action=config', { cache:'no-store' });
-      const j = await r.json();
-      if(j?.ok && j?.widths){
-        const map = j.widths;
-        ['displayName','email','lastNote','code'].forEach(id=>{
-          const el=document.getElementById(id);
-          if(el && Number.isFinite(Number(map[id]))){ el.style.width = Number(map[id])+'px'; }
-        });
-      }
-    }catch(_){}
+    // （若你仍有後端 config，可在這裡載入覆蓋寬度；否則直接用 CSS 變數即可）
   });
   </script>
 </body>
