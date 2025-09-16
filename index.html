@@ -448,14 +448,14 @@
           }else{
             let msg='❌ 送出失敗';
             const err = String(data.error||'');
-            if(err.includes('duplicate+deadline_passed')) msg='📅 您已填寫過囉，重要的是，已過填寫截止日💔';
-            else if(err.includes('duplicate+code_not_found')) msg='🔎 您已填寫過囉，且您輸入的這組代號找尋不到👀';
+            if(err.includes('duplicate+deadline_passed')) msg='📅 您已填寫過囉，重要的是，已過填寫截止日了💔';
+            else if(err.includes('duplicate+code_not_found')) msg='🔎 您已填寫過囉，且您輸入的這組代號我找尋不到，我感到萬分抱歉👀';
             else if(err==='duplicate') msg='📝 已填寫過囉，想要重新填寫請洽ㄟ咪🙏';
-            else if(err==='email_required') msg='⚠️ Email缺少或格式不正確📧';
-            else if(err==='email_domain_invalid') msg='🔐 Email網域無法收信，請確認拼字或改用另一個 Email';
+            else if(err==='email_required') msg='⚠️ Email缺少或格式不正確，再幫我仔細看看好咪📧';
+            else if(err==='email_domain_invalid') msg='🔐 Email網域無法收信，請確認拼字或改用另一個Email，跪求📧';
             else if(err==='deadline_passed') msg='📣 非常抱歉，已過了填寫截止日，但還是可以在這玩耍唷👣';
             else if(err==='code_not_found') msg='🔎 找尋不到代號，請洽新人唷🤵🏻👰🏻‍♀';
-            else if(err==='busy') msg='⚠️ 系統忙碌，請稍後再試⏳';
+            else if(err==='busy') msg='⚠️ 系統忙碌，請稍後再試，或給它按個重新整理⏳';
             setStatus(msg); // 錯誤不鎖
           }
         }else{
@@ -485,14 +485,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
