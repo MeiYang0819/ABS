@@ -59,7 +59,17 @@
   }
   /* 基本寬度 */
   #displayName,#code,#email,#lastNote{ width:152px; font-weight:400; -webkit-text-stroke:0; text-shadow:none }
-  /* 第二行：Email 加倍寬 */
+  /* 第二行：Email 加倍寬（保留） */
+.row-line2 #email{ width:304px; }
+
+/* 第二行：音符紀錄寬度 + 文字置中（內容與 placeholder 都置中） */
+.row-line2 #lastNote{
+  width:170px;             /* 想更窄/更寬可改 */
+  text-align:center;       /* 內容置中（例如 C4 , E4 , G3） */
+  letter-spacing:.3px;     /* 微調視覺，非必要 */
+}
+#lastNote::placeholder{ text-align:center; }  /* placeholder 置中 */
+
   .row-line2 #email{ width:304px; }
   /* 第三行：音符紀錄縮短 */
   .row-line3 #lastNote{ width:132px; }
@@ -486,5 +496,6 @@
   </script>
 </body>
 </html>
+
 
 
