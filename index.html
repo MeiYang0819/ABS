@@ -40,7 +40,10 @@
 }
 html,body{
   margin:0; color:var(--ink); background:var(--brand);
-  height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch; /* 確保手機可滾動 */
+  min-height:100svh;                /* ← 確保 iOS 可滾動 */
+  overflow-y:auto;                  /* ← 允許垂直卷軸 */
+  -webkit-overflow-scrolling:touch; /* ← 慣性滑動 */
+  overscroll-behavior-y:contain;
 }
 
 /* === 背景音符圖 === */
@@ -72,11 +75,9 @@ h2{
 }
 
 /* 控制列 */
-.row{
-  display:flex; gap:var(--gap); align-items:center; flex-wrap:wrap; margin-top:10px;
-}
+.row{ display:flex; gap:var(--gap); align-items:center; flex-wrap:wrap; margin-top:10px; }
 .row label{
-  width:var(--label-w); /* 統一 label 寬度，保證列內對齊 */
+  width:var(--label-w);
   opacity:.92; white-space:nowrap; font-weight:400; -webkit-text-stroke:0; text-shadow:none;
 }
 .row input,.row select,.row button{
@@ -93,10 +94,9 @@ h2{
 #lastNote{    width:var(--w-lastNote); text-align:center; letter-spacing:.3px; }
 #lastNote::placeholder{ text-align:center; }
 
-/* 讓「音符紀錄」四個字對齊到上面「電子郵件」左緣 */
+/* 「音符紀錄」左緣對齊上面「電子郵件」 */
 .align-to-email{ margin-left: calc(var(--w-displayName) - var(--w-instrument)); }
 
-/* 按鈕 */
 .row select option{text-align:center}
 .row button{ width:120px; cursor:pointer; font-weight:600; }
 .btn-compact{ width:60px !important; }
@@ -149,23 +149,16 @@ h2{
 
 /* 主弦：金銅色重複條紋 + 高光 + 微陰影 */
 .string{
-  position:absolute; left:94px; right:0; height:0; z-index:3;
-  border-top:none; /* 取消原本線條，改用背景模擬繞弦 */
-  height:2px; /* 基本厚度，下面用 data-s 改 */
+  position:absolute; left:94px; right:0; z-index:3;
+  height:2px; border-top:none;
   background:
-    /* 繞弦條紋（細節） */
-    repeating-linear-gradient(90deg,
-      rgba(212,175,55,.90) 0 6px,
-      rgba(212,175,55,.55) 6px 9px),
-    /* 中央高光 */
+    repeating-linear-gradient(90deg, rgba(212,175,55,.90) 0 6px, rgba(212,175,55,.55) 6px 9px),
     linear-gradient(90deg, rgba(255,255,255,.55), rgba(255,255,255,0)),
-    /* 基底金屬 */
     linear-gradient(180deg,#c69c37,#b8892f);
   background-size:auto, 160px 100%, 100% 100%;
   background-repeat:repeat, no-repeat, no-repeat;
   background-position:0 0, -160px 0, 0 0;
-  opacity:.98;
-  filter:drop-shadow(0 0.5px 0 rgba(0,0,0,.25));
+  opacity:.98; filter:drop-shadow(0 0.5px 0 rgba(0,0,0,.25));
   transform-origin:center;
 }
 .string[data-s="0"]{ height:2px; }
@@ -175,14 +168,12 @@ h2{
 .string[data-s="4"]{ height:3.5px; }
 .string[data-s="5"]{ height:4px; }
 
-/* 琴頭端的 6 條對齊改成同風格 */
+/* 琴頭端 6 線同風格 */
 .head-line{
   position:absolute; left:0; width:86px; z-index:2; pointer-events:none;
-  height:2px; /* 基本厚度，下面依 s 調整 */
+  height:2px;
   background:
-    repeating-linear-gradient(90deg,
-      rgba(212,175,55,.90) 0 6px,
-      rgba(212,175,55,.55) 6px 9px),
+    repeating-linear-gradient(90deg, rgba(212,175,55,.90) 0 6px, rgba(212,175,55,.55) 6px 9px),
     linear-gradient(90deg, rgba(255,255,255,.55), rgba(255,255,255,0)),
     linear-gradient(180deg,#c69c37,#b8892f);
   filter:drop-shadow(0 0.5px 0 rgba(0,0,0,.20));
@@ -199,12 +190,12 @@ h2{
 .hit-row{ position:absolute; left:0; right:0; height:28px; transform:translateY(-50%); background:transparent; cursor:pointer; z-index:4; }
 @media (pointer:coarse){ .hit-row{ height:34px; } }
 
-/* 弦震動動畫（保留） */
+/* 弦震動動畫 */
 .string.vibrate{ animation: vibrCurve 360ms ease-out, shine 360ms ease-out; }
 @keyframes vibrCurve{ 0%{transform:translateY(0)} 10%{transform:translateY(-3.2px)} 20%{transform:translateY(0)} 30%{transform:translateY(2.6px)} 45%{transform:translateY(0)} 60%{transform:translateY(-1.8px)} 75%{transform:translateY(0.6px)} 100%{transform:translateY(0)} }
 @keyframes shine{ 0%{ background-position:0 0 } 100%{ background-position:160px 0 } }
 
-/* ===== Overlay（修：可點、層級高） ===== */
+/* ===== Overlay（可點、層級高） ===== */
 .overlay{
   position:fixed; inset:0; z-index:100000;
   display:flex; align-items:center; justify-content:center;
@@ -223,8 +214,15 @@ h2{
 .dialog button{ width:120px; height:38px; border-radius:10px; border:1px solid var(--rim); background:#fff; cursor:pointer; font-weight:600; font-size:15px; } /* 了解=15px */
 .dialog button.primary{ background:#fff; }
 
-/* iPhone 提示（整段紅色、不加粗） */
-.iphone-hint{ font-size:12px; color:#D93025 !important; font-weight:400 !important; opacity:1 !important; }
+/* iPhone 提示（整段紅色、不加粗、去描邊/陰影，避免某字變粗） */
+.iphone-hint{
+  font-size:12px;
+  color:#D93025 !important;
+  font-weight:400 !important;
+  -webkit-text-stroke:0 !important;
+  text-shadow:none !important;
+  font-family:"Noto Sans TC","PingFang TC","Heiti TC",system-ui,-apple-system,sans-serif !important;
+}
 
 #lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:transparent; }
 footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
@@ -492,7 +490,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     if(selectedNotes.length>0){ selectedNotes.pop(); refreshNotesDisplay(); validateLockBtn(); }
   });
 
-  // Esc 可關閉彈窗（保留）
+  // Esc 可關閉彈窗
   window.addEventListener('keydown', (e)=>{
     if(e.key==='Escape'){
       $('#guideOverlay').classList.add('hidden');
@@ -500,7 +498,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     }
   });
 
-  // 修：iOS 有時 click 不觸發；在 DOM 就緒後綁定 touchend/click
+  // iOS 有時 click 不觸發；在 DOM 就緒後綁定 touchend/click
   function _onGuideOk(){
     const go = document.getElementById('guideOverlay');
     const un = document.getElementById('unlockOverlay');
@@ -508,19 +506,16 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     if (un) un.classList.remove('hidden');
   }
   window.addEventListener('DOMContentLoaded', ()=>{
-    // 初始畫面
     renderPiano();
     setStatus('等待啟用聲音…');
     validateLockBtn();
     document.getElementById('guideOverlay')?.classList.remove('hidden');
 
-    // 綁定「了解」
     const btn = document.getElementById('guideOk');
     if (btn){
       btn.addEventListener('touchend', (e)=>{ e.preventDefault(); _onGuideOk(); }, {passive:false});
       btn.addEventListener('click', _onGuideOk);
     }
-    // 綁定啟動聲音
     document.getElementById('cancelUnlock')?.addEventListener('click', ()=>{ document.getElementById('unlockOverlay')?.classList.add('hidden'); });
     const confirmBtn = document.getElementById('confirmUnlock');
     if (confirmBtn){
@@ -569,8 +564,8 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   function enterHardLock(){
     hardLocked=true;
     $('#displayName').disabled=true; $('#code').disabled=true; $('#email').disabled=true;
-    $('#instrument').disabled=true;  $('#resetBtn').disabled=true; $('#lockBtn').disabled=true;
-    $('#lockScreen').style.display='block';
+    $('#instrument').disabled=true;  $('#resetBtn').disabled=true; '#lockBtn'.disabled=true;
+    document.getElementById('lockScreen').style.display='block';
   }
 
   window.addEventListener('resize', ()=>{ if(currentInstrument==='piano') sizePiano(); });
