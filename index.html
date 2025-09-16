@@ -16,11 +16,15 @@
   --accent:#BFA5A0;   /* 提亮色（載入完成） */
   --rim:#E4E4E4; 
   --ink:#0f172a;
+
+  /* ↓↓↓ 你要改欄寬就改這裡（單位 px） ↓↓↓ */
   --w-displayName: 96px;   /* 親友姓名 input */
-  --w-email:261px;         /* 電子郵件 input */
-  --w-code:96px;           /* 取得代號 input */
-  --w-instrument:96px;     /* 樂器轉換 select */
-  --w-lastNote:120px;      /* 音符紀錄 input */
+  --w-email:       261px;  /* 電子郵件 input */
+  --w-code:         96px;  /* 取得代號 input */
+  --w-instrument:   96px;  /* 樂器轉換 select */
+  --w-lastNote:    120px;  /* 音符紀錄 input */
+  /* ↑↑↑ 你要改欄寬就改這裡 ↑↑↑ */
+
   --label-w:88px;          /* 統一每個 label 的寬度，確保左緣對齊 */
   --gap:10px;              /* 兩個項目間的水平間距 */
   --kb-h:280px;            /* 樂器區高度 */
@@ -45,21 +49,50 @@ html,body{ margin:0; color:var(--ink); background:var(--brand); }
 /* 標題 */
 h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; letter-spacing:1px; color:var(--title); -webkit-text-stroke:.6px rgba(0,0,0,.12); text-shadow:0 3px 4px rgba(255,255,255,.75); }
 
-/* 控制列 */
+/* 控制列（原有） */
 .row{ display:flex; gap:var(--gap); align-items:center; flex-wrap:wrap; margin-top:10px; }
 .row label{ width:var(--label-w); opacity:.92; white-space:nowrap; font-weight:400; -webkit-text-stroke:0; text-shadow:none; }
 .row input,.row select,.row button{ height:38px; font-size:14px; background:#fff; padding:8px 10px; border:1px solid var(--rim); border-radius:10px; -webkit-text-stroke:.25px rgba(0,0,0,.12); text-shadow:0 1px 0 rgba(255,255,255,.5); }
 
-/* 欄位寬度 */
+/* ===== 新增：兩行等寬對齊（不改順序；只套排版） =====
+   讓第 1 行（姓名/Email/代號）與第 2 行（樂器/音符紀錄/按鈕）
+   共用同一組欄位線，兩行上下完全對齊。
+   欄寬來自上面的 --w-* 變數，改變它們即可同步影響兩行。
+*/
+.form-grid{
+  display:grid;
+  grid-template-columns:
+    var(--label-w) minmax(0, var(--w-displayName))
+    var(--label-w) minmax(0, var(--w-email))
+    var(--label-w) minmax(0, var(--w-code));
+  column-gap: var(--gap);
+  row-gap: 10px;
+  align-items: center;
+}
+/* 把 .row 的外框「打散」給父層 grid 用（內容順序不變）*/
+.form-grid .row{ display: contents; }
+
+/* 第 1 列的各欄（照原順序） */
+label[for="displayName"]{ grid-column:1; }  #displayName{ grid-column:2; }
+label[for="email"]{       grid-column:3; }  #email{       grid-column:4; }
+label[for="code"]{        grid-column:5; }  #code{        grid-column:6; }
+
+/* 第 2 列：樂器/音符紀錄 對齊到上面的欄位；按鈕佔最後兩欄 */
+label[for="instrument"]{  grid-column:1; }  #instrument{  grid-column:2; }
+label[for="lastNote"]{    grid-column:3; }  #lastNote{    grid-column:4; }
+#resetBtn{ grid-column:5; justify-self:end; }
+#lockBtn{  grid-column:6; justify-self:start; }
+
+/* 你先前用 margin 推齊「音符紀錄」的做法在 Grid 下改為 0 */
+.form-grid .align-to-email{ margin-left:0 !important; }
+
+/* 欄位寬度（本體仍由變數控制） */
 #displayName{ width:var(--w-displayName); }
 #email{       width:var(--w-email); }
 #code{        width:var(--w-code); }
 #instrument{  width:var(--w-instrument); }
 #lastNote{    width:var(--w-lastNote); text-align:center; letter-spacing:.3px; }
 #lastNote::placeholder{ text-align:center; }
-
-/* 「音符紀錄」與上方「電子郵件」左緣對齊 */
-.align-to-email{ margin-left: calc(var(--w-displayName) - var(--w-instrument)); }
 
 /* 按鈕 */
 .row select option{text-align:center}
@@ -73,7 +106,7 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 #status.busy{ color:var(--title); }
 #status.err{ color:#8b5e52; }
 
-/* 鍵盤外框：✅ 允許水平卷軸（沿用你可用的版本） */
+/* 鍵盤外框：✅ 需要時允許水平卷軸（沿用你可用的版本） */
 .kb-wrap{
   overflow-x:auto;                 /* 需要時出現水平卷軸 */
   -webkit-overflow-scrolling:touch;
@@ -169,7 +202,7 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 .overlay.hidden{ display:none; }
 .dialog{ min-width:300px; max-width:92vw; background:var(--soft); border:1px solid var(--neutral); border-radius:14px; padding:18px; box-shadow:0 18px 44px rgba(0,0,0,.18); text-align:center; }
 .dialog h3{ margin:0 0 8px; font-size:18px; color:var(--title); }
-/* iPhone 提示：紅色、非粗體、禁用偽粗體與描邊 */
+/* iPhone 提示：紅色、非粗體、禁用偽粗體與描邊（「啟」不會被放粗） */
 .dialog p.ios-hint{
   margin:6px 0; line-height:1.6; font-size:15px; color:#d11;
   font-weight:400 !important;
@@ -193,28 +226,32 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   <div class="panel">
     <h2>🎼互動音符🎼</h2>
 
-    <!-- 第 1 行：姓名 → Email → 代號 -->
-    <div class="row row-line2">
-      <label for="displayName">親友姓名：</label>
-      <input id="displayName" placeholder="例：張咩揚" />
-      <label for="email">電子郵件：</label>
-      <input id="email" placeholder="hey fill in your@email" inputmode="email" />
-      <label for="code">取得代號：</label>
-      <input id="code" placeholder="請輸入代號" />
-    </div>
+    <!-- ✅ 新增：兩行包在同一個 Grid 內，兩行等寬對齊；順序不變 -->
+    <div class="form-grid">
+      <!-- 第 1 行：姓名 → Email → 代號 -->
+      <div class="row row-line2">
+        <label for="displayName">親友姓名：</label>
+        <input id="displayName" placeholder="例：張咩揚" />
+        <label for="email">電子郵件：</label>
+        <input id="email" placeholder="hey fill in your@email" inputmode="email" />
+        <label for="code">取得代號：</label>
+        <input id="code" placeholder="請輸入代號" />
+      </div>
 
-    <!-- 第 2 行：樂器 → 音符紀錄 → 重設 → 鎖定 -->
-    <div class="row row-line3">
-      <label for="instrument">樂器轉換：</label>
-      <select id="instrument">
-        <option value="piano" selected>鋼琴</option>
-        <option value="guitar">吉他</option>
-      </select>
-      <label for="lastNote" class="align-to-email">音符紀錄：</label>
-      <input id="lastNote" placeholder="— , — , —" readonly />
-      <button id="resetBtn" type="button" class="btn-compact">重設</button>
-      <button id="lockBtn"  type="button" class="btn-compact" disabled>鎖定</button>
+      <!-- 第 2 行：樂器 → 音符紀錄 → 重設 → 鎖定 -->
+      <div class="row row-line3">
+        <label for="instrument">樂器轉換：</label>
+        <select id="instrument">
+          <option value="piano" selected>鋼琴</option>
+          <option value="guitar">吉他</option>
+        </select>
+        <label for="lastNote" class="align-to-email">音符紀錄：</label>
+        <input id="lastNote" placeholder="— , — , —" readonly />
+        <button id="resetBtn" type="button" class="btn-compact">重設</button>
+        <button id="lockBtn"  type="button" class="btn-compact" disabled>鎖定</button>
+      </div>
     </div>
+    <!-- ／Grid 結束 -->
 
     <p id="status">尚未初始化</p>
     <div class="kb-wrap"><div id="keyboard"></div></div>
