@@ -31,8 +31,9 @@
   object-fit: cover;
   /* ↓↓↓ 這三個是你要調的鈕 ↓↓↓ */
   transform: scale(0.100);      /* 圖片縮放：數字越小越小，例 0.85~0.95 */
-  opacity: .35;                /* 透明度：越大越顯眼，例 .35~.50 */
-  filter: contrast(1.30);      /* 對比：1.1~1.5 可讓線條更明顯 */
+  opacity: .62;                /* 透明度：越大越顯眼，例 .35~.50 */
+  filter: contrast(1.7) brightness(.92)
+          drop-shadow(0 0 1px rgba(0,0,0,.28));  /* ↑ 對比更強、微描邊更清楚 */
   /* 其他維持不動 */
   mix-blend-mode: multiply;
   pointer-events: none;
@@ -488,6 +489,7 @@
   </script>
 </body>
 </html>
+
 
 
 
