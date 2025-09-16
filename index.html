@@ -32,22 +32,46 @@
   --glow:rgba(255,255,255,.65);
 }
 
-*{ box-sizing:border-box; font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif !important; -webkit-text-stroke:.35px var(--stroke); text-shadow:0 1px 0 var(--glow); }
-html,body{ margin:0; color:var(--ink); background:var(--brand); height:auto; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+*{
+  box-sizing:border-box;
+  font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif !important;
+  -webkit-text-stroke:.35px var(--stroke);
+  text-shadow:0 1px 0 var(--glow);
+}
+html,body{
+  margin:0; color:var(--ink); background:var(--brand);
+  height:auto; min-height:100%;
+  overflow-y:auto; -webkit-overflow-scrolling:touch;
+}
 
 /* === 背景音符圖 === */
-.bg-notes{ position:fixed; inset:0; width:100%; height:100%; object-fit:cover; opacity:.60; mix-blend-mode:multiply; filter:contrast(1.1); pointer-events:none; z-index:0; }
+.bg-notes{
+  position:fixed; inset:0; width:100%; height:100%;
+  object-fit:cover; opacity:.60; mix-blend-mode:multiply; filter:contrast(1.1);
+  pointer-events:none; z-index:0;
+}
 
 /* 內容白框 */
-.panel{ position:relative; z-index:1; max-width:1060px; margin:22px auto; background:var(--neutral); border:1px solid var(--neutral); border-radius:16px; padding:18px 18px 26px; box-shadow:0 10px 26px rgba(0,0,0,.10); backdrop-filter:blur(8px) saturate(115%); }
+.panel{
+  position:relative; z-index:1; max-width:1060px; margin:22px auto;
+  background:var(--neutral); border:1px solid var(--neutral);
+  border-radius:16px; padding:18px 18px 26px;
+  box-shadow:0 10px 26px rgba(0,0,0,.10); backdrop-filter:blur(8px) saturate(115%);
+}
 
 /* 標題 */
-h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; letter-spacing:1px; color:var(--title); -webkit-text-stroke:.6px rgba(0,0,0,.12); text-shadow:0 3px 4px rgba(255,255,255,.75); }
+h2{
+  margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; letter-spacing:1px;
+  color:var(--title); -webkit-text-stroke:.6px rgba(0,0,0,.12); text-shadow:0 3px 4px rgba(255,255,255,.75);
+}
 
 /* 控制列 */
 .row{ display:flex; gap:var(--gap); align-items:center; flex-wrap:wrap; margin-top:10px; }
 .row label{ width:var(--label-w); opacity:.92; white-space:nowrap; font-weight:400; -webkit-text-stroke:0; text-shadow:none; }
-.row input,.row select,.row button{ height:38px; font-size:14px; background:#fff; padding:8px 10px; border:1px solid var(--rim); border-radius:10px; -webkit-text-stroke:.25px rgba(0,0,0,.12); text-shadow:0 1px 0 rgba(255,255,255,.5); }
+.row input,.row select,.row button{
+  height:38px; font-size:14px; background:#fff; padding:8px 10px; border:1px solid var(--rim); border-radius:10px;
+  -webkit-text-stroke:.25px rgba(0,0,0,.12); text-shadow:0 1px 0 rgba(255,255,255,.5);
+}
 
 /* 各欄位寬度（可調） */
 #displayName{ width:var(--w-displayName); }
@@ -64,56 +88,101 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 .row select option{text-align:center}
 .row button{ width:120px; cursor:pointer; font-weight:600; }
 .btn-compact{ width:60px !important; }
-#guideOk{ width:105px; }           /* 了解 按鈕縮小 15px */
+#guideOk{ width:105px; } /* 了解 按鈕縮小 15px */
 .row button:disabled{ opacity:.55; cursor:not-allowed; }
 
 /* 狀態列 */
-#status{ background:var(--soft); border:1px solid var(--neutral); border-radius:12px; padding:10px; margin-top:10px; font-size:14px; white-space:pre-wrap; color:#6b5e52; text-align:center; }
+#status{
+  background:var(--soft); border:1px solid var(--neutral);
+  border-radius:12px; padding:10px; margin-top:10px;
+  font-size:14px; white-space:pre-wrap; color:#6b5e52; text-align:center;
+}
 #status.ok{ color:var(--accent); font-weight:600; }
 #status.busy{ color:var(--title); }
 #status.err{ color:#8b5e52; }
 
 /* 樂器容器 */
 .kb-wrap{ overflow-x:hidden; background:var(--soft); border:1px solid var(--rim); border-radius:14px; margin-top:14px; }
-#keyboard{ position:relative; height:var(--kb-h); user-select:none; -webkit-user-select:none; touch-action:none; }
+/* ← 允許手機上從樂器區也能垂直捲動 */
+#keyboard{ position:relative; height:var(--kb-h); user-select:none; -webkit-user-select:none; touch-action:pan-y; }
 
 /* ===== 鋼琴 ===== */
-.white{ position:absolute; bottom:0; height:100%; background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5); border-radius:0 0 12px 12px; box-shadow:inset 0 -12px 16px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.9), 0 1px 0 rgba(0,0,0,.04); }
+.white{
+  position:absolute; bottom:0; height:100%;
+  background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5);
+  border-radius:0 0 12px 12px;
+  box-shadow:inset 0 -12px 16px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.9), 0 1px 0 rgba(0,0,0,.04);
+}
 .white::after{ content:""; position:absolute; top:0; bottom:0; right:0; width:var(--sep); background:linear-gradient(transparent,#cfd3dc 50%,transparent); }
 .white:first-child::before{ content:""; position:absolute; top:0; bottom:0; left:0; width:var(--sep); background:linear-gradient(transparent,#cfd3dc 50%,transparent); }
 .white.active{ filter:brightness(1.06); }
-.black{ position:absolute; bottom:38%; height:62%; background:linear-gradient(#2d2f36,#0e0f13); border:1px solid #0b0d11; border-top:none; border-radius:0 0 10px 10px; z-index:5; box-shadow:inset 0 -6px 10px rgba(0,0,0,.45), 0 3px 10px rgba(0,0,0,.35); transform: translateX(-50%); }
+.black{
+  position:absolute; bottom:38%; height:62%;
+  background:linear-gradient(#2d2f36,#0e0f13);
+  border:1px solid #0b0d11; border-top:none; border-radius:0 0 10px 10px; z-index:5;
+  box-shadow:inset 0 -6px 10px rgba(0,0,0,.45), 0 3px 10px rgba(0,0,0,.35);
+  transform: translateX(-50%);
+}
 .black.active{ filter:brightness(1.22); }
-.label{ position:absolute; bottom:12px; left:50%; transform:translateX(-50%); font-size:11px; color:#475569; background:#ffffffee; border:1px solid var(--rim); padding:2px 6px; border-radius:8px; }
+.label{
+  position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
+  font-size:11px; color:#475569; background:#ffffffee; border:1px solid var(--rim);
+  padding:2px 6px; border-radius:8px;
+}
 
 /* ===== 吉他（繞銅弦外觀） ===== */
-.fretboard{ position:relative; display:grid; grid-template-columns: repeat(13, 1fr); width:100%; height:var(--kb-h); background:linear-gradient(180deg,#6b4f2e 0%, #5b4429 50%, #533c24 100%); border-radius:12px; box-shadow:inset 0 10px 20px rgba(0,0,0,.25), inset 0 -8px 16px rgba(0,0,0,.2); }
-.head{ position:absolute; left:0; top:0; bottom:0; width:86px; z-index:2; background:linear-gradient(180deg, rgba(0,0,0,.12), transparent 40%),linear-gradient(180deg,#7a5534 0%, #6b4f2e 55%, #5a3f24 100%); border-right:1px solid rgba(40,22,8,.35); box-shadow: inset -8px 0 16px rgba(0,0,0,.18); border-radius:12px 0 0 12px; pointer-events:none; }
-.nut{ position:absolute; left:86px; top:0; bottom:0; width:8px; z-index:3; background:linear-gradient(180deg,#e5e1d6,#c9c5ba); box-shadow: inset -1px 0 0 rgba(0,0,0,.35), inset 1px 0 0 rgba(255,255,255,.6); border-right:2px solid rgba(120,120,120,.5); pointer-events:none; }
-.bridge{ position:absolute; right:0; top:0; bottom:0; width:10px; z-index:2; background:linear-gradient(180deg,#b9b6ad,#8f8c83); box-shadow: inset 1px 0 0 rgba(255,255,255,.5), inset -1px 0 0 rgba(0,0,0,.25); pointer-events:none; border-left:1px solid rgba(0,0,0,.18); }
-.fret-col{ position:relative; background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02)); box-shadow: inset -2px 0 0 rgba(255,255,255,.18), inset -4px 0 0 rgba(0,0,0,.28); }
+.fretboard{
+  position:relative; display:grid; grid-template-columns: repeat(13, 1fr);
+  width:100%; height:var(--kb-h);
+  background:linear-gradient(180deg,#6b4f2e 0%, #5b4429 50%, #533c24 100%);
+  border-radius:12px;
+  box-shadow:inset 0 10px 20px rgba(0,0,0,.25), inset 0 -8px 16px rgba(0,0,0,.2);
+}
+.head{
+  position:absolute; left:0; top:0; bottom:0; width:86px; z-index:2;
+  background:linear-gradient(180deg, rgba(0,0,0,.12), transparent 40%),linear-gradient(180deg,#7a5534 0%, #6b4f2e 55%, #5a3f24 100%);
+  border-right:1px solid rgba(40,22,8,.35);
+  box-shadow: inset -8px 0 16px rgba(0,0,0,.18);
+  border-radius:12px 0 0 12px;
+  pointer-events:none;
+}
+.nut{
+  position:absolute; left:86px; top:0; bottom:0; width:8px; z-index:3;
+  background:linear-gradient(180deg,#e5e1d6,#c9c5ba);
+  box-shadow: inset -1px 0 0 rgba(0,0,0,.35), inset 1px 0 0 rgba(255,255,255,.6);
+  border-right:2px solid rgba(120,120,120,.5);
+  pointer-events:none;
+}
+.bridge{
+  position:absolute; right:0; top:0; bottom:0; width:10px; z-index:2;
+  background:linear-gradient(180deg,#b9b6ad,#8f8c83);
+  box-shadow: inset 1px 0 0 rgba(255,255,255,.5), inset -1px 0 0 rgba(0,0,0,.25);
+  pointer-events:none;
+  border-left:1px solid rgba(0,0,0,.18);
+}
+.fret-col{
+  position:relative;
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  box-shadow: inset -2px 0 0 rgba(255,255,255,.18), inset -4px 0 0 rgba(0,0,0,.28);
+}
 
-/* 弦：用多層背景模擬繞銅弦（粗細與原先一致） */
+/* 弦：多層背景模擬繞銅弦（粗細維持原設定） */
 .string{
   position:absolute; left:94px; right:0; z-index:3;
-  height:2px;                         /* 基準粗細 */
-  border:none; opacity:.96; transform-origin:center;
+  height:2px; border:none; opacity:.96; transform-origin:center;
   background:
-    /* 閃光掃過 */
-    linear-gradient(90deg, rgba(255,255,255,.0) 0%, rgba(255,255,255,.35) 50%, rgba(255,255,255,0) 100%) 0 0 / 160px 100% no-repeat,
-    /* 細密繞線 */
+    linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.35) 50%, rgba(255,255,255,0) 100%) 0 0 / 160px 100% no-repeat,
     repeating-linear-gradient(90deg, rgba(90,60,20,.15) 0 2px, rgba(255,235,180,.18) 2px 4px),
-    /* 基底金銅色 */
     linear-gradient(180deg, #d4af37, #b8872a);
   filter:drop-shadow(0 1px 0 rgba(0,0,0,.18));
   animation: shine 360ms ease-out;
 }
 .string[data-s="2"]{ height:2.5px; }
-.string[data-s="3"]{ height:3px;   }
+.string[data-s="3"]{ height:3px; }
 .string[data-s="4"]{ height:3.5px; }
-.string[data-s="5"]{ height:4px;   }
+.string[data-s="5"]{ height:4px; }
 
-/* 琴頭端的 6 條導線，也套同款外觀 */
+/* 琴頭端 6 條導線也套同款外觀 */
 .head-line{
   position:absolute; left:0; width:86px; z-index:2;
   height:2px; border:none; pointer-events:none;
@@ -123,9 +192,9 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
   filter:drop-shadow(0 1px 0 rgba(0,0,0,.06));
 }
 .head-line[data-s="2"]{ height:2.5px; }
-.head-line[data-s="3"]{ height:3px;   }
+.head-line[data-s="3"]{ height:3px; }
 .head-line[data-s="4"]{ height:3.5px; }
-.head-line[data-s="5"]{ height:4px;   }
+.head-line[data-s="5"]{ height:4px; }
 
 .hit-row{ position:absolute; left:0; right:0; height:28px; transform:translateY(-50%); background:transparent; cursor:pointer; z-index:4; }
 @media (pointer:coarse){ .hit-row{ height:34px; } }
@@ -143,11 +212,15 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 .dialog button{ width:120px; height:38px; border-radius:10px; border:1px solid var(--rim); background:#fff; cursor:pointer; font-weight:600; }
 .dialog button.primary{ background:#fff; }
 
-/* iPhone 提示：整段不加粗、紅色 */
-.ios-note{ font-size:12px; opacity:.92; color:#e60000; font-weight:400; }
+/* iPhone 提示：紅色、不加粗、也取消描邊/陰影避免看起來變粗 */
+.ios-note{
+  font-size:12px; color:#e60000; font-weight:400 !important;
+  -webkit-text-stroke:0 !important; text-shadow:none !important;
+}
+.ios-note b, .ios-note strong{ font-weight:400 !important; }
 
 #lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:transparent; }
-footer{ max-width:1060px; margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
+footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
 </style>
 
 <body>
@@ -466,7 +539,7 @@ footer{ max-width:1060px; margin:8px auto 22px; text-align:center; color:#6b5e52
   function enterHardLock(){
     hardLocked=true;
     $('#displayName').disabled=true; $('#code').disabled=true; $('#email').disabled=true;
-    $('#instrument').disabled=true;  $('#resetBtn').disabled=true; $('#lockBtn').disabled=true;
+    $('#instrument').disabled=true;  '#'+$('#resetBtn').disabled=true; $('#lockBtn').disabled=true;
     $('#lockScreen').style.display='block';
   }
 
