@@ -9,8 +9,13 @@
 <style>
 /* ===== 調色盤與尺寸（欄位寬度可在這裡改） ===== */
 :root{
-  --brand:#D4BFAA; --title:#A68A7C; --neutral:#E4E4E4; --soft:#F5F1EC; --accent:#BFA5A0;
-  --rim:#E4E4E4; --ink:#0f172a;
+  --brand:#D4BFAA;;   /* 主色：整頁底色 */ 
+  --title:#A68A7C;    /* 標題字色 */ 
+  --neutral:#E4E4E4;  /* 區塊背景 */
+  --soft:#F5F1EC;     /* 內頁/容器底 */
+  --accent:#BFA5A0;   /* 提亮色（載入完成） */
+  --rim:#E4E4E4; 
+  --ink:#0f172a;
   --w-displayName: 96px; --w-email:241px; --w-code:96px; --w-instrument:96px; --w-lastNote:100px;
   --label-w:88px; --gap:10px; --kb-h:280px; --sep:2px; --stroke:rgba(0,0,0,.18); --glow:rgba(255,255,255,.65);
 }
@@ -155,11 +160,15 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 .overlay.hidden{ display:none; }
 .dialog{ min-width:300px; max-width:92vw; background:var(--soft); border:1px solid var(--neutral); border-radius:14px; padding:18px; box-shadow:0 18px 44px rgba(0,0,0,.18); text-align:center; }
 .dialog h3{ margin:0 0 8px; font-size:18px; color:var(--title); }
-/* ✅ iPhone 提示：紅色、非粗體、去描邊去陰影（「啟」不會再粗） */
+/* iPhone 提示：紅色、非粗體、禁用偽粗體與描邊 */
 .dialog p.ios-hint{
   margin:6px 0; line-height:1.6; font-size:15px; color:#d11;
-  font-weight:400 !important; -webkit-text-stroke:0 !important; text-shadow:none !important;
-  font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif !important;
+  font-weight:400 !important;
+  font-family:"Noto Sans TC","PingFang TC","Heiti TC",system-ui,-apple-system,sans-serif !important;
+  font-synthesis: none !important;            /* 關掉 Safari 偽粗體/偽斜體 */
+  font-variation-settings: "wght" 400 !important; /* 若字型支援可硬壓 400 */
+  -webkit-text-stroke:0 !important;
+  text-shadow:none !important;
 }
 .dialog .actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
 .dialog button{ width:120px; height:38px; border-radius:10px; border:1px solid var(--rim); background:#fff; cursor:pointer; font-weight:600; }
@@ -491,3 +500,4 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   </script>
 </body>
 </html>
+
