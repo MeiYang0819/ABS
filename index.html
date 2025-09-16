@@ -89,9 +89,7 @@ h2{
 #lastNote{    width:var(--w-lastNote); text-align:center; letter-spacing:.3px; }
 #lastNote::placeholder{ text-align:center; }
 
-/* 讓「音符紀錄」四個字對齊到上面「電子郵件」左緣：
-   因為第二行前面是「樂器轉換」，所以把「音符紀錄」這個 label
-   往右推 (姓名input寬 - 樂器select寬)。*/
+/* 讓「音符紀錄」四個字對齊到上面「電子郵件」左緣 */
 .align-to-email{ margin-left: calc(var(--w-displayName) - var(--w-instrument)); }
 
 /* 按鈕 */
@@ -138,21 +136,93 @@ h2{
   padding:2px 6px; border-radius:8px;
 }
 
-/* ===== 吉他 ===== */
+/* ===== 吉他（改成「繞銅弦」外觀；粗細與位置不變） ===== */
 .fretboard{ position:relative; display:grid; grid-template-columns: repeat(13, 1fr); width:100%; height:var(--kb-h); background:linear-gradient(180deg,#6b4f2e 0%, #5b4429 50%, #533c24 100%); border-radius:12px; box-shadow:inset 0 10px 20px rgba(0,0,0,.25), inset 0 -8px 16px rgba(0,0,0,.2); }
 .head{ position:absolute; left:0; top:0; bottom:0; width:86px; z-index:2; background:linear-gradient(180deg, rgba(0,0,0,.12), transparent 40%),linear-gradient(180deg,#7a5534 0%, #6b4f2e 55%, #5a3f24 100%); border-right:1px solid rgba(40,22,8,.35); box-shadow: inset -8px 0 16px rgba(0,0,0,.18); border-radius:12px 0 0 12px; pointer-events:none; }
 .nut{ position:absolute; left:86px; top:0; bottom:0; width:8px; z-index:3; background:linear-gradient(180deg,#e5e1d6,#c9c5ba); box-shadow: inset -1px 0 0 rgba(0,0,0,.35), inset 1px 0 0 rgba(255,255,255,.6); border-right:2px solid rgba(120,120,120,.5); pointer-events:none; }
 .bridge{ position:absolute; right:0; top:0; bottom:0; width:10px; z-index:2; background:linear-gradient(180deg,#b9b6ad,#8f8c83); box-shadow: inset 1px 0 0 rgba(255,255,255,.5), inset -1px 0 0 rgba(0,0,0,.25); pointer-events:none; border-left:1px solid rgba(0,0,0,.18); }
 .fret-col{ position:relative; background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02)); box-shadow: inset -2px 0 0 rgba(255,255,255,.18), inset -4px 0 0 rgba(0,0,0,.28); }
-.string{ position:absolute; left:94px; right:0; height:0; z-index:3; border-top:2px solid #d4af37; opacity:.96; filter:drop-shadow(0 1px 0 rgba(0,0,0,.18)); transform-origin:center; background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.35) 50%, rgba(255,255,255,0) 100%); background-size: 160px 1px; background-repeat:no-repeat; background-position:-160px 0; }
-.string[data-s="2"]{ border-top-width:2.5px; } .string[data-s="3"]{ border-top-width:3px; } .string[data-s="4"]{ border-top-width:3.5px; } .string[data-s="5"]{ border-top-width:4px; }
+
+/* 1) 保持原本粗細：用自訂變數 --tw 對應原邊框厚度 */
+.string{ --tw:2px; }
+.string[data-s="0"]{ --tw:2px; }
+.string[data-s="1"]{ --tw:2px; }
+.string[data-s="2"]{ --tw:2.5px; }
+.string[data-s="3"]{ --tw:3px; }
+.string[data-s="4"]{ --tw:3.5px; }
+.string[data-s="5"]{ --tw:4px; }
+
+/* 2) 元素定位不變；把原本的金線邊框隱藏，改用 ::before 畫「銅弦」 */
+.string{
+  position:absolute; left:94px; right:0; height:0; z-index:3;
+  border-top: var(--tw) solid transparent; /* 厚度由 --tw 決定（與你原設定一致） */
+  transform-origin:center;
+}
+
+/* 銅色金屬圓弧 + 繞線紋路（兩層背景重疊） */
+.string::before{
+  content:""; position:absolute; left:0; right:10px; /* 右邊留給 bridge */
+  top:0; transform: translateY(calc(-0.5 * var(--tw)));
+  height:var(--tw); border-radius:999px;
+  /* 底層：圓弧金屬（銅色） */
+  background:
+    linear-gradient(180deg,
+      #e6b574 0%,
+      #f3c985 28%,
+      #b37a3a 50%,
+      #f3c985 72%,
+      #e0a95f 100%) /* 金屬圓弧 */,
+    repeating-linear-gradient(90deg,
+      rgba(96,58,18,.30) 0 1.2px,
+      rgba(255,230,190,0) 1.2px 3.2px);   /* 繞線條紋 */
+  background-blend-mode:multiply;
+  box-shadow:
+    0 .35px 0 rgba(0,0,0,.22),
+    0 -.35px 0 rgba(255,255,255,.55),
+    0 0 1px rgba(0,0,0,.10);
+}
+
+/* 粗弦加重繞線紋理（3~5 弦） */
+.string[data-s="3"]::before,
+.string[data-s="4"]::before,
+.string[data-s="5"]::before{
+  background:
+    linear-gradient(180deg,
+      #e6b574 0%,
+      #f3c985 28%,
+      #b37a3a 50%,
+      #f3c985 72%,
+      #e0a95f 100%),
+    repeating-linear-gradient(90deg,
+      rgba(96,58,18,.36) 0 1.4px,
+      rgba(255,230,190,0) 1.4px 3.4px);
+}
+
+/* 亮點掃過感（震動時） */
+.string.vibrate::before{ animation: copperShine 360ms ease-out; }
+@keyframes copperShine{
+  0%  { filter:brightness(1.06); box-shadow:0 .35px 0 rgba(0,0,0,.22),0 -.35px 0 rgba(255,255,255,.65),0 0 6px rgba(255,235,210,.35); }
+  100%{ filter:brightness(1.0); box-shadow:0 .35px 0 rgba(0,0,0,.22),0 -.35px 0 rgba(255,255,255,.55),0 0 4px rgba(0,0,0,.06); }
+}
+
+/* 琴頭對應的 6 條淡線（保留原樣） */
 .head-line{ position:absolute; left:0; width:86px; height:0; border-top:2px solid rgba(212,175,55,.55); filter:drop-shadow(0 1px 0 rgba(0,0,0,.06)); pointer-events:none; z-index:2; }
-.head-line[data-s="2"]{ border-top-width:2.5px; } .head-line[data-s="3"]{ border-top-width:3px; } .head-line[data-s="4"]{ border-top-width:3.5px; } .head-line[data-s="5"]{ border-top-width:4px; }
+.head-line[data-s="2"]{ border-top-width:2.5px; }
+.head-line[data-s="3"]{ border-top-width:3px; }
+.head-line[data-s="4"]{ border-top-width:3.5px; }
+.head-line[data-s="5"]{ border-top-width:4px; }
+
+/* 命中區 */
 .hit-row{ position:absolute; left:0; right:0; height:28px; transform:translateY(-50%); background:transparent; cursor:pointer; z-index:4; }
 @media (pointer:coarse){ .hit-row{ height:34px; } }
-.string.vibrate{ animation: vibrCurve 360ms ease-out, shine 360ms ease-out; }
-@keyframes vibrCurve{ 0%{transform:translateY(0)} 10%{transform:translateY(-3.2px)} 20%{transform:translateY(0)} 30%{transform:translateY(2.6px)} 45%{transform:translateY(0)} 60%{transform:translateY(-1.8px)} 75%{transform:translateY(0.6px)} 100%{transform:translateY(0)} }
-@keyframes shine{ 0%{ background-position:-160px 0; opacity:.95 } 100%{ background-position:160px 0; opacity:.96 } }
+
+/* 仍保留原本位移動畫，用在元素本身（上下微幅） */
+@keyframes vibrCurve{
+  0%{transform:translateY(0)} 10%{transform:translateY(-3.2px)} 20%{transform:translateY(0)}
+  30%{transform:translateY(2.6px)} 45%{transform:translateY(0)} 60%{transform:translateY(-1.8px)}
+  75%{transform:translateY(0.6px)} 100%{transform:translateY(0)}
+}
+.string.vibrate{ animation: vibrCurve 360ms ease-out; }
 
 /* Overlay */
 .overlay{ position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; background:rgba(17,24,39,.35); backdrop-filter:blur(3px); }
@@ -359,7 +429,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     const kb=document.querySelector('#keyboard');
     const wrapW=wrap.clientWidth;
     const sep=parseInt(getComputedStyle(kb).getPropertyValue('--sep')||'2',10);
-    const minW=WHITE.length*(MIN_WHITE_PX+sep);
+    const minW=WHITE.length*(64+sep);
     kb.style.width=(wrapW>=minW?wrapW-1:minW)+'px';
     kb.style.height='var(--kb-h)';
   }
@@ -497,14 +567,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     setStatus('等待啟用聲音…');
     validateLockBtn();
     $('#guideOverlay').classList.remove('hidden');
-    // （若你仍有後端 config，可在這裡載入覆蓋寬度；否則直接用 CSS 變數即可）
   });
   </script>
 </body>
 </html>
-
-
-
-
-
-
