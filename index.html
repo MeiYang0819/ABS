@@ -16,8 +16,17 @@
   --accent:#BFA5A0;   /* 提亮色（載入完成） */
   --rim:#E4E4E4; 
   --ink:#0f172a;
-  --w-displayName: 96px; --w-email:241px; --w-code:96px; --w-instrument:96px; --w-lastNote:100px;
-  --label-w:88px; --gap:10px; --kb-h:280px; --sep:2px; --stroke:rgba(0,0,0,.18); --glow:rgba(255,255,255,.65);
+  --w-displayName: 96px;   /* 親友姓名 input */
+  --w-email:261px;         /* 電子郵件 input */
+  --w-code:96px;           /* 取得代號 input */
+  --w-instrument:96px;     /* 樂器轉換 select */
+  --w-lastNote:120px;      /* 音符紀錄 input */
+  --label-w:88px;          /* 統一每個 label 的寬度，確保左緣對齊 */
+  --gap:10px;              /* 兩個項目間的水平間距 */
+  --kb-h:280px;            /* 樂器區高度 */
+  --sep:2px; 
+  --stroke:rgba(0,0,0,.18); 
+  --glow:rgba(255,255,255,.65);
 }
 *{
   box-sizing:border-box;
@@ -467,10 +476,10 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
           else if(err.includes('duplicate+code_not_found')) msg='🔎 您已填寫過囉，且您輸入的這組代號我找尋不到，我感到萬分抱歉👀';
           else if(err==='duplicate') msg='📝 已填寫過囉，想要重新填寫請洽ㄟ咪🙏';
           else if(err==='email_required') msg='⚠️ Email缺少或格式不正確，再幫我仔細看看好咪📧';
-          else if(err==='email_domain_invalid') msg='🔐 Email網域無法收信，請確認拼字或改用另一個Email，跪求📧';
+          else if(err==='email_domain_invalid') msg='🔐 Email網域無法收信，請確認拼字或改用另一個Email，跪求🙇‍♂️';
           else if(err==='deadline_passed') msg='📣 非常抱歉，已過了填寫截止日，但還是可以在這玩耍唷👣';
           else if(err==='code_not_found') msg='🔎 找尋不到代號，請洽新人唷🤵🏻‍♂️👰🏻‍♀️';
-          else if(err==='busy') msg='⚠️ 系統忙碌，請稍後再試，或給它按個重新整理⏳';
+          else if(err==='busy') msg='⚠️ 系統忙碌，請稍後再試，給它進擊的重新整理💋';
           setStatus(msg);
         }
       }else{
@@ -500,4 +509,3 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   </script>
 </body>
 </html>
-
