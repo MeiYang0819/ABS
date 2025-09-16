@@ -7,230 +7,331 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  /* ===== 你的色碼 & 欄位寬度變數 ===== */
-  :root{
-    --brand:#D4BFAA;   /* 主色：整頁底色 */
-    --title:#A68A7C;   /* 標題字色 */
-    --neutral:#E4E4E4; /* 區塊背景 */
-    --soft:#F5F1EC;    /* 內頁/容器底 */
-    --accent:#BFA5A0;  /* 提亮（已載入✅） */
-    --rim:#E4E4E4;
-    --ink:#0f172a;
+/* ===== 調色盤（你的色碼） ===== */
+:root{
+  --brand:#D4BFAA; /* 主色：整頁底色 */
+  --title:#A68A7C; /* 標題字色 */
+  --neutral:#E4E4E4; /* 區塊背景 */
+  --soft:#F5F1EC; /* 內頁/容器底 */
+  --accent:#BFA5A0; /* 提亮色（載入完成等） */
+  --rim:#E4E4E4;
+  --ink:#0f172a;
+  --kb-h:280px;
+  --sep:2px;
+  --stroke:rgba(0,0,0,.18);
+  --glow:rgba(255,255,255,.65);
+}
+*{
+  box-sizing:border-box;
+  font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif !important;
+  -webkit-text-stroke:.35px var(--stroke);
+  text-shadow:0 1px 0 var(--glow);
+}
+html,body{
+  margin:0;
+  color:var(--ink);
+  background:var(--brand);
+}
 
-    /* 可自行調整長度（寬度） */
-    --w-name: 152px;
-    --w-email: 380px;
-    --w-code: 160px;
-    --w-notes: 170px;
+/* === 背景音符圖（固定定位 IMG，最穩定） === */
+.bg-notes{
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* 讓含底色的圖片也能浮現出音符線條 */
+  opacity: .60;
+  mix-blend-mode: multiply;
+  filter: contrast(1.1);
+  pointer-events: none;
+  z-index: 0;
+}
+.panel{
+  position:relative;
+  z-index:1;
+  max-width:1060px;
+  margin:22px auto;
+  background:var(--neutral);
+  border:1px solid var(--neutral);
+  border-radius:16px;
+  padding:18px 18px 26px;
+  box-shadow:0 10px 26px rgba(0,0,0,.10);
+  backdrop-filter:blur(8px) saturate(115%);
+}
+h2{
+  margin:4px 0 20px;
+  text-align:center;
+  font-size:2.8rem;
+  font-weight:700;
+  letter-spacing:1px;
+  color:var(--title);
+  -webkit-text-stroke:.6px rgba(0,0,0,.12);
+  text-shadow:0 3px 4px rgba(255,255,255,.75);
+}
 
-    --kb-h:280px; --sep:2px; --stroke:rgba(0,0,0,.18); --glow:rgba(255,255,255,.65);
-  }
+/* 控制列（第二行＋第三行排版；只調寬度） */
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap; margin-top:10px}
+.row label{opacity:.92;white-space:nowrap;font-weight:400;-webkit-text-stroke:0;text-shadow:none}
+.row input,.row select,.row button{
+  height:38px;
+  font-size:14px;
+  background:#fff;
+  padding:8px 10px;
+  border:1px solid var(--rim);
+  border-radius:10px;
+  -webkit-text-stroke:.25px rgba(0,0,0,.12);
+  text-shadow:0 1px 0 rgba(255,255,255,.5);
+}
 
-  *{ box-sizing:border-box; font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif !important; -webkit-text-stroke:.35px var(--stroke); text-shadow:0 1px 0 var(--glow); }
-  html,body{ margin:0; color:var(--ink); background:var(--brand); }
+/* 基本寬度 */
+#displayName,#code,#email,#lastNote{
+  width:152px;
+  font-weight:400;
+  -webkit-text-stroke:0;
+  text-shadow:none
+}
 
-  /* === 背景只疊音符圖 === */
-  .bg-notes{
-    position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover;
-    opacity:.60; mix-blend-mode:multiply; filter:contrast(1.1);
-    pointer-events:none; z-index:0;
-  }
+/* 第二行：Email 加倍寬（保留） */
+.row-line2 #email{ width:304px; }
 
-  .panel{
-    position:relative; z-index:1; max-width:1060px; margin:22px auto;
-    background:var(--neutral); border:1px solid var(--neutral);
-    border-radius:16px; padding:18px 18px 26px;
-    box-shadow:0 10px 26px rgba(0,0,0,.10);
-    backdrop-filter:blur(8px) saturate(115%);
-  }
-  h2{
-    margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; letter-spacing:1px;
-    color:var(--title); -webkit-text-stroke:.6px rgba(0,0,0,.12); text-shadow:0 3px 4px rgba(255,255,255,.75);
-  }
+/* 第二行：音符紀錄寬度 + 文字置中（內容與 placeholder 都置中） */
+.row-line2 #lastNote{
+  width:170px;
+  text-align:center;
+  letter-spacing:.3px;
+}
+#lastNote::placeholder{ text-align:center; }
+.row-line2 #email{ width:304px; }
 
-  /* ===== 兩行用同一套 Grid，確保對齊 ===== */
-  .row.grid{
-    display:grid;
-    grid-template-columns:
-      auto var(--w-name) 16px     /* 姓名：標籤+欄位+間隔 */
-      auto var(--w-email) 16px    /* 郵件：標籤+欄位+間隔 */
-      auto var(--w-code);         /* 代號(第1行) / 佔位(第2行) */
-    align-items:center;
-    gap:10px 0;
-    margin-top:10px;
-  }
-  .row label{opacity:.92;white-space:nowrap;font-weight:400;-webkit-text-stroke:0;text-shadow:none}
-  .row input,.row select,.row button{
-    height:38px; font-size:14px; background:#fff; padding:8px 10px;
-    border:1px solid var(--rim); border-radius:10px;
-    -webkit-text-stroke:.25px rgba(0,0,0,.12); text-shadow:0 1px 0 rgba(255,255,255,.5);
-  }
-  /* 各欄寬度套變數 */
-  #displayName{ width:var(--w-name); }
-  #email{ width:var(--w-email); }
-  #code{ width:var(--w-code); }
-  #lastNote{
-    width:var(--w-notes);
-    text-align:center;
-    letter-spacing:.3px;
-  }
-  #lastNote::placeholder{ text-align:center; }
+/* 第三行：音符紀錄縮短（保留既有樣式） */
+.row-line3 #lastNote{ width:132px; }
 
-  .row select{ width:auto; min-width:88px; text-align:center; text-align-last:center; -webkit-text-stroke:0; text-shadow:none; }
-  .row select option{text-align:center}
-  .row button{ width:120px; cursor:pointer; font-weight:600 }
-  .btn-compact{ width:60px !important; }
-  .row button:disabled{opacity:.55;cursor:not-allowed}
-  .sep{ width:16px; }        /* grid 間距欄 */
-  .ghost{ display:block; }   /* grid 佔位 */
+.row select{
+  width:auto; min-width:88px;
+  text-align:center; text-align-last:center;
+  -webkit-text-stroke:0; text-shadow:none;
+}
+.row select option{text-align:center}
+.row button{ width:120px; cursor:pointer; font-weight:600 }
+.btn-compact{ width:60px !important; }
+.row button:disabled{opacity:.55;cursor:not-allowed}
 
-  /* 狀態列 */
-  #status{
-    background:var(--soft); border:1px solid var(--neutral); border-radius:12px;
-    padding:10px; margin-top:10px; font-size:14px; white-space:pre-wrap; color:#6b5e52; text-align:center;
-  }
-  #status.ok{ color:var(--accent); font-weight:600; }
-  #status.busy{ color:var(--title); }
-  #status.err{ color:#8b5e52; }
+/* 狀態列 */
+#status{
+  background:var(--soft);
+  border:1px solid var(--neutral);
+  border-radius:12px;
+  padding:10px;
+  margin-top:10px;
+  font-size:14px;
+  white-space:pre-wrap;
+  color:#6b5e52;
+  text-align:center;
+}
+#status.ok{ color:var(--accent); font-weight:600; }
+#status.busy{ color:var(--title); }
+#status.err{ color:#8b5e52; }
 
-  .kb-wrap{ overflow-x:hidden; background:var(--soft); border:1px solid var(--rim); border-radius:14px; margin-top:14px; }
-  #keyboard{ position:relative; height:var(--kb-h); user-select:none; -webkit-user-select:none; touch-action:none; }
+/* 鍵盤容器 */
+.kb-wrap{
+  overflow-x:hidden;
+  background:var(--soft);
+  border:1px solid var(--rim);
+  border-radius:14px;
+  margin-top:14px;
+}
+#keyboard{
+  position:relative;
+  height:var(--kb-h);
+  user-select:none;
+  -webkit-user-select:none;
+  touch-action:none;
+}
 
-  /* ===== 鋼琴樣式 ===== */
-  .white{
-    position:absolute; bottom:0; height:100%;
-    background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5);
-    border-radius:0 0 12px 12px;
-    box-shadow:inset 0 -12px 16px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.9), 0 1px 0 rgba(0,0,0,.04);
-  }
-  .white::after{ content:""; position:absolute; top:0; bottom:0; right:0; width:var(--sep); background:linear-gradient(transparent,#cfd3dc 50%,transparent); }
-  .white:first-child::before{ content:""; position:absolute; top:0; bottom:0; left:0; width:var(--sep); background:linear-gradient(transparent,#cfd3dc 50%,transparent); }
-  .white.active{filter:brightness(1.06)}
-  .black{
-    position:absolute; bottom:38%; height:62%;
-    background:linear-gradient(#2d2f36,#0e0f13);
-    border:1px solid #0b0d11; border-top:none; border-radius:0 0 10px 10px; z-index:5;
-    box-shadow:inset 0 -6px 10px rgba(0,0,0,.45), 0 3px 10px rgba(0,0,0,.35);
-    transform: translateX(-50%);
-  }
-  .black.active{filter:brightness(1.22)}
-  .label{
-    position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
-    font-size:11px; color:#475569; background:#ffffffee; border:1px solid var(--rim);
-    padding:2px 6px; border-radius:8px;
-  }
+/* ===== 鋼琴（黑鍵置中） ===== */
+.white{
+  position:absolute; bottom:0; height:100%;
+  background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5);
+  border-radius:0 0 12px 12px;
+  box-shadow:inset 0 -12px 16px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.9), 0 1px 0 rgba(0,0,0,.04);
+}
+.white::after{
+  content:""; position:absolute; top:0; bottom:0; right:0; width:var(--sep);
+  background:linear-gradient(transparent,#cfd3dc 50%,transparent);
+}
+.white:first-child::before{
+  content:""; position:absolute; top:0; bottom:0; left:0; width:var(--sep);
+  background:linear-gradient(transparent,#cfd3dc 50%,transparent);
+}
+.white.active{filter:brightness(1.06)}
 
-  /* ===== 吉他樣式 ===== */
-  .fretboard{
-    position:relative; display:grid; grid-template-columns: repeat(13, 1fr);
-    width:100%; height:var(--kb-h);
-    background:linear-gradient(180deg,#6b4f2e 0%, #5b4429 50%, #533c24 100%);
-    border-radius:12px;
-    box-shadow:inset 0 10px 20px rgba(0,0,0,.25), inset 0 -8px 16px rgba(0,0,0,.2);
-  }
-  .head{ position:absolute; left:0; top:0; bottom:0; width:86px; z-index:2;
-    background:linear-gradient(180deg, rgba(0,0,0,.12), transparent 40%),linear-gradient(180deg,#7a5534 0%, #6b4f2e 55%, #5a3f24 100%);
-    border-right:1px solid rgba(40,22,8,.35); box-shadow: inset -8px 0 16px rgba(0,0,0,.18);
-    border-radius:12px 0 0 12px; pointer-events:none; }
-  .nut{ position:absolute; left:86px; top:0; bottom:0; width:8px; z-index:3;
-    background:linear-gradient(180deg,#e5e1d6,#c9c5ba);
-    box-shadow: inset -1px 0 0 rgba(0,0,0,.35), inset 1px 0 0 rgba(255,255,255,.6);
-    border-right:2px solid rgba(120,120,120,.5); pointer-events:none; }
-  .bridge{ position:absolute; right:0; top:0; bottom:0; width:10px; z-index:2;
-    background:linear-gradient(180deg,#b9b6ad,#8f8c83);
-    box-shadow: inset 1px 0 0 rgba(255,255,255,.5), inset -1px 0 0 rgba(0,0,0,.25);
-    pointer-events:none; border-left:1px solid rgba(0,0,0,.18); }
-  .fret-col{ position:relative; background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
-    box-shadow: inset -2px 0 0 rgba(255,255,255,.18), inset -4px 0 0 rgba(0,0,0,.28);}
-  .string{
-    position:absolute; left:94px; right:0; height:0; z-index:3;
-    border-top:2px solid #d4af37; opacity:.96; filter:drop-shadow(0 1px 0 rgba(0,0,0,.18));
-    transform-origin:center;
-    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.35) 50%, rgba(255,255,255,0) 100%);
-    background-size: 160px 1px; background-repeat:no-repeat; background-position:-160px 0;
-  }
-  .string[data-s="2"]{ border-top-width:2.5px; }
-  .string[data-s="3"]{ border-top-width:3px; }
-  .string[data-s="4"]{ border-top-width:3.5px; }
-  .string[data-s="5"]{ border-top-width:4px; }
+.black{
+  position:absolute; bottom:38%; height:62%;
+  background:linear-gradient(#2d2f36,#0e0f13);
+  border:1px solid #0b0d11; border-top:none;
+  border-radius:0 0 10px 10px; z-index:5;
+  box-shadow:inset 0 -6px 10px rgba(0,0,0,.45), 0 3px 10px rgba(0,0,0,.35);
+  transform: translateX(-50%);
+}
+.black.active{filter:brightness(1.22)}
 
-  .head-line{ position:absolute; left:0; width:86px; height:0; border-top:2px solid rgba(212,175,55,.55);
-    filter:drop-shadow(0 1px 0 rgba(0,0,0,.06)); pointer-events:none; z-index:2; }
-  .head-line[data-s="2"]{ border-top-width:2.5px; }
-  .head-line[data-s="3"]{ border-top-width:3px; }
-  .head-line[data-s="4"]{ border-top-width:3.5px; }
-  .head-line[data-s="5"]{ border-top-width:4px; }
+.label{
+  position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
+  font-size:11px; color:#475569; background:#ffffffee; border:1px solid var(--rim);
+  padding:2px 6px; border-radius:8px;
+}
 
-  .hit-row{ position:absolute; left:0; right:0; height:28px; transform:translateY(-50%); background:transparent; cursor:pointer; z-index:4; }
-  @media (pointer:coarse){ .hit-row{ height:34px; } }
+/* ===== 吉他（樣式原樣保留） ===== */
+.fretboard{
+  position:relative; display:grid; grid-template-columns: repeat(13, 1fr);
+  width:100%; height:var(--kb-h);
+  background:linear-gradient(180deg,#6b4f2e 0%, #5b4429 50%, #533c24 100%);
+  border-radius:12px;
+  box-shadow:inset 0 10px 20px rgba(0,0,0,.25), inset 0 -8px 16px rgba(0,0,0,.2);
+}
+.head{
+  position:absolute; left:0; top:0; bottom:0; width:86px; z-index:2;
+  background:linear-gradient(180deg, rgba(0,0,0,.12), transparent 40%),linear-gradient(180deg,#7a5534 0%, #6b4f2e 55%, #5a3f24 100%);
+  border-right:1px solid rgba(40,22,8,.35);
+  box-shadow: inset -8px 0 16px rgba(0,0,0,.18);
+  border-radius:12px 0 0 12px;
+  pointer-events:none;
+}
+.nut{
+  position:absolute; left:86px; top:0; bottom:0; width:8px; z-index:3;
+  background:linear-gradient(180deg,#e5e1d6,#c9c5ba);
+  box-shadow: inset -1px 0 0 rgba(0,0,0,.35), inset 1px 0 0 rgba(255,255,255,.6);
+  border-right:2px solid rgba(120,120,120,.5);
+  pointer-events:none;
+}
+.bridge{
+  position:absolute; right:0; top:0; bottom:0; width:10px; z-index:2;
+  background:linear-gradient(180deg,#b9b6ad,#8f8c83);
+  box-shadow: inset 1px 0 0 rgba(255,255,255,.5), inset -1px 0 0 rgba(0,0,0,.25);
+  pointer-events:none;
+  border-left:1px solid rgba(0,0,0,.18);
+}
+.fret-col{
+  position:relative;
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  box-shadow: inset -2px 0 0 rgba(255,255,255,.18), inset -4px 0 0 rgba(0,0,0,.28);
+}
+.string{
+  position:absolute; left:94px; right:0; height:0; z-index:3;
+  border-top:2px solid #d4af37; opacity:.96;
+  filter:drop-shadow(0 1px 0 rgba(0,0,0,.18));
+  transform-origin:center;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.35) 50%, rgba(255,255,255,0) 100%);
+  background-size: 160px 1px; background-repeat:no-repeat; background-position:-160px 0;
+}
+.string[data-s="2"]{ border-top-width:2.5px; }
+.string[data-s="3"]{ border-top-width:3px; }
+.string[data-s="4"]{ border-top-width:3.5px; }
+.string[data-s="5"]{ border-top-width:4px; }
 
-  .string.vibrate{ animation: vibrCurve 360ms ease-out, shine 360ms ease-out; }
-  @keyframes vibrCurve{
-    0%{transform:translateY(0)} 10%{transform:translateY(-3.2px)} 20%{transform:translateY(0)}
-    30%{transform:translateY(2.6px)} 45%{transform:translateY(0)} 60%{transform:translateY(-1.8px)}
-    75%{transform:translateY(0.6px)} 100%{transform:translateY(0)}
-  }
-  @keyframes shine{ 0%{ background-position:-160px 0; opacity:.95 } 100%{ background-position:160px 0; opacity:.96 } }
+.head-line{
+  position:absolute; left:0; width:86px; height:0;
+  border-top:2px solid rgba(212,175,55,.55);
+  filter:drop-shadow(0 1px 0 rgba(0,0,0,.06));
+  pointer-events:none; z-index:2;
+}
+.head-line[data-s="2"]{ border-top-width:2.5px; }
+.head-line[data-s="3"]{ border-top-width:3px; }
+.head-line[data-s="4"]{ border-top-width:3.5px; }
+.head-line[data-s="5"]{ border-top-width:4px; }
 
-  /* 彈跳視窗等 */
-  .overlay{ position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; background:rgba(17,24,39,.35); backdrop-filter:blur(3px); }
-  .overlay.hidden{ display:none; }
-  .dialog{ min-width:300px; max-width:92vw; background:var(--soft); border:1px solid var(--neutral); border-radius:14px; padding:18px; box-shadow:0 18px 44px rgba(0,0,0,.18); text-align:center; }
-  .dialog h3{ margin:0 0 8px; font-size:18px; color:var(--title); }
-  .dialog p{ margin:6px 0; line-height:1.6; }
-  .dialog .actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
-  .dialog button{ width:120px; height:38px; border-radius:10px; border:1px solid var(--rim); background:#fff; cursor:pointer; font-weight:600; }
-  .dialog button.primary{ background:#fff; }
+.hit-row{
+  position:absolute; left:0; right:0; height:28px; transform:translateY(-50%);
+  background:transparent; cursor:pointer; z-index:4;
+}
+@media (pointer:coarse){ .hit-row{ height:34px; } }
+.string.vibrate{ animation: vibrCurve 360ms ease-out, shine 360ms ease-out; }
+@keyframes vibrCurve{
+  0%{transform:translateY(0)}
+  10%{transform:translateY(-3.2px)}
+  20%{transform:translateY(0)}
+  30%{transform:translateY(2.6px)}
+  45%{transform:translateY(0)}
+  60%{transform:translateY(-1.8px)}
+  75%{transform:translateY(0.6px)}
+  100%{transform:translateY(0)}
+}
+@keyframes shine{
+  0%{ background-position:-160px 0; opacity:.95 }
+  100%{ background-position:160px 0; opacity:.96 }
+}
 
-  #lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:transparent; }
-  footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
+/* 兩個彈跳視窗 */
+.overlay{
+  position:fixed; inset:0; z-index:9999;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(17,24,39,.35); backdrop-filter:blur(3px);
+}
+.overlay.hidden{ display:none; }
+.dialog{
+  min-width:300px; max-width:92vw;
+  background:var(--soft); border:1px solid var(--neutral); border-radius:14px;
+  padding:18px; box-shadow:0 18px 44px rgba(0,0,0,.18); text-align:center;
+}
+.dialog h3{ margin:0 0 8px; font-size:18px; color:var(--title); }
+.dialog p{ margin:6px 0; line-height:1.6; }
+.dialog .actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
+.dialog button{
+  width:120px; height:38px; border-radius:10px; border:1px solid var(--rim);
+  background:#fff; cursor:pointer; font-weight:600;
+}
+.dialog button.primary{ background:#fff; }
+
+#lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:transparent; }
+
+footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
 </style>
-<body>
-  <!-- 只保留音符 PNG；檔案放在 /assets/notes.png -->
-  <img class="bg-notes" src="./assets/notes.png?v=4" alt="">
 
+<body>
+  <!-- 背景音符（放你的圖；換路徑就好） -->
+  <img class="bg-notes" src="./assets/notes.png?v=4" alt="">
   <div class="panel">
     <h2>🎼互動音符🎼</h2>
 
-    <!-- 第 1 行：姓名 → 電子郵件 → 取得代號 -->
-    <div class="row grid">
+    <!-- 第二行：姓名 → Email(加寬) → 音符紀錄(置中) → 代號 -->
+    <div class="row row-line2">
       <label for="displayName">親友姓名：</label>
       <input id="displayName" placeholder="例：張咩揚" />
-      <span class="sep"></span>
-
       <label for="email">電子郵件：</label>
       <input id="email" placeholder="your@email" inputmode="email" />
-      <span class="sep"></span>
-
+      <label for="lastNote">音符紀錄：</label>
+      <input id="lastNote" placeholder="— , — , —" readonly />
       <label for="code">取得代號：</label>
       <input id="code" placeholder="請輸入代號" />
     </div>
 
-    <!-- 第 2 行：音符紀錄（置中） → 樂器轉換（正下方對齊電子郵件） -->
-    <div class="row grid">
-      <label for="lastNote">音符紀錄：</label>
-      <input id="lastNote" placeholder="— , — , —" readonly />
-      <span class="sep"></span>
-
+    <!-- 第三行：樂器 → 重設 → 鎖定 -->
+    <div class="row row-line3">
       <label for="instrument">樂器轉換：</label>
       <select id="instrument">
         <option value="piano" selected>鋼琴</option>
         <option value="guitar">吉他</option>
       </select>
-      <span class="sep"></span>
-
-      <!-- 這兩格是佔位，讓第二行的欄位還是與第一行「代號」欄對齊 -->
-      <span class="ghost"></span>
-      <span class="ghost"></span>
-    </div>
-
-    <!-- 動作列：重設 / 鎖定 -->
-    <div class="row" style="gap:10px;margin-top:10px;">
       <button id="resetBtn" type="button" class="btn-compact">重設</button>
       <button id="lockBtn" type="button" class="btn-compact" disabled>鎖定</button>
     </div>
 
     <p id="status">尚未初始化</p>
+
+    <!-- ✅ 新增：寬度調整 input（不影響原兩行順序與文案） -->
+    <div class="row" id="widthControlRow" aria-label="寬度調整">
+      <label for="widthTarget">欄寬調整：</label>
+      <select id="widthTarget" title="選擇欄位">
+        <option value="displayName">displayName（親友姓名）</option>
+        <option value="email" selected>email（電子郵件）</option>
+        <option value="lastNote">lastNote（音符紀錄）</option>
+        <option value="code">code（取得代號）</option>
+      </select>
+      <input id="widthValue" type="number" inputmode="numeric" placeholder="px" style="width:120px" />
+      <button id="applyWidthBtn" type="button">套用</button>
+    </div>
+    <!-- ／新增結束 -->
 
     <div class="kb-wrap"><div id="keyboard"></div></div>
   </div>
@@ -238,8 +339,13 @@
   <!-- 彈跳視窗 ①：操作說明 -->
   <div id="guideOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
     <div class="dialog">
-      <h3 id="guideTitle">啟用說明</h3>
-      <p>填入姓名、Email 與代號 → 選三個音 → 按「鎖定」送出</p>
+      <h3 id="guideTitle">📍操作說明📍</h3>
+      <p>🔻填入姓名、Email與取得的代號</p><p>↓</p>
+      <p>🔻可選擇鋼琴或吉他中的三個音階</p><p>↓</p>
+      <p>🔻三個音階確認後，一定要按鎖定</p><p>↓</p>
+      <p>🔻鎖定完成後，會有通知是否成功</p><p>↓</p>
+      <p>🔻若成功即可退出介面；反之再試</p><p>↓</p>
+      <p>❗️沒按鎖定就是沒有送出就是彈個寂寞</p>
       <div class="actions"><button id="guideOk" class="primary">了解</button></div>
     </div>
   </div>
@@ -248,7 +354,7 @@
   <div id="unlockOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="unlockTitle">
     <div class="dialog">
       <h3 id="unlockTitle">啟用聲音</h3>
-      <p style="font-size:12px;opacity:.72;color:#a96060;">iPhone 請確認側邊「靜音鍵」已切到響鈴模式</p>
+      <p style="font-size:12px;opacity:.72;color:#a96060;">iPhone請確保側邊「靜音鍵」有開啟響鈴模式</p>
       <div class="actions">
         <button id="cancelUnlock">取消</button>
         <button id="confirmUnlock" class="primary">確定</button>
@@ -257,234 +363,359 @@
   </div>
 
   <div id="lockScreen" aria-hidden="true"></div>
-
   <footer>© Copyright 2025 MY‘s system Version:b1.0.1</footer>
 
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
   <script>
-    /* ===== 主程式（接口不變） ===== */
-    const WEBHOOK = "https://script.google.com/macros/s/AKfycbxxw3vbCEdC7DjF19blGXfQPr0dMEFhVo020XLI4sfQaBKe0fW388JAh3k77WufGim-/exec";
-    const $ = s => document.querySelector(s);
-    const setStatus = m => {
-      const el = $('#status');
-      el.textContent = m;
-      el.classList.remove('ok','busy','err');
-      if(/已載入/.test(m)) el.classList.add('ok');
-      else if(/送出中/.test(m)) el.classList.add('busy');
-      else if(/❌|失敗|逾時|找尋不到|已過|格式不正確|忙碌/.test(m)) el.classList.add('err');
-    };
+  /* ===== 主程式（不改接口；邏輯不動） ===== */
+  const WEBHOOK = "https://script.google.com/macros/s/AKfycbxDPY_qMM9Gzujxh-iKSV4JlbJkDJe_LER-p0SQb97L2rR7P8r7EuAovYlcMxHusuTR/exec";
+  const $ = s => document.querySelector(s);
+  const setStatus = m => {
+    const el = $('#status');
+    el.textContent = m;
+    el.classList.remove('ok','busy','err');
+    if(/已載入/.test(m)) el.classList.add('ok');
+    else if(/送出中/.test(m)) el.classList.add('busy');
+    else if(/❌|失敗|逾時|找尋不到|已過|格式不正確|忙碌/.test(m)) el.classList.add('err');
+  };
+  let audioCtx=null, sampler=null, samplerReady=false, unlocked=false, hardLocked=false;
+  let currentInstrument='piano';
+  let selectedNotes = [];
+  const PIANO_BASE=new URL('./piano/',location.href).href;
+  const PIANO_URLS={'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3','C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3','C4':'C4.mp3','D#4':'Ds4.mp3','F#4':'Fs4.mp3','A4':'A4.mp3','C5':'C5.mp3'};
+  const GUITAR_BASE=new URL('./guitar/',location.href).href;
+  const GUITAR_URLS={'E2':'E2.wav','A2':'A2.wav','D3':'D3.wav','G3':'G3.wav','B3':'B3.wav','E4':'E4.wav'};
 
-    let audioCtx=null, sampler=null, samplerReady=false, unlocked=false, hardLocked=false;
-    let currentInstrument='piano';
-    let selectedNotes = [];
+  const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
+  const BLACK_AFTER={ 'C':'C#','D':'D#','F':'F#','G':'G#','A':'A#' };
+  const MIN_WHITE_PX=64, TOTAL_WHITE=WHITE.length;
 
-    const PIANO_BASE=new URL('./piano/',location.href).href;
-    const PIANO_URLS={'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3','C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3','C4':'C4.mp3','D#4':'Ds4.mp3','F#4':'Fs4.mp3','A4':'A4.mp3','C5':'C5.mp3'};
-    const GUITAR_BASE=new URL('./guitar/',location.href).href;
-    const GUITAR_URLS={'E2':'E2.wav','A2':'A2.wav','D3':'D3.wav','G3':'G3.wav','B3':'B3.wav','E4':'E4.wav'};
+  // 吉他（自下而上）
+  const TUNING_MIDI = [40,45,50,55,59,64]; // E2 A2 D3 G3 B3 E4
+  const NOTE_NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+  const FRETS = 12; // 1~12 品（第 13 空格不發聲）
 
-    const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
-    const BLACK_AFTER={ 'C':'C#','D':'D#','F':'F#','G':'G#','A':'A#' };
-    const TOTAL_WHITE=WHITE.length;
+  function midiToNoteName(midi){
+    const n = NOTE_NAMES[midi % 12];
+    const octave = Math.floor(midi/12) - 1;
+    return n + octave;
+  }
+  function validEmail(v){ return /.+@.+\..+/.test((v||'').trim()); }
 
-    const TUNING_MIDI = [40,45,50,55,59,64];
-    const NOTE_NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
-
-    function midiToNoteName(midi){ const n = NOTE_NAMES[midi % 12]; const octave = Math.floor(midi/12) - 1; return n + octave; }
-    function validEmail(v){ return /.+@.+\..+/.test((v||'').trim()); }
-
-    async function unlockAudio(){
-      try{
-        const Ctx=window.webkitAudioContext||window.AudioContext;
-        if(!audioCtx) audioCtx=new Ctx({latencyHint:'interactive'});
-        if(audioCtx.state!=='running') await audioCtx.resume();
-        Tone.setContext(new Tone.Context(audioCtx));
-        await Tone.start();
-        loadSampler(currentInstrument);
-        unlocked=true;
-        $('#unlockOverlay').classList.add('hidden');
-      }catch(e){ setStatus('啟用失敗：'+e.message); }
-    }
-
-    function loadSampler(inst='piano'){
-      sampler?.dispose?.(); sampler=null; samplerReady=false;
-      let urls=PIANO_URLS, base=PIANO_BASE, label='🎹 ';
-      if(inst==='guitar'){ urls=GUITAR_URLS; base=GUITAR_BASE; label='🎸 '; }
-      setStatus(label+'載入中…');
-      sampler=new Tone.Sampler({ urls, release:1, baseUrl:base, onload:()=>{ samplerReady=true; setStatus(label+'已載入 ✅'); } }).toDestination();
-    }
-
-    function refreshNotesDisplay(){
-      const parts = [selectedNotes[0]||'—', selectedNotes[1]||'—', selectedNotes[2]||'—'];
-      $('#lastNote').value = parts.join(' , ');
-    }
-
-    function trigger(note){
-      if(hardLocked) return;
-      if(!samplerReady){ setStatus('音色載入中…'); return; }
-      sampler.triggerAttackRelease(note,'8n');
-      if(selectedNotes.length < 3) selectedNotes.push(note); else selectedNotes[2] = note;
-      refreshNotesDisplay(); validateLockBtn();
-    }
-
-    function validateLockBtn(){
-      const nameOk = ($('#displayName').value || '').trim().length > 0;
-      const codeOk = ($('#code').value || '').trim().length > 0;
-      const emailOk = validEmail($('#email').value);
-      const notesOk = selectedNotes.length === 3;
-      $('#lockBtn').disabled = !(nameOk && codeOk && emailOk && notesOk);
-    }
-
-    /* === 鋼琴 === */
-    function renderPiano(){
-      const kb=$('#keyboard'); kb.innerHTML=''; kb.className='';
-      const keyW=100/TOTAL_WHITE;
-
-      WHITE.forEach((note,i)=>{
-        const w=document.createElement('div'); w.className='white'; w.dataset.note=note;
-        w.style.left=`${i*keyW}%`; w.style.width=`${keyW}%`;
-        if(note[0]==='C'||note[0]==='G'){ const lab=document.createElement('div'); lab.className='label'; lab.textContent=note; w.appendChild(lab); }
-        w.addEventListener('pointerdown', ()=>{ if(hardLocked) return; if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; } trigger(note); w.classList.add('active'); });
-        w.addEventListener('pointerup', ()=>w.classList.remove('active'));
-        kb.appendChild(w);
-      });
-
-      WHITE.forEach((note,i)=>{
-        const l=note[0]; const sharp=(l==='C'?'C#':l==='D'?'D#':l==='F'?'F#':l==='G'?'G#':l==='A'?'A#':null);
-        if(!sharp||(l==='A'&&i===TOTAL_WHITE-1)) return;
-        const b=document.createElement('div'); b.className='black'; b.dataset.note=sharp+note.slice(1);
-        const blackWidthPct = keyW*0.62;
-        b.style.width = `${blackWidthPct}%`;
-        b.style.left  = `${(i+1)*keyW}%`;
-        b.addEventListener('pointerdown', ()=>{ if(hardLocked) return; if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; } trigger(b.dataset.note); b.classList.add('active'); });
-        b.addEventListener('pointerup', ()=>b.classList.remove('active'));
-        kb.appendChild(b);
-      });
-    }
-
-    /* === 吉他 === */
-    function renderGuitar(){
-      const kb=$('#keyboard'); kb.innerHTML=''; kb.className='fretboard'; kb.style.height='var(--kb-h)';
-
-      const head=document.createElement('div'); head.className='head'; kb.appendChild(head);
-      const nut =document.createElement('div');  nut.className='nut';  kb.appendChild(nut);
-      const bridge=document.createElement('div'); bridge.className='bridge'; kb.appendChild(bridge);
-
-      for(let s=0;s<6;s++){
-        const y=(s+1)*(100/7);
-        const str=document.createElement('div'); str.className='string'; str.dataset.s=String(s); str.style.top=`calc(${y}%)`; kb.appendChild(str);
-        const hline=document.createElement('div'); hline.className='head-line'; hline.dataset.s=String(s); hline.style.top=`calc(${y}%)`; kb.appendChild(hline);
-      }
-
-      for(let f=1; f<=13; f++){
-        const col=document.createElement('div'); col.className='fret-col';
-
-        for(let s=0; s<6; s++){
-          const y=(s+1)*(100/7);
-          const hit=document.createElement('div'); hit.className='hit-row'; hit.style.top=`calc(${y}%)`; col.appendChild(hit);
-        }
-
-        col.addEventListener('pointerdown',(ev)=>{
-          if(hardLocked) return;
-          if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; }
-
-          const rect = col.getBoundingClientRect();
-          const y = ev.clientY - rect.top; const slot = rect.height/7;
-          let idx = Math.round(y/slot - 1); idx = Math.max(0, Math.min(5, idx));
-
-          if(f<=12){
-            const midi = TUNING_MIDI[5-idx] + f;
-            const note = midiToNoteName(midi);
-            trigger(note);
-          }
-
-          const target = kb.querySelector(`.string[data-s="${idx}"]`);
-          if(target){ target.classList.remove('vibrate'); void target.offsetWidth; target.classList.add('vibrate'); setTimeout(()=>target.classList.remove('vibrate'), 380); }
-        });
-
-        kb.appendChild(col);
-      }
-    }
-
-    /* 事件與流程 */
-    $('#instrument').addEventListener('change', ()=>{
-      if(hardLocked) return;
-      currentInstrument=$('#instrument').value;
+  async function unlockAudio(){
+    try{
+      const Ctx=window.webkitAudioContext||window.AudioContext;
+      if(!audioCtx) audioCtx=new Ctx({latencyHint:'interactive'});
+      if(audioCtx.state!=='running') await audioCtx.resume();
+      Tone.setContext(new Tone.Context(audioCtx));
+      await Tone.start();
       loadSampler(currentInstrument);
-      if(currentInstrument==='guitar') renderGuitar(); else renderPiano();
-      validateLockBtn();
-    });
-    $('#displayName').addEventListener('input', validateLockBtn);
-    $('#code').addEventListener('input', validateLockBtn);
-    $('#email').addEventListener('input', validateLockBtn);
+      unlocked=true;
+      $('#unlockOverlay').classList.add('hidden');
+    }catch(e){
+      setStatus('啟用失敗：'+e.message);
+    }
+  }
 
-    $('#resetBtn').addEventListener('click', ()=>{ if(hardLocked) return; if(selectedNotes.length>0){ selectedNotes.pop(); refreshNotesDisplay(); validateLockBtn(); } });
+  function loadSampler(inst='piano'){
+    sampler?.dispose?.();
+    sampler=null; samplerReady=false;
+    let urls=PIANO_URLS, base=PIANO_BASE, label='🎹 ';
+    if(inst==='guitar'){ urls=GUITAR_URLS; base=GUITAR_BASE; label='🎸 '; }
+    setStatus(label+'載入中…');
+    sampler=new Tone.Sampler({
+      urls, release:1, baseUrl:base,
+      onload:()=>{ samplerReady=true; setStatus(label+'已載入 ✅'); }
+    }).toDestination();
+  }
 
-    // 視窗流程：操作說明 → 啟用聲音
-    $('#guideOk').addEventListener('click', ()=>{ $('#guideOverlay').classList.add('hidden'); $('#unlockOverlay').classList.remove('hidden'); });
-    $('#cancelUnlock').addEventListener('click', ()=>{ $('#unlockOverlay').classList.add('hidden'); });
-    $('#confirmUnlock').addEventListener('click', unlockAudio, {once:true});
-    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ $('#guideOverlay').classList.add('hidden'); $('#unlockOverlay').classList.add('hidden'); } });
+  function refreshNotesDisplay(){
+    const parts = [selectedNotes[0]||'—', selectedNotes[1]||'—', selectedNotes[2]||'—'];
+    $('#lastNote').value = parts.join(' , ');
+  }
 
-    // 鎖定（成功才鎖）
-    $('#lockBtn').addEventListener('click', async ()=>{
-      if(hardLocked) return;
-      const name=($('#displayName').value||'').trim();
-      const code=($('#code').value||'').trim();
-      const email=($('#email').value||'').trim();
-      if(!name||!code||!validEmail(email)||selectedNotes.length!==3){ alert('請填姓名、代號、Email 並彈滿 3 個音再鎖定'); return; }
-      setStatus('⏳ 送出中…');
+  function trigger(note){
+    if(hardLocked) return;
+    if(!samplerReady){ setStatus('音色載入中…'); return; }
+    sampler.triggerAttackRelease(note,'8n');
+    if(selectedNotes.length < 3) selectedNotes.push(note);
+    else selectedNotes[2] = note;
+    refreshNotesDisplay();
+    validateLockBtn();
+  }
 
-      const payload={ userId: code, displayName: name, instrument: currentInstrument, note: selectedNotes.join(','), velocity: 1, sessionId: 'demo', email };
-      const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),6000);
-      try{
-        const r=await fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload),signal:controller.signal});
-        clearTimeout(timer);
-        if(r.headers.get('content-type')?.includes('application/json')){
-          const data = await r.json();
-          if(data.ok){
-            setStatus('✅ 已送出成功，可退出此介面');
-            enterHardLock(); // 成功才鎖
-          }else{
-            let msg='❌ 送出失敗';
-            const err = String(data.error||'');
-            if(err.includes('duplicate+deadline_passed')) msg='📅 您已填寫過囉，重要的是，已過填寫截止日了💔';
-            else if(err.includes('duplicate+code_not_found')) msg='🔎 您已填寫過囉，且您輸入的這組代號找不到👀';
-            else if(err==='duplicate') msg='📝 已填寫過囉，想要重新填寫請洽ㄟ咪🙏';
-            else if(err==='email_required') msg='⚠️ Email缺少或格式不正確📧';
-            else if(err==='email_domain_invalid') msg='🔐 Email網域無法收信，請確認拼字或改用另一個 Email';
-            else if(err==='deadline_passed') msg='📣 非常抱歉，已過了填寫截止日，但還是可以在這玩耍唷👣';
-            else if(err==='code_not_found') msg='🔎 找尋不到代號，請洽新人唷🤵🏻👰🏻‍♀';
-            else if(err==='busy') msg='⚠️ 系統忙碌，請稍後再試⏳';
-            setStatus(msg); // 錯誤不鎖
-          }
-        }else{
-          if(r.ok){
-            setStatus('✅ 已送出成功，可退出此介面');
-            enterHardLock(); // 成功才鎖
-          }else{
-            setStatus('❌ 送出失敗');
-          }
-        }
-      }catch(e){
-        setStatus('❌ 送出逾時或失敗');
+  function validateLockBtn(){
+    const nameOk = ($('#displayName').value || '').trim().length > 0;
+    const codeOk = ($('#code').value || '').trim().length > 0;
+    const emailOk = validEmail($('#email').value);
+    const notesOk = selectedNotes.length === 3;
+    $('#lockBtn').disabled = !(nameOk && codeOk && emailOk && notesOk);
+  }
+
+  /* === 鋼琴（黑鍵置中） === */
+  function renderPiano(){
+    const kb=$('#keyboard');
+    kb.innerHTML='';
+    kb.className='';
+    sizePiano();
+    const keyW=100/TOTAL_WHITE;
+
+    WHITE.forEach((note,i)=>{
+      const w=document.createElement('div');
+      w.className='white';
+      w.dataset.note=note;
+      w.style.left = `${i*keyW}%`;
+      w.style.width = `${keyW}%`;
+      if(note[0]==='C'||note[0]==='G'){
+        const lab=document.createElement('div');
+        lab.className='label';
+        lab.textContent=note;
+        w.appendChild(lab);
       }
+      w.addEventListener('pointerdown', ()=>{
+        if(hardLocked) return;
+        if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; }
+        trigger(note);
+        w.classList.add('active');
+      });
+      w.addEventListener('pointerup', ()=>w.classList.remove('active'));
+      kb.appendChild(w);
     });
 
-    function enterHardLock(){
-      hardLocked=true;
-      $('#displayName').disabled=true; $('#code').disabled=true; $('#email').disabled=true;
-      $('#instrument').disabled=true; $('#resetBtn').disabled=true; $('#lockBtn').disabled=true;
-      $('#lockScreen').style.display='block';
+    WHITE.forEach((note,i)=>{
+      const l=note[0], sharp = BLACK_AFTER[l]? (BLACK_AFTER[l]+note.slice(1)) : null;
+      if(!sharp || (l==='A' && i===TOTAL_WHITE-1)) return;
+      const b=document.createElement('div');
+      b.className='black';
+      b.dataset.note=sharp;
+      const blackWidthPct = keyW*0.62;
+      b.style.width = `${blackWidthPct}%`;
+      b.style.left  = `${(i+1)*keyW}%`;
+      b.addEventListener('pointerdown', ()=>{
+        if(hardLocked) return;
+        if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; }
+        trigger(sharp);
+        b.classList.add('active');
+      });
+      b.addEventListener('pointerup', ()=>b.classList.remove('active'));
+      kb.appendChild(b);
+    });
+  }
+
+  function sizePiano(){
+    const wrap=document.querySelector('.kb-wrap');
+    const kb=document.querySelector('#keyboard');
+    const wrapW=wrap.clientWidth;
+    const sep=parseInt(getComputedStyle(kb).getPropertyValue('--sep')||'2');
+    const minW=WHITE.length*(MIN_WHITE_PX+sep);
+    kb.style.width=(wrapW>=minW?wrapW-1:minW)+'px';
+    kb.style.height='var(--kb-h)';
+  }
+
+  /* === 吉他（咖啡指板+金色弦；13 空格；1–12 品可彈） === */
+  function renderGuitar(){
+    const kb=$('#keyboard');
+    kb.innerHTML='';
+    kb.className='fretboard';
+    kb.style.height='var(--kb-h)';
+
+    // 裝飾
+    const head=document.createElement('div'); head.className='head'; kb.appendChild(head);
+    const nut =document.createElement('div');  nut.className='nut';  kb.appendChild(nut);
+    const bridge=document.createElement('div'); bridge.className='bridge'; kb.appendChild(bridge);
+
+    // 6 條主弦（從 nut 右側開始） + 琴頭 6 條淡線（與主弦對齊）
+    for(let s=0;s<6;s++){
+      const y=(s+1)*(100/7);
+      const str=document.createElement('div');
+      str.className='string'; str.dataset.s=String(s);
+      str.style.top=`calc(${y}%)`;
+      kb.appendChild(str);
+
+      const hline=document.createElement('div');
+      hline.className='head-line'; hline.dataset.s=String(s);
+      hline.style.top=`calc(${y}%)`;
+      kb.appendChild(hline);
     }
 
-    window.addEventListener('resize', ()=>{ if(currentInstrument==='piano') {/*鍵盤寬度自適應，這裡無需再做事*/} });
-    window.addEventListener('orientationchange', ()=>{ if(currentInstrument==='piano') {/*同上*/} });
+    // 13 個空格（第 13 空格為雙點，且不發聲）
+    for(let f=1; f<=13; f++){
+      const col=document.createElement('div');
+      col.className='fret-col';
 
-    window.addEventListener('DOMContentLoaded', ()=>{
-      renderPiano(); setStatus('等待啟用聲音…'); validateLockBtn();
-      $('#guideOverlay').classList.remove('hidden'); // 先出操作說明
-    });
+      // 六條 hit 區（好按）
+      for(let s=0; s<6; s++){
+        const y=(s+1)*(100/7);
+        const hit=document.createElement('div');
+        hit.className='hit-row';
+        hit.style.top=`calc(${y}%)`;
+        col.appendChild(hit);
+      }
+
+      // 事件：1–12 品可彈；13 只是視覺
+      col.addEventListener('pointerdown',(ev)=>{
+        if(hardLocked) return;
+        if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; }
+
+        const rect = col.getBoundingClientRect();
+        const y = ev.clientY - rect.top;
+        const slot = rect.height/7;
+        let idx = Math.round(y/slot - 1);
+        idx = Math.max(0, Math.min(5, idx));
+
+        if(f<=12){
+          const midi = TUNING_MIDI[5-idx] + f;
+          const note = NOTE_NAMES[midi % 12] + (Math.floor(midi/12) - 1);
+          trigger(note);
+        }
+
+        const target = kb.querySelector(`.string[data-s="${idx}"]`);
+        if(target){
+          target.classList.remove('vibrate');
+          void target.offsetWidth;
+          target.classList.add('vibrate');
+          setTimeout(()=>target.classList.remove('vibrate'), 380);
+        }
+      });
+
+      kb.appendChild(col);
+    }
+  }
+
+  /* === 事件與流程 === */
+  $('#instrument').addEventListener('change', ()=>{
+    if(hardLocked) return;
+    currentInstrument=$('#instrument').value;
+    loadSampler(currentInstrument);
+    if(currentInstrument==='guitar') renderGuitar();
+    else renderPiano();
+    validateLockBtn();
+  });
+  $('#displayName').addEventListener('input', validateLockBtn);
+  $('#code').addEventListener('input', validateLockBtn);
+  $('#email').addEventListener('input', validateLockBtn);
+
+  $('#resetBtn').addEventListener('click', ()=>{
+    if(hardLocked) return;
+    if(selectedNotes.length>0){
+      selectedNotes.pop();
+      refreshNotesDisplay();
+      validateLockBtn();
+    }
+  });
+
+  // 視窗流程：操作說明 → 直接彈出「啟用聲音」
+  $('#guideOk').addEventListener('click', ()=>{
+    $('#guideOverlay').classList.add('hidden');
+    $('#unlockOverlay').classList.remove('hidden');
+  });
+  $('#cancelUnlock').addEventListener('click', ()=>{
+    $('#unlockOverlay').classList.add('hidden');
+  });
+  $('#confirmUnlock').addEventListener('click', unlockAudio, {once:true});
+  window.addEventListener('keydown', (e)=>{
+    if(e.key==='Escape'){
+      $('#guideOverlay').classList.add('hidden');
+      $('#unlockOverlay').classList.add('hidden');
+    }
+  });
+
+  // 鎖定：成功才鎖（維持你的邏輯）
+  $('#lockBtn').addEventListener('click', async ()=>{
+    if(hardLocked) return;
+    const name=($('#displayName').value||'').trim();
+    const code=($('#code').value||'').trim();
+    const email=($('#email').value||'').trim();
+    if(!name||!code||!validEmail(email)||selectedNotes.length!==3){
+      alert('請填姓名、代號、Email 並彈滿 3 個音再鎖定');
+      return;
+    }
+    setStatus('⏳ 送出中…');
+    const payload={
+      userId: code, displayName: name, instrument: currentInstrument,
+      note: selectedNotes.join(','), velocity: 1, sessionId: 'demo', email
+    };
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),6000);
+    try{
+      const r=await fetch(WEBHOOK,{
+        method:'POST',
+        headers:{'Content-Type':'text/plain'},
+        body:JSON.stringify(payload),
+        signal:controller.signal
+      });
+      clearTimeout(timer);
+      if(r.headers.get('content-type')?.includes('application/json')){
+        const data = await r.json();
+        if(data.ok){
+          setStatus('✅ 已送出成功，可退出此介面');
+          enterHardLock(); // 成功才鎖
+        }else{
+          let msg='❌ 送出失敗';
+          const err = String(data.error||'');
+          if(err.includes('duplicate+deadline_passed')) msg='📅 您已填寫過囉，重要的是，已過填寫截止日了💔';
+          else if(err.includes('duplicate+code_not_found')) msg='🔎 您已填寫過囉，且您輸入的這組代號我找尋不到，我感到萬分抱歉👀';
+          else if(err==='duplicate') msg='📝 已填寫過囉，想要重新填寫請洽ㄟ咪🙏';
+          else if(err==='email_required') msg='⚠️ Email缺少或格式不正確，再幫我仔細看看好咪📧';
+          else if(err==='email_domain_invalid') msg='🔐 Email網域無法收信，請確認拼字或改用另一個Email，跪求📧';
+          else if(err==='deadline_passed') msg='📣 非常抱歉，已過了填寫截止日，但還是可以在這玩耍唷👣';
+          else if(err==='code_not_found') msg='🔎 找尋不到代號，請洽新人唷🤵🏻👰🏻‍♀';
+          else if(err==='busy') msg='⚠️ 系統忙碌，請稍後再試，或給它按個重新整理⏳';
+          setStatus(msg); // 錯誤不鎖
+        }
+      }else{
+        if(r.ok){
+          setStatus('✅ 已送出成功，可退出此介面');
+          enterHardLock(); // 成功才鎖
+        }else{
+          setStatus('❌ 送出失敗');
+        }
+      }
+    }catch(e){
+      setStatus('❌ 送出逾時或失敗');
+    }
+  });
+
+  function enterHardLock(){
+    hardLocked=true;
+    $('#displayName').disabled=true;
+    $('#code').disabled=true;
+    $('#email').disabled=true;
+    $('#instrument').disabled=true;
+    $('#resetBtn').disabled=true;
+    $('#lockBtn').disabled=true;
+    $('#lockScreen').style.display='block';
+  }
+
+  window.addEventListener('resize', ()=>{ if(currentInstrument==='piano') sizePiano(); });
+  window.addEventListener('orientationchange', ()=>{ if(currentInstrument==='piano') sizePiano(); });
+
+  // ✅ 新增：欄位寬度調整（只用 JS 設 inline style，不改既有 CSS）
+  const idMap = { displayName:'#displayName', email:'#email', lastNote:'#lastNote', code:'#code' };
+  function updateWidthValueFromTarget(){
+    const key = $('#widthTarget').value;
+    const el = document.querySelector(idMap[key]);
+    if(!el) return;
+    const w = parseInt(getComputedStyle(el).width);
+    $('#widthValue').value = isNaN(w) ? '' : w;
+  }
+  $('#widthTarget').addEventListener('change', updateWidthValueFromTarget);
+  $('#applyWidthBtn').addEventListener('click', ()=>{
+    const key = $('#widthTarget').value;
+    const el = document.querySelector(idMap[key]);
+    const v  = parseInt($('#widthValue').value, 10);
+    if(!el || !Number.isFinite(v) || v<=0) return;
+    el.style.width = v + 'px';
+    if(key==='lastNote'){ el.style.textAlign='center'; }
+  });
+
+  window.addEventListener('DOMContentLoaded', ()=>{
+    renderPiano();
+    setStatus('等待啟用聲音…');
+    validateLockBtn();
+    $('#guideOverlay').classList.remove('hidden'); // 先出操作說明
+    updateWidthValueFromTarget(); // 初始化顯示目前選中欄位的寬度
+  });
   </script>
 </body>
 </html>
