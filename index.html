@@ -27,7 +27,7 @@
     position: fixed;
     inset: 0;
     width: 100%;
-    height: 100%;
+    height: 90%;
     object-fit: cover;
     /* 讓含底色的圖片也能浮現出音符線條 */
     opacity: .60;                 /* 原本 .14 太淡，先調到 .28 左右 */
@@ -185,32 +185,33 @@
   <div class="panel">
     <h2>🎼互動音符🎼</h2>
 
-    <!-- 第二行：姓名 → Email(加寬) → 代號 -->
-    <div class="row row-line2">
-      <label for="displayName">親友姓名：</label>
-      <input id="displayName" placeholder="例：張咩揚" />
+    <!-- 第二行：姓名 → Email(加寬) → 音符紀錄(置中) → 代號 -->
+<div class="row row-line2">
+  <label for="displayName">親友姓名：</label>
+  <input id="displayName" placeholder="例：張咩揚" />
 
-      <label for="email">電子郵件：</label>
-      <input id="email" placeholder="hey fill in your@email" inputmode="email" />
+  <label for="email">電子郵件：</label>
+  <input id="email" placeholder="your@email" inputmode="email" />
 
-      <label for="code">取得代號：</label>
-      <input id="code" placeholder="請輸入代號" />
-    </div>
+  <label for="lastNote">音符紀錄：</label>
+  <input id="lastNote" placeholder="— , — , —" readonly />
 
-    <!-- 第三行：樂器 → 音符紀錄(縮短) → 重設 → 鎖定 -->
-    <div class="row row-line3">
-      <label for="instrument">樂器轉換：</label>
-      <select id="instrument">
-        <option value="piano" selected>鋼琴</option>
-        <option value="guitar">吉他</option>
-      </select>
+  <label for="code">取得代號：</label>
+  <input id="code" placeholder="請輸入代號" />
+</div>
 
-      <label for="lastNote">音符紀錄：</label>
-      <input id="lastNote" placeholder="— , — , —" readonly />
+<!-- 第三行：樂器 → 重設 → 鎖定 -->
+<div class="row row-line3">
+  <label for="instrument">樂器轉換：</label>
+  <select id="instrument">
+    <option value="piano" selected>鋼琴</option>
+    <option value="guitar">吉他</option>
+  </select>
 
-      <button id="resetBtn" type="button" class="btn-compact">重設</button>
-      <button id="lockBtn" type="button" class="btn-compact" disabled>鎖定</button>
-    </div>
+  <button id="resetBtn" type="button" class="btn-compact">重設</button>
+  <button id="lockBtn" type="button" class="btn-compact" disabled>鎖定</button>
+</div>
+
 
     <p id="status">尚未初始化</p>
 
@@ -485,4 +486,5 @@
   </script>
 </body>
 </html>
+
 
