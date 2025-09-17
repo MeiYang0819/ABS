@@ -1,3 +1,8 @@
+# index.html（前端）
+
+> 注意：依你的要求，前端目前 **不改動**（維持你提供的可用版本）。如需把「逾時訊息」改成「可能已送達，請勿重複送出」等微文案，再告訴我，我會在不影響其它行為的前提下微調。
+
+```html
 <!doctype html>
 <html lang="zh-Hant">
 <meta charset="utf-8" />
@@ -537,7 +542,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
           else if(err==='duplicate') msg='📝 已填寫過囉，想要重新填寫請洽ㄟ咪🙏';
           else if(err==='email_required') msg='⚠️ Email缺少或格式不正確，再幫我仔細看看好咪📧';
           else if(err==='email_domain_invalid') msg='🔐 Email網域無法收信，請確認拼字或改用另一個Email，跪求🙇‍♂️';
-          else if(err==='deadline_passed') msg='📣 非常抱歉，已過了填寫截止日，但還是可以在這玩耍唷👣';
+          else if(err==='deadline_passed') msg='📣 非常抱歉，已過了填寫截止日，但還是可以在這玩耍呢👣';
           else if(err==='code_not_found') msg='🔎 找尋不到代號，請洽新人唷🤵🏻‍♂️👰🏻‍♀️';
           else if(err==='busy') msg='⚠️ 系統忙碌，請稍後再試，給它進擊的重新整理💋';
           setStatus(msg);
@@ -569,5 +574,396 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   </script>
 </body>
 </html>
+```
 
+---
 
+# Code.gs（後端）
+
+> 新增功能（**不改 doGet/doPost 名稱與回傳格式**、不改既有欄位）：
+>
+> 1. **快速入表排程（Fast‑Ack v2）**：在入佇列後新增「一次性 5 秒觸發」的 worker，通常 1–5 秒內寫入。
+> 2. **對刪工具**：加入自訂選單「資料一致性 → 刪除選取列（對刪）」；以 **第1欄時間戳** 當作共用 rowId，同步刪除 logs 與 locks 的對應列（以 LockService 確保一致）。
+> 3. 其它程式結構維持原樣；時間驅動 1 分鐘保底觸發仍保留。
+
+```javascript
+/**** Code.gs – 後端驅動欄位寬度 + 標題SVG + 既有 Fast-Ack 佇列 + 快速入表 + 對刪工具 ****/
+
+const SHEET_LOGS   = 'logs';     // timestamp|userId|displayName|instrument|note|velocity|sessionId
+const SHEET_LOCKS  = 'locks';    // usedAt|email|code|status
+const SHEET_GUESTS = 'guests';   // A:南方姓名 B:女方姓名 C:代號 D:結婚日期 E:截止日期
+const TZ           = 'Asia/Taipei';
+const TIME_FMT     = 'yyyy-MM-dd HH:mm:ss';
+
+// 管理設定
+const ADMIN_TOKEN   = 'CHANGE_ME_SECRET_TOKEN'; // 要用 config_save 再改
+const UI_CONFIG_KEY = 'ui.config';
+const UI_DEFAULTS = {
+  widths: { displayName:152, email:304, lastNote:170, code:152 },
+  titleText: '互動音符',
+  titleColor: '#A68A7C'
+};
+
+/* ===== 工具 ===== */
+function json_(obj){ return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON); }
+function text_(s){ return ContentService.createTextOutput(String(s||'')).setMimeType(ContentService.MimeType.TEXT); }
+function normalizeEmail_(v){ if(!v) return ''; v=String(v).trim().toLowerCase(); return /.+@.+\..+/.test(v) ? v : ''; }
+function makeKey_(code,email){ return `${code}||${email}`; }
+function formatNow_(){ return Utilities.formatDate(new Date(), TZ, TIME_FMT); }
+
+/* ===== UI 設定存取 ===== */
+function getUiConfig_(){
+  const sp = PropertiesService.getScriptProperties();
+  const raw = sp.getProperty(UI_CONFIG_KEY);
+  if(!raw) return UI_DEFAULTS;
+  try{
+    const obj = JSON.parse(raw);
+    const out = { ...UI_DEFAULTS, ...obj };
+    out.widths = { ...UI_DEFAULTS.widths, ...(obj.widths||{}) };
+    return out;
+  }catch(_){ return UI_DEFAULTS; }
+}
+function saveUiConfig_(obj){
+  const sp = PropertiesService.getScriptProperties();
+  const cfg = getUiConfig_();
+  const next = { ...cfg, ...obj };
+  if (obj.widths) next.widths = { ...cfg.widths, ...obj.widths };
+  sp.setProperty(UI_CONFIG_KEY, JSON.stringify(next));
+  return next;
+}
+
+/* ===== 標題 SVG ===== */
+function buildTitleSvg_(cfg){
+  const W = 720, H = 84;
+  const color = cfg.titleColor || '#A68A7C';
+  const text = cfg.titleText || '互動音符';
+  const noteFill = '#9b8bb3';
+  const noteStroke = '#6f6283';
+  const svg = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+    <defs>
+      <filter id="softShadow" x="-20%" y="-50%" width="140%" height="200%">
+        <feOffset dx="0" dy="2"/><feGaussianBlur stdDeviation="3"/>
+        <feColorMatrix type="matrix"
+          values="0 0 0 0 0
+                  0 0 0 0 0
+                  0 0 0 0 0
+                  0 0 0 0.25 0"/>
+        <feBlend in="SourceGraphic" mode="normal"/>
+      </filter>
+    </defs>
+    <g transform="translate(60,42) scale(1.1)" opacity="0.92" filter="url(#softShadow)">
+      <path d="M0,-16 L0,-50 L16,-52 L16,-20 C16,-10 8,-1  -2,2 C-10,4 -18,0 -18,-8 C-18,-16 -10,-20 0,-16 Z"
+            fill="${noteFill}" stroke="${noteStroke}" stroke-width="1.2"/>
+    </g>
+    <g transform="translate(${W-60},42) scale(-1.1,1.1)" opacity="0.92" filter="url(#softShadow)">
+      <path d="M0,-16 L0,-50 L16,-52 L16,-20 C16,-10 8,-1  -2,2 C-10,4 -18,0 -18,-8 C-18,-16 -10,-20 0,-16 Z"
+            fill="${noteFill}" stroke="${noteStroke}" stroke-width="1.2"/>
+    </g>
+    <text x="${W/2}" y="52" text-anchor="middle"
+          style="font:700 44px 'Zen Maru Gothic','Noto Sans TC',sans-serif; fill:${color};
+                 paint-order:stroke; stroke:rgba(0,0,0,.12); stroke-width:1;">
+      ${text}
+    </text>
+  </svg>`;
+  return svg;
+}
+
+/* ===== GET / POST 入口 ===== */
+function doGet(e){
+  const p = e?.parameter || {};
+  const action = String(p.action||'').toLowerCase();
+
+  if(action==='config'){
+    const cfg = getUiConfig_();
+    return json_({ ok:true, widths: cfg.widths, title: { text: cfg.titleText, color: cfg.titleColor } });
+  }
+  if(action==='title_svg'){
+    const svg = buildTitleSvg_(getUiConfig_());
+    return ContentService.createTextOutput(svg).setMimeType(ContentService.MimeType.SVG);
+  }
+  if(action==='status'){
+    const code  = String(p.code || '').trim();
+    const email = normalizeEmail_(p.email);
+    if (!code || !email) return json_({ ok:false, error:'missing_params' });
+    const ss    = SpreadsheetApp.getActive();
+    const locks = getOrCreateLocksSheet_(ss);
+    const used  = hasUsed_(locks, code, email);
+    const sp    = PropertiesService.getScriptProperties();
+    const inflight = !!sp.getProperty('inflight.' + makeKey_(code, email));
+    return json_({ ok:true, status: used ? 'used' : (inflight ? 'inflight' : 'none') });
+  }
+  return text_('ok');
+}
+
+function doPost(e){
+  const params = e?.parameter || {};
+  if ((params.action||'').toLowerCase()==='config_save'){
+    if (params.token !== ADMIN_TOKEN) return json_({ ok:false, error:'unauthorized' });
+    let body={};
+    try{ body = JSON.parse(e?.postData?.contents||'{}'); }catch(_){ return json_({ ok:false, error:'invalid_json' }); }
+    const next = saveUiConfig_(body||{});
+    return json_({ ok:true, widths: next.widths });
+  }
+  return handleFormPost_(e); // 原送單流程
+}
+
+/* ===== 你的送單流程（原封保留 + 快速入表排程） ===== */
+function handleFormPost_(e){
+  const out = (obj) => json_(obj);
+
+  let data = {};
+  try { data = JSON.parse(e?.postData?.contents || '{}'); }
+  catch (_err) { return out({ ok:false, error:'invalid_json' }); }
+
+  const code  = String(data.userId || '').trim();
+  const email = normalizeEmail_(data.email);
+  if (!email) return out({ ok:false, error:'email_required' });
+
+  try { if (!checkEmailDomain_(email)) return out({ ok:false, error:'email_domain_invalid' }); }
+  catch (_e){}
+
+  try{
+    const ss    = SpreadsheetApp.getActive();
+    const logs  = ss.getSheetByName(SHEET_LOGS);
+    if (!logs)  return out({ ok:false, error:'logs_sheet_not_found' });
+    const locks = getOrCreateLocksSheet_(ss);
+
+    const guest = getGuestStatus_(ss, code);
+    const sp    = PropertiesService.getScriptProperties();
+    const key   = makeKey_(code, email);
+    const isInflight = !!sp.getProperty('inflight.' + key);
+    const isUsed     = hasUsed_(locks, code, email);
+    const duplicate  = isInflight || isUsed;
+
+    let error = '';
+    if (duplicate && guest.deadlinePassed)       error = 'duplicate+deadline_passed';
+    else if (duplicate && !guest.exists)         error = 'duplicate+code_not_found';
+    else if (!guest.exists)                      error = 'code_not_found';
+    else if (guest.deadlinePassed)               error = 'deadline_passed';
+    else if (duplicate)                          error = 'duplicate';
+    if (error) return out({ ok:false, error });
+
+    const nowStr = formatNow_();
+    const qid = `${Date.now()}_${Utilities.getUuid().slice(0,8)}`;
+    const payload = {
+      qid, key,
+      row: [
+        nowStr,
+        data.userId || '',
+        data.displayName || '',
+        data.instrument || 'piano',
+        data.note || '',
+        (data.velocity !== undefined && data.velocity !== null) ? data.velocity : '',
+        data.sessionId || ''
+      ],
+      lockRow: [ nowStr, email, code, 'used' ]
+    };
+
+    const lock = LockService.getScriptLock();
+    if (!lock.tryLock(300)) return out({ ok:false, error:'busy' });
+    try{
+      sp.setProperty('q.' + qid, JSON.stringify(payload));
+      sp.setProperty('inflight.' + key, String(Date.now()));
+    } finally { lock.releaseLock(); }
+
+    // 保底每分鐘觸發
+    ensureWorkerTrigger_();
+    // ⏩ 快速入表：排一個「一次性、約 5 秒後」的觸發器，通常 1–5 秒內就會寫入
+    scheduleQuickFlush_(5000);
+
+    return out({ ok:true });
+  }catch(err){
+    Logger.log('doPost error: ' + err);
+    return out({ ok:false, error:'server_error' });
+  }
+}
+
+/* ===== 背景 worker ===== */
+function workerProcessQueue(){
+  const sp   = PropertiesService.getScriptProperties();
+  const all  = sp.getProperties();
+  const qKeys = Object.keys(all).filter(k => k.startsWith('q.'));
+  if (qKeys.length === 0) return;
+
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(20000)) return;
+  try {
+    const ss    = SpreadsheetApp.getActive();
+    const logs  = ss.getSheetByName(SHEET_LOGS);
+    const locks = getOrCreateLocksSheet_(ss);
+    if (!logs) { qKeys.forEach(k => moveToErrorQueue_(k, 'logs_sheet_not_found')); return; }
+
+    for (const qk of qKeys) {
+      const raw = sp.getProperty(qk);
+      if (!raw) continue;
+
+      let item;
+      try { item = JSON.parse(raw); }
+      catch (_e) { moveToErrorQueue_(qk, 'bad_queue_json'); continue; }
+
+      const { qid, key, row, lockRow } = item;
+      const code  = lockRow?.[2] || '';
+      const email = lockRow?.[1] || '';
+
+      if (hasUsed_(locks, code, email)) { cleanupEntry_(qk, key); continue; }
+
+      try { logs.appendRow(row); }
+      catch (e1){ Logger.log('append logs failed: ' + e1); moveToErrorQueue_(qk, 'append_logs_failed'); continue; }
+
+      try { locks.appendRow(lockRow); }
+      catch (e2){ Logger.log('append locks failed: ' + e2); sp.setProperty('qw.' + qid, 'locks_mark_failed@' + new Date().toISOString()); }
+
+      cleanupEntry_(qk, key);
+    }
+  } finally { try{ lock.releaseLock(); }catch(_e){} }
+}
+
+/* ===== 快速入表：一次性觸發器 ===== */
+function scheduleQuickFlush_(delayMs){
+  try{
+    const ms = Math.max(3000, Number(delayMs)||5000);
+    const sp = PropertiesService.getScriptProperties();
+    const last = Number(sp.getProperty('flush.last')||0);
+    const now  = Date.now();
+    // 節流：3 秒內不重複建一次性觸發器
+    if (now - last < 3000) return;
+    ScriptApp.newTrigger('workerProcessQueue').timeBased().after(ms).create();
+    sp.setProperty('flush.last', String(now));
+  }catch(e){ Logger.log('scheduleQuickFlush_ error: ' + e); }
+}
+
+/* ===== 其他工具 ===== */
+function getOrCreateLocksSheet_(ss){
+  let sh = ss.getSheetByName(SHEET_LOCKS);
+  if (!sh) { sh = ss.insertSheet(SHEET_LOCKS); sh.appendRow(['usedAt','email','code','status']); }
+  else {
+    const head = sh.getRange(1,1,1,4).getValues()[0];
+    if ((head[0]+'').toLowerCase()!=='usedat' || (head[1]+'').toLowerCase()!=='email'){
+      sh.getRange(1,1,1,4).setValues([['usedAt','email','code','status']]);
+    }
+  }
+  return sh;
+}
+function hasUsed_(locksSheet, code, email){
+  const lastRow = locksSheet.getLastRow();
+  if (lastRow <= 1) return false;
+  const emailRange = locksSheet.getRange(2,2,lastRow-1,1);
+  const hits = emailRange.createTextFinder(email).findAll();
+  if (!hits || hits.length===0) return false;
+  for (const m of hits){
+    const r = m.getRow();
+    const codeCell   = String(locksSheet.getRange(r,3).getValue()).trim();
+    const statusCell = String(locksSheet.getRange(r,4).getValue()||'').toLowerCase();
+    if (codeCell===code && statusCell!=='revoked') return true;
+  }
+  return false;
+}
+function ensureWorkerTrigger_(){
+  const exists = ScriptApp.getProjectTriggers().some(t => t.getHandlerFunction()==='workerProcessQueue');
+  if (!exists) ScriptApp.newTrigger('workerProcessQueue').timeBased().everyMinutes(1).create();
+}
+function cleanupEntry_(qKey, inflightKey){
+  const sp = PropertiesService.getScriptProperties();
+  try{ sp.deleteProperty(qKey); }catch(_e){}
+  if (inflightKey) try{ sp.deleteProperty('inflight.' + inflightKey); }catch(_e){}
+}
+function moveToErrorQueue_(qKey, reason){
+  try{
+    const sp = PropertiesService.getScriptProperties();
+    const raw = sp.getProperty(qKey); if (!raw) return;
+    const item = JSON.parse(raw);
+    sp.deleteProperty(qKey);
+    sp.setProperty('qe.' + (item?.qid || qKey.slice(2)), reason + '@' + new Date().toISOString());
+    if (item?.key) sp.deleteProperty('inflight.' + item.key);
+  }catch(e){ Logger.log('moveToErrorQueue_ failed for ' + qKey + ': ' + e); }
+}
+
+/* ===== guests / DNS 檢查（保留） ===== */
+function getGuestStatus_(ss, code){
+  const result={ exists:false, deadlinePassed:false };
+  if(!code) return result;
+  const sh=ss.getSheetByName(SHEET_GUESTS); if(!sh) return result;
+  const lastRow=sh.getLastRow(); if(lastRow<2) return result;
+  const rng=sh.getRange(2,3,lastRow-1,3).getValues();
+  let found=null;
+  for (let i=0;i<rng.length;i++){ const c=String(rng[i][0]||'').trim(); if(c===code){ found=rng[i]; break; } }
+  if(!found) return result;
+  result.exists=true;
+  const dl=rng[rng.indexOf(found)][2] || found[2];
+  let deadline=(dl instanceof Date)? dl : new Date(dl);
+  if(isNaN(deadline.getTime())) return result;
+  if(deadline.getHours()===0 && deadline.getMinutes()===0 && deadline.getSeconds()===0){
+    deadline=new Date(deadline.getFullYear(),deadline.getMonth(),deadline.getDate(),23,59,59);
+  }
+  if(new Date().getTime()>deadline.getTime()) result.deadlinePassed=true;
+  return result;
+}
+function checkEmailDomain_(email){
+  const domain = String(email).split('@')[1] || '';
+  if (!domain) return false;
+  const sp = PropertiesService.getScriptProperties();
+  const key='mxcache.'+domain, raw=sp.getProperty(key);
+  const now=Date.now(), TTL=24*60*60*1000;
+  if(raw){
+    const [flag,ts]=raw.split('@');
+    if(Number(ts) && (now-Number(ts)<TTL)) return flag==='1';
+  }
+  const hasMX = hasDnsRecord_(domain,'MX');
+  const ok = hasMX || hasDnsRecord_(domain,'A');
+  sp.setProperty(key,(ok?'1':'0')+'@'+String(now));
+  return ok;
+}
+function hasDnsRecord_(name,type){
+  try{
+    const url='https://dns.google/resolve?name='+encodeURIComponent(name)+'&type='+encodeURIComponent(type);
+    const res=UrlFetchApp.fetch(url,{ muteHttpExceptions:true, followRedirects:true, validateHttpsCertificates:true });
+    const body=JSON.parse(res.getContentText()||'{}');
+    if(body.Status!==0) return false;
+    const answers=body.Answer||[];
+    if(!answers.length) return false;
+    if(type==='MX') return answers.some(a=>Number(a.type)===15);
+    if(type==='A')  return answers.some(a=>Number(a.type)===1);
+    return false;
+  }catch(_){ return false; }
+}
+
+/* ===== 對刪工具：自訂選單 & 同步刪除（以時間戳為 rowId） ===== */
+function onOpen(){
+  try{
+    SpreadsheetApp.getUi()
+      .createMenu('資料一致性')
+      .addItem('刪除選取列（對刪）', 'deleteSelectedRowWithPair_')
+      .addToUi();
+  }catch(e){ Logger.log('onOpen menu error: '+e); }
+}
+
+function deleteSelectedRowWithPair_(){
+  const ss = SpreadsheetApp.getActive();
+  const sh = ss.getActiveSheet();
+  if (!sh) return;
+  const row = sh.getActiveRange().getRow();
+  if (row<=1) return; // 跳過表頭
+  const ts = String(sh.getRange(row,1).getValue()).trim();
+  if (!ts) return;
+  deleteByTimestampPair_(ss, ts);
+}
+
+function deleteByTimestampPair_(ss, ts){
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(20000)) return;
+  try{
+    deleteInSheetByTs_(ss.getSheetByName(SHEET_LOGS), ts);
+    deleteInSheetByTs_(ss.getSheetByName(SHEET_LOCKS), ts);
+  }finally{ try{ lock.releaseLock(); }catch(_e){} }
+}
+
+function deleteInSheetByTs_(sh, ts){
+  if (!sh) return;
+  const last = sh.getLastRow();
+  if (last <= 1) return;
+  const arr = sh.getRange(2,1,last-1,1).getValues().map(r=>String(r[0]).trim());
+  const idx = arr.findIndex(v=>v===ts);
+  if (idx>=0) sh.deleteRow(idx+2);
+}
+```
