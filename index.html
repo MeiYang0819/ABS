@@ -77,7 +77,15 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 
 /* 按鈕 */
 .row select option{text-align:center}
-.row button{ width:120px; cursor:pointer; font-weight:700; }
+.row button{ width:120px; cursor:pointer; font-weight:700; 
+  transition: transform .08s ease, box-shadow .08s ease, filter .08s ease;
+  box-shadow: 0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06);
+}
+.row button:active, .row button.pressed{
+  transform: translateY(1px) scale(.99);
+  box-shadow: 0 1px 0 rgba(0,0,0,.18), 0 1px 4px rgba(0,0,0,.06);
+  filter: brightness(.98);
+}
 .btn-compact{ width:60px !important; }
 .row button:disabled{ opacity:.55; cursor:not-allowed; }
 
@@ -274,7 +282,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
       <p>🔻可選擇鋼琴或吉他中的三個音階</p><p>↓</p>
       <p>🔻三個音階確認後，一定要按鎖定</p><p>↓</p>
       <p>🔻鎖定完成後，會有通知是否成功</p><p>↓</p>
-      <p>🔺若成功即可退出介面；反之再試</p><p>↓</p>
+      <p>🔻若成功即可退出介面；反之再試</p><p>↓</p>
       <p>❗️沒按鎖定就是沒有送出就是彈個寂寞</p>
       <div class="actions"><button id="guideOk" class="primary">了解</button></div>
     </div>
@@ -298,7 +306,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
   <script>
   /* ===== 主程式（邏輯不動） ===== */
-  const WEBHOOK = "https://script.google.com/macros/s/AKfycbx4Ni6-PUEb3KY09Idw3gR421JcGL2Au8KEPiCHAp4xkdkN0cOTnBLmqA3ljBGH3Upa/exec";
+  const WEBHOOK = "https://script.google.com/macros/s/AKfycbwE6cyrXjr4O3lgQ0ev_OBrq1x3_n5c_Xu_O7OTgjATEdgTi_Kq15wXShnWqzc_KQFr/exec";
   const $ = s => document.querySelector(s);
   const setStatus = m => {
     const el = $('#status'); el.textContent = m;
@@ -369,6 +377,16 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     const emailOk = validEmail($('#email').value);
     const notesOk = selectedNotes.length===3;
     $('#lockBtn').disabled = !(nameOk && codeOk && emailOk && notesOk);
+  }
+
+  // 觸覺回饋：按下瞬間給壓下感
+  function attachPressFeedback(){
+    ['#resetBtn','#lockBtn'].forEach(sel=>{
+      const btn = $(sel); if(!btn) return;
+      const press=()=>{ btn.classList.add('pressed'); setTimeout(()=>btn.classList.remove('pressed'), 160); };
+      btn.addEventListener('pointerdown', press);
+      btn.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ press(); }});
+    });
   }
 
   /* === 鋼琴 === */
@@ -537,7 +555,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
       const pre = await getStatusFast(code, email);
       if(pre.ok){
         if(pre.status==='used'){ setStatus('📝 已填寫過囉，想要重新填寫請洽ㄟ咪🙏'); return; }
-        if(pre.status==='inflight'){ setStatus('🕒 資料已在處理中，請勿重複送出呢⛔'); return; }
+        if(pre.status==='inflight'){ setStatus('⏳ 你剛才的資料已在處理中，請勿重複送出'); return; }
       }
     }catch(_e){}
 
@@ -549,12 +567,12 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
       clearTimeout(timer);
       if(r.headers.get('content-type')?.includes('application/json')){
         const data = await r.json();
-        if(data.ok){ setStatus('✅ 已送出成功，可以退安囉'); enterHardLock(); }
+        if(data.ok){ setStatus('✅ 已送出成功，可退出此介面'); enterHardLock(); }
         else{
           let msg='❌ 送出失敗'; const err=String(data.error||'');
           if(err.includes('duplicate+deadline_passed')) msg='📅 您已填寫過囉，重要的是，已過填寫截止日了💔';
           else if(err.includes('duplicate+code_not_found')) msg='🔎 您已填寫過囉，且您輸入的這組代號我找尋不到，我感到萬分抱歉👀';
-          else if(err==='duplicate') msg='📝 已填寫過囉，想要更換音階請洽ㄟ咪🙏';
+          else if(err==='duplicate') msg='📝 已填寫過囉，想要重新填寫請洽ㄟ咪🙏';
           else if(err==='email_required') msg='⚠️ Email缺少或格式不正確，再幫我仔細看看好咪📧';
           else if(err==='email_domain_invalid') msg='🔐 Email網域無法收信，請確認拼字或改用另一個Email，跪求🙇‍♂️';
           else if(err==='deadline_passed') msg='📣 非常抱歉，已過了填寫截止日，但還是可以在這玩耍呢👣';
@@ -563,7 +581,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
           setStatus(msg);
         }
       }else{
-        if(r.ok){ setStatus('✅ 已送出成功，可以退安囉'); enterHardLock(); }
+        if(r.ok){ setStatus('✅ 已送出成功，可退出此介面'); enterHardLock(); }
         else{ setStatus('❌ 送出失敗'); }
       }
     }catch(e){
@@ -571,8 +589,8 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
       try{
         const post = await getStatusFast(code, email);
         if(post.ok){
-          if(post.status==='used'){ setStatus('✅ 已送出成功，可以退安囉'); enterHardLock(); return; }
-          if(post.status==='inflight'){ setStatus('🕒 可能已送達，伺服器處理中，請勿重複送出'); return; }
+          if(post.status==='used'){ setStatus('✅ 已送出成功，可退出此介面'); enterHardLock(); return; }
+          if(post.status==='inflight'){ setStatus('⏳ 可能已送達，伺服器處理中，請勿重複送出'); return; }
         }
       }catch(_e){}
       setStatus('❌ 送出逾時或失敗');
@@ -594,6 +612,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     renderPiano();
     setStatus('等待啟用聲音…');
     validateLockBtn();
+    attachPressFeedback();
     $('#guideOverlay').classList.remove('hidden');
   });
   </script>
