@@ -39,7 +39,7 @@
   text-shadow:0 1px 0 var(--glow);
 }
 
-/* === 全站改為粗體（新增）=== */
+/* === 全站改為粗體（保留你的需求）=== */
 html,body{ margin:0; color:var(--ink); background:var(--brand); font-weight:700; }
 
 /* 只有「操作說明」彈窗維持原樣（不粗體、不描邊） */
@@ -81,28 +81,39 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 .btn-compact{ width:60px !important; }
 .row button:disabled{ opacity:.55; cursor:not-allowed; }
 
-/* 狀態列（新增：同一套字體＋粗體） */
+/* ===== 狀態列（統一用 🎸 已載入 ✅ 的顏色與效果） ===== */
 #status{
-  background:var(--soft); border:1px solid var(--neutral);
-  border-radius:12px; padding:10px; margin-top:10px;
-  font-size:14px; white-space:pre-wrap; color:#6b5e52; text-align:center;
-  font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif;
-  font-weight:700;
+  background: var(--soft);
+  border:1px solid var(--neutral);
+  border-radius:12px;
+  padding:10px; margin-top:10px;
+  font-size:14px; white-space:pre-wrap; text-align:center;
+  color: var(--accent) !important;
+  font-weight: 700;
+  -webkit-text-stroke: .35px rgba(0,0,0,.10);
+  text-shadow:
+    0 1px 0 rgba(255,255,255,.85),
+    0 3px 6px rgba(0,0,0,.04);
 }
-#status.ok{ color:var(--accent); }
-#status.busy{ color:var(--title); }
-#status.err{ color:#8b5e52; }
+#status.ok,#status.busy,#status.err{
+  color: var(--accent) !important;
+  font-weight: 700;
+  -webkit-text-stroke: .35px rgba(0,0,0,.10);
+  text-shadow:
+    0 1px 0 rgba(255,255,255,.85),
+    0 3px 6px rgba(0,0,0,.04);
+}
 
-/* 鍵盤外框：✅ 允許水平卷軸（沿用你可用的版本） */
+/* 鍵盤外框：✅ 需要時可水平卷軸 */
 .kb-wrap{
-  overflow-x:auto;                 /* 需要時出現水平卷軸 */
+  overflow-x:auto;
   -webkit-overflow-scrolling:touch;
   background:var(--soft); border:1px solid var(--rim); border-radius:14px; margin-top:14px;
 }
 #keyboard{
   position:relative; height:var(--kb-h);
   user-select:none; -webkit-user-select:none;
-  touch-action: pan-x pan-y;       /* 不阻擋原生捲動 */
+  touch-action: pan-x pan-y;
 }
 
 /* ===== 鋼琴 ===== */
@@ -148,7 +159,7 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 }
 .string[data-s="2"]{ --sw:2.5px; } .string[data-s="3"]{ --sw:3px; } .string[data-s="4"]{ --sw:3.5px; } .string[data-s="5"]{ --sw:4px; }
 
-/* 琴頭區段也套用繞銅外觀（避免前段看起來只是線條） */
+/* 琴頭區段也套用繞銅外觀 */
 .head-line{ --sw:2px; position:absolute; left:0; width:86px; height:0; z-index:2; border-top: var(--sw) solid transparent; filter:drop-shadow(0 1px 0 rgba(0,0,0,.06)); pointer-events:none; }
 .head-line::before{
   content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5); height: var(--sw);
@@ -180,8 +191,7 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 .overlay{ position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; background:rgba(17,24,39,.35); backdrop-filter:blur(3px); }
 .overlay.hidden{ display:none; }
 .dialog{ min-width:300px; max-width:92vw; background:var(--soft); border:1px solid var(--neutral); border-radius:14px; padding:18px; box-shadow:0 18px 44px rgba(0,0,0,.18); text-align:center; }
-.dialog h3{ margin:0 0 8px; font-size:18px; color:var(--title); }
-/* iPhone 提示仍保留紅色（現在也會粗體，因為全站粗體） */
+.dialog h3{ margin:0 0 8px; font-size:18px; color:#6b5e52; } /* 標題維持可讀 */
 .dialog p.ios-hint{ margin:6px 0; line-height:1.6; font-size:15px; color:#d11; }
 
 .dialog .actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
@@ -191,7 +201,7 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 #lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:transparent; }
 footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
 
-/* =============== 📱手機直向：一組「名稱＋input」一行（新增） =============== */
+/* =============== 📱手機直向：一組「名稱＋input」一行 =============== */
 @media (orientation:portrait){
   .row-line2, .row-line3{ width:100%; gap:12px; }
   .pair{ display:flex; align-items:center; gap:var(--gap); width:100%; }
@@ -207,8 +217,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   #lastNote{ width:var(--w-lastNote-m); }
 }
 
-/* =============== 💻橫向：維持你要的同行排列（預設即符合） =============== */
-/* 不需要額外規則；Email+代號同列、樂器+音符紀錄+按鈕同列 */
+/* 橫向：維持你要的同行排列（預設即符合） */
 </style>
 
 <body>
@@ -219,7 +228,6 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
 
     <!-- 第 1 行：姓名 → Email → 代號 -->
     <div class="row row-line2">
-      <!-- 新增 .pair 只為了排版，不改順序與邏輯 -->
       <div class="pair">
         <label for="displayName">親友姓名：</label>
         <input id="displayName" placeholder="例：張咩揚" />
@@ -422,12 +430,27 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
       const hline=document.createElement('div'); hline.className='head-line'; hline.dataset.s=String(s); hline.style.top=`${y}%`; kb.appendChild(hline);
     }
 
+    // 13 個空格（第 13 空格為雙點，且不發聲）
     for(let f=1; f<=13; f++){
       const col=document.createElement('div'); col.className='fret-col';
 
+      // 六條 hit 區（好按）
       for(let s=0; s<6; s++){
         const y=(s+1)*(100/7);
         const hit=document.createElement('div'); hit.className='hit-row'; hit.style.top=`${y}%`; col.appendChild(hit);
+      }
+
+      // 品位定位點：單點 4/6/8/10；第 13 空格雙點
+      if([4,6,8,10].includes(f)){
+        const dot=document.createElement('div');
+        dot.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#dbc6a4;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.35);pointer-events:none;';
+        col.appendChild(dot);
+      }else if(f===13){
+        const dot1=document.createElement('div');
+        dot1.style.cssText='position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;background:#dbc6a4;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.35);pointer-events:none;';
+        const dot2=document.createElement('div');
+        dot2.style.cssText='position:absolute;left:50%;top:62%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;background:#dbc6a4;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.35);pointer-events:none;';
+        col.appendChild(dot1); col.appendChild(dot2);
       }
 
       col.addEventListener('pointerdown',(ev)=>{
@@ -448,7 +471,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
 
         const target = kb.querySelector(`.string[data-s="${idx}"]`);
         if(target){
-          target.classList.remove('vibrate'); void target.offsetWidth;   // 重新觸發動畫
+          target.classList.remove('vibrate'); void target.offsetWidth;
           target.classList.add('vibrate');
           setTimeout(()=>target.classList.remove('vibrate'), 380);
         }
