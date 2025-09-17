@@ -91,7 +91,7 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 
 /* ===== 狀態列 ===== */
 #status{ background: var(--soft); border:1px solid var(--neutral); border-radius:12px; padding:10px; margin-top:10px; font-size:14px; white-space:pre-wrap; text-align:center; color: var(--accent) !important; font-weight:700; -webkit-text-stroke:.35px rgba(0,0,0,.10); text-shadow:0 1px 0 rgba(255,255,255,.85), 0 3px 6px rgba(0,0,0,.04); }
-#status.ok,#status.busy,#status.err{ color: var(--accent) !important; font-weight:700; -webkit-text-stroke:.35px rgba(0,0,0,.10); text-shadow:0 1px 0 rgba(255,255,255,.85), 0 3px 6px rgba(0,0,0,.04); }
+#status.ok,#status.busy,#status.err{ color: var(--accent) !重要; font-weight:700; -webkit-text-stroke:.35px rgba(0,0,0,.10); text-shadow:0 1px 0 rgba(255,255,255,.85), 0 3px 6px rgba(0,0,0,.04); }
 
 /* 鍵盤外框：✅ 需要時可水平卷軸 */
 .kb-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; background:var(--soft); border:1px solid var(--rim); border-radius:14px; margin-top:14px; }
@@ -99,8 +99,8 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 
 /* ===== 鋼琴樣式 ===== */
 .white{ position:absolute; bottom:0; height:100%; background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5); border-radius:0 0 12px 12px; box-shadow:inset 0 -12px 16px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.9), 0 1px 0 rgba(0,0,0,.04); }
-.white::after{ content:""; position:absolute; top:0; bottom:0; right:0; width:var(--sep); background:linear-gradient(transparent,#cfd3dc 50%,transparent); }
-.white:first-child::before{ content:""; position:absolute; top:0; bottom:0; left:0; width:var(--sep); background:linear-gradient(transparent,#cfd3dc 50%,transparent); }
+.white::after{ content:""; position:absolute; top:0; bottom:0; right:0; width:var(--sep); background:linear-gradient(透明,#cfd3dc 50%,透明); }
+.white:first-child::before{ content:""; position:absolute; top:0; bottom:0; left:0; width:var(--sep); background:linear-gradient(透明,#cfd3dc 50%,透明); }
 .white.active{ filter:brightness(1.06); }
 .black{ position:absolute; bottom:38%; height:62%; background:linear-gradient(#2d2f36,#0e0f13); border:1px solid #0b0d11; border-top:none; border-radius:0 0 10px 10px; z-index:5; box-shadow:inset 0 -6px 10px rgba(0,0,0,.45), 0 3px 10px rgba(0,0,0,.35); transform: translateX(-50%); }
 .black.active{ filter:brightness(1.22); }
@@ -142,7 +142,7 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 .dialog button{ width:120px; height:38px; border-radius:10px; border:1px solid var(--rim); background:#fff; cursor:pointer; font-weight:700; }
 .dialog button.primary{ background:#fff; }
 
-#lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:transparent; }
+#lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:透明; }
 footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
 
 /* =============== 📱手機直向：一組「名稱＋input」一行 =============== */
@@ -236,8 +236,13 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   const WEBHOOK = "https://script.google.com/macros/s/AKfycbzC7peAfpyQvJcxNez9czrCHos64D-FSnVDi-BSVeZXKNQGWs7AIOI7I1s6gy7Vc7fP/exec";
   const $ = s => document.querySelector(s);
 
-  // 更嚴謹 email 檢核（前端）
-  function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((v||'').trim()); }
+  // 更嚴謹 email 檢核（前端）：必須「以英文字母開頭」，可防 00000@gmail.com
+  function validEmail(v){
+    const s = (v||'').trim();
+    // 1) 格式  2) 不允許連續兩個點
+    const ok = /^[A-Za-z][A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(s) && !/\.\./.test(s);
+    return ok;
+  }
 
   const setStatus = m => {
     const el = $('#status'); el.textContent = m;
@@ -456,12 +461,16 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     }catch(_e){}
 
     setStatus('⏳ 送出中…');
+
+    // 只送 instrument（多值以逗號分隔），不再送 instruments，避免被寫入 H 欄
+    const instrumentField =
+      selectedInsts.length ? selectedInsts.join(',') : currentInstrument;
+
     const payload={
       userId:code,
       displayName:name,
-      instrument:currentInstrument,            // 兼容舊欄位
-      instruments:selectedInsts.join(','),     // 🔹 p1,p2,g3
-      note:selectedNotes.join(','),
+      instrument:instrumentField,         // ✅ logs 的 D 欄（instrument）
+      note:selectedNotes.join(','),       // ✅ logs 的 E 欄（note）
       velocity:1,
       sessionId:'demo',
       email
@@ -486,11 +495,17 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
           else if(err==='busy') msg='⚠️ 系統忙碌，請稍後再試，給它進擊的重新整理💋';
           setStatus(msg);
         }
-      }else{ if(r.ok){ setStatus('✅ 已送出成功，可跪安囉'); enterHardLock(); } else{ setStatus('❌ 送出失敗'); } }
+      }else{
+        if(r.ok){ setStatus('✅ 已送出成功，可跪安囉'); enterHardLock(); }
+        else{ setStatus('❌ 送出失敗'); }
+      }
     }catch(e){
       try{
         const post = await getStatusFast(code, email);
-        if(post.ok){ if(post.status==='used'){ setStatus('✅ 已送出成功，可退出此介面'); enterHardLock(); return; } if(post.status==='inflight'){ setStatus('⏳ 可能已送達，伺服器處理中，請勿重複送出'); return; } }
+        if(post.ok){
+          if(post.status==='used'){ setStatus('✅ 已送出成功，可退出此介面'); enterHardLock(); return; }
+          if(post.status==='inflight'){ setStatus('⏳ 可能已送達，伺服器處理中，請勿重複送出'); return; }
+        }
       }catch(_e){}
       setStatus('❌ 送出逾時或失敗');
     }
