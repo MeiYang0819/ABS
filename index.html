@@ -236,13 +236,178 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   const WEBHOOK = "https://script.google.com/macros/s/AKfycbzC7peAfpyQvJcxNez9czrCHos64D-FSnVDi-BSVeZXKNQGWs7AIOI7I1s6gy7Vc7fP/exec";
   const $ = s => document.querySelector(s);
 
-  // 更嚴謹 email 檢核（前端）：必須「以英文字母開頭」，可防 00000@gmail.com
+  >
+  const WEBHOOK="https://script.google.com/macros/s/AKfycbzC7peAfpyQvJcxNez9czrCHos64D-FSnVDi-BSVeZXKNQGWs7AIOI7I1s6gy7Vc7fP/exec";
+  const $=s=>document.querySelector(s);
+
+  // 小型臨時信箱封鎖名單（可自行增減）
+  const DISPOSABLE_DOMAINS=new Set([
+    'mailinator.com','guerrillamail.com','sharklasers.com','10minutemail.com','tempmail.com','tempmail.dev','temp-mail.org',
+    'moakt.com','yopmail.com','throwawaymail.com','trashmail.com','maildrop.cc','dispostable.com','mail-temp.com'
+  ]);
+
+  // 強化 Email 驗證：字母開頭、local 不全數字、無連續兩個特殊符號、網域/TLD 合規、封鎖臨時網域
   function validEmail(v){
-    const s = (v||'').trim();
-    // 1) 格式  2) 不允許連續兩個點
-    const ok = /^[A-Za-z][A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(s) && !/\.\./.test(s);
-    return ok;
+    const s=(v||'').trim();
+    // 快速基本檢查
+    if(!/^[A-Za-z][A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,24}$/.test(s)) return false;
+    if(/\.\./.test(s)) return false;                // 不允許連續兩個點
+    const [local,domain]=s.split('@');
+    if(/^[0-9]+$/.test(local)) return false;        // local 不能全數字
+    if(/[._%+-]$/.test(local)) return false;        // local 不得以符號結尾
+    // 網域 label 規則
+    const labels=domain.split('.');
+    if(labels.some(l=>!l || l.length>63 || /^-/.test(l) || /-$/.test(l))) return false;
+    const tld=labels[labels.length-1];
+    if(!/^[A-Za-z]{2,24}$/.test(tld)) return false; // TLD 僅英文字母
+    // 封鎖臨時網域（含子網域）
+    const domLower=domain.toLowerCase();
+    for(const bad of DISPOSABLE_DOMAINS){
+      if(domLower===bad || domLower.endsWith('.'+bad)) return false;
+    }
+    return true;
   }
+
+  const setStatus=m=>{
+    const el=$('#status'); el.textContent=m;
+    el.classList.remove('ok','busy','err');
+    if(/已載入/.test(m)) el.classList.add('ok');
+    else if(/送出中/.test(m)) el.classList.add('busy');
+    else if(/❌|失敗|逾時|找尋不到|已過|格式不正確|忙碌/.test(m)) el.classList.add('err');
+  };
+
+  let audioCtx=null,sampler=null,samplerReady=false,unlocked=false,hardLocked=false;
+  let currentInstrument='piano';
+  let selectedNotes=[], selectedInsts=[];
+
+  const PIANO_BASE=new URL('./piano/',location.href).href;
+  const GUITAR_BASE=new URL('./guitar/',location.href).href;
+  const PIANO_URLS={'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3','C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3','C4':'C4.mp3','D#4':'Ds4.mp3','F#4':'Fs4.mp3','A4':'A4.mp3','C5':'C5.mp3'};
+  const GUITAR_URLS={'E2':'E2.wav','A2':'A2.wav','D3':'D3.wav','G3':'G3.wav','B3':'B3.wav','E4':'E4.wav'};
+  const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
+  const BLACK_AFTER={C:'C#',D:'D#',F:'F#',G:'G#',A:'A#'};
+  const MIN_WHITE_PX=64,TOTAL_WHITE=WHITE.length;
+  const TUNING_MIDI=[40,45,50,55,59,64];
+  const NOTE_NAMES=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+
+  async function unlockAudio(){
+    try{
+      const Ctx=window.webkitAudioContext||window.AudioContext;
+      if(!audioCtx) audioCtx=new Ctx({latencyHint:'interactive'});
+      if(audioCtx.state!=='running') await audioCtx.resume();
+      Tone.setContext(new Tone.Context(audioCtx)); await Tone.start();
+      loadSampler(currentInstrument); unlocked=true; $('#unlockOverlay').classList.add('hidden');
+    }catch(e){ setStatus('啟用失敗：'+e.message); }
+  }
+  function loadSampler(inst='piano'){
+    sampler?.dispose?.(); sampler=null; samplerReady=false;
+    let urls=PIANO_URLS,base=PIANO_BASE,label='🎹 ';
+    if(inst==='guitar'){ urls=GUITAR_URLS; base=GUITAR_BASE; label='🎸 '; }
+    setStatus(label+'載入中…');
+    sampler=new Tone.Sampler({urls,release:1,baseUrl:base,onload:()=>{samplerReady=true; setStatus(label+'已載入 ✅');}}).toDestination();
+  }
+  function refreshNotesDisplay(){ const parts=[selectedNotes[0]||'—',selectedNotes[1]||'—',selectedNotes[2]||'—']; $('#lastNote').value=parts.join(' , '); }
+  function trigger(note){
+    if(hardLocked) return;
+    if(!samplerReady){ setStatus('音色載入中…'); return; }
+    sampler.triggerAttackRelease(note,'8n');
+    if(selectedNotes.length<3){ selectedNotes.push(note); selectedInsts.push(currentInstrument); }
+    else{ selectedNotes[2]=note; selectedInsts[2]=currentInstrument; }
+    refreshNotesDisplay(); validateLockBtn();
+  }
+  function validateLockBtn(){
+    const nameOk=($('#displayName').value||'').trim().length>0;
+    const codeOk=($('#code').value||'').trim().length>0;
+    const emailOk=validEmail($('#email').value);
+    const notesOk=selectedNotes.length===3;
+    $('#lockBtn').disabled=!(nameOk&&codeOk&&emailOk&&notesOk);
+  }
+
+  function attachPressFeedback(){
+    ['#resetBtn','#lockBtn'].forEach(sel=>{
+      const btn=$(sel); if(!btn) return;
+      const press=()=>{ btn.classList.add('pressed'); setTimeout(()=>btn.classList.remove('pressed'),160); };
+      btn.addEventListener('pointerdown',press);
+      btn.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ press(); }});
+    });
+  }
+
+  function renderPiano(){
+    const kb=$('#keyboard'); kb.innerHTML=''; kb.className=''; sizePiano();
+    const keyW=100/TOTAL_WHITE;
+    WHITE.forEach((note,i)=>{
+      const w=document.createElement('div'); w.className='white'; w.dataset.note=note;
+      w.style.left=(i*keyW)+'%'; w.style.width=keyW+'%';
+      if(note[0]==='C'||note[0]==='G'){ const lab=document.createElement('div'); lab.className='label'; lab.textContent=note; w.appendChild(lab); }
+      w.addEventListener('pointerdown',()=>{ if(hardLocked) return; if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; } trigger(note); w.classList.add('active'); });
+      w.addEventListener('pointerup',()=>w.classList.remove('active')); kb.appendChild(w);
+    });
+    WHITE.forEach((note,i)=>{
+      const l=note[0],sharp=BLACK_AFTER[l]?(BLACK_AFTER[l]+note.slice(1)):null;
+      if(!sharp||(l==='A'&&i===TOTAL_WHITE-1)) return;
+      const b=document.createElement('div'); b.className='black'; b.dataset.note=sharp;
+      const blackWidthPct=keyW*0.62; b.style.width=blackWidthPct+'%'; b.style.left=((i+1)*keyW)+'%';
+      b.addEventListener('pointerdown',()=>{ if(hardLocked) return; if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; } trigger(sharp); b.classList.add('active'); });
+      b.addEventListener('pointerup',()=>b.classList.remove('active')); kb.appendChild(b);
+    });
+  }
+  function sizePiano(){
+    const wrap=document.querySelector('.kb-wrap'), kb=document.querySelector('#keyboard');
+    const wrapW=wrap.clientWidth; const sep=parseInt(getComputedStyle(kb).getPropertyValue('--sep')||'2',10);
+    const minW=WHITE.length*(MIN_WHITE_PX+sep); kb.style.width=(wrapW>=minW?wrapW-1:minW)+'px'; kb.style.height='var(--kb-h)';
+  }
+
+  function renderGuitar(){
+    const kb=$('#keyboard'); kb.innerHTML=''; kb.className='fretboard'; kb.style.height='var(--kb-h)';
+    const head=document.createElement('div'); head.className='head'; kb.appendChild(head);
+    const nut=document.createElement('div'); nut.className='nut'; kb.appendChild(nut);
+    const bridge=document.createElement('div'); bridge.className='bridge'; kb.appendChild(bridge);
+    for(let s=0;s<6;s++){
+      const y=(s+1)*(100/7);
+      const str=document.createElement('div'); str.className='string'; str.dataset.s=String(s); str.style.top=`${y}%`; kb.appendChild(str);
+      const hline=document.createElement('div'); hline.className='head-line'; hline.dataset.s=String(s); hline.style.top=`${y}%`; kb.appendChild(hline);
+    }
+    for(let f=1; f<=13; f++){
+      const col=document.createElement('div'); col.className='fret-col';
+      for(let s=0; s<6; s++){
+        const y=(s+1)*(100/7);
+        const hit=document.createElement('div'); hit.className='hit-row'; hit.style.top=`${y}%`; col.appendChild(hit);
+      }
+      if([4,6,8,10].includes(f)){
+        const dot=document.createElement('div'); dot.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#dbc6a4;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.35);pointer-events:none;'; col.appendChild(dot);
+      }else if(f===13){
+        const d1=document.createElement('div'); const d2=document.createElement('div');
+        d1.style.cssText='position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;background:#dbc6a4;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.35);pointer-events:none;';
+        d2.style.cssText='position:absolute;left:50%;top:62%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;background:#dbc6a4;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.35);pointer-events:none;';
+        col.appendChild(d1); col.appendChild(d2);
+      }
+      col.addEventListener('pointerdown',(ev)=>{
+        if(hardLocked) return; if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; }
+        const rect=col.getBoundingClientRect(); const y=ev.clientY-rect.top; const slot=rect.height/7;
+        let idx=Math.round(y/slot-1); idx=Math.max(0,Math.min(5,idx));
+        if(f<=12){ const midi=TUNING_MIDI[5-idx]+f; const note=NOTE_NAMES[midi%12]+(Math.floor(midi/12)-1); trigger(note); }
+        const target=kb.querySelector(`.string[data-s="${idx}"]`);
+        if(target){ target.classList.remove('vibrate'); void target.offsetWidth; target.classList.add('vibrate'); setTimeout(()=>target.classList.remove('vibrate'),380); }
+      });
+      kb.appendChild(col);
+    }
+  }
+
+  async function getStatusFast(code,email,signal){
+    try{
+      const url=WEBHOOK+'?action=status&code='+encodeURIComponent(code)+'&email='+encodeURIComponent(email);
+      const r=await fetch(url,{method:'GET',cache:'no-store',signal}); if(!r.ok) return {ok:false};
+      const j=await r.json(); return {ok:true,status:j.status||'none'};
+    }catch(_){ return {ok:false}; }
+  }
+
+  $('#instrument').addEventListener('change',()=>{ if(hardLocked) return; currentInstrument=$('#instrument').value; loadSampler(currentInstrument); if(currentInstrument==='guitar') renderGuitar(); else renderPiano(); validateLockBtn(); });
+  $('#displayName').addEventListener('input',validateLockBtn);
+  $('#code').addEventListener('input',validateLockBtn);
+  $('#email').addEventListener('input',validateLockBtn);
+
+  $('#resetBtn').addEventListener('click',()=>{ if(hardLocked) return; if(selectedNotes.length>0){ selectedNotes.pop(); selectedInsts.pop(); refreshNotesDisplay(); validateLockBtn(); }});
+  $('#guideOk').addEventListener('click',()=>{ $('#guideOverlay').classList.add('hidden'); $('#unlockOverlay
 
   const setStatus = m => {
     const el = $('#status'); el.textContent = m;
@@ -532,3 +697,4 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   </script>
 </body>
 </html>
+
