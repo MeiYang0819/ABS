@@ -62,38 +62,38 @@ html,body{ margin:0; color:var(--ink); background:var(--brand); font-weight:700;
     0 6px 14px rgba(0,0,0,.08);
 }
 
-/* === 鎖定旁提示小框（與鎖定並排）=== */
+/* === 鎖定旁提示小框（與鎖定並排；高度同 input）=== */
 .hint-bubble{
-  display:inline-flex;            /* 和按鈕同列 */
-  align-items:flex-start;
-  gap:6px;
-  padding:8px 10px;
+  display:inline-flex;
+  align-items:center;
+  height:38px;                     /* 高度=input */
+  padding:0 12px;                   /* 單行膠囊 */
   border:1px solid var(--rim);
   border-radius:10px;
   background:#fff;
-  font-size:12px;                 /* 小一點的字 */
-  line-height:1.45;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.8),
-              0 2px 6px rgba(0,0,0,.10);  /* 淺淺的立體感 */
-  max-width: 350px;               /* 不要暴長 */
-  white-space:normal;
+  font-size:12px;                   /* 字小一點 */
+  line-height:1;                    /* 單行 */
+  white-space:nowrap;               /* 不換行 */
+  max-width:360px;                  /* 想更寬可再調 */
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.85),
+    0 2px 6px rgba(0,0,0,.10);
 }
 
-/* 讓「重設」「鎖定」「提示小框」自然同排排列 */
+/* 讓「重設」「鎖定」「提示小框」穩定同一行 */
 .actions-inline{
   display:flex;
   align-items:center;
   gap: var(--gap);
-  flex-wrap: nowrap;              /* 儘量同一行 */
+  flex-wrap: nowrap;                /* 不換行 */
 }
 
-/* 手機直向：保留同一行；若寬度不夠會在這一組裡換行，不會把提示丟到下一列去 */
-@media (orientation:portrait){
-  .row-line3 .actions-inline{
-    flex: 0 0 auto;               /* 不再強制 100% 佔滿一整行 */
-    flex-wrap: wrap;              /* 空間不足時在這組內換行 */
-  }
+/* 狀態列維持全寬（保險補一條，避免受外層影響） */
+#status{
+  display:block;
+  width:100%;
 }
+
 
 /* 只有「操作說明」彈窗維持原樣（不粗體、不描邊） */
 #guideOverlay .dialog, #guideOverlay .dialog *{
@@ -309,8 +309,8 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
       <div class="actions-inline">
   <button id="resetBtn" type="button" class="btn-compact">重設</button>
   <button id="lockBtn"  type="button" class="btn-compact" disabled>鎖定</button>
-  <div class="hint-bubble" aria-live="polite">
-  <!-- 鎖定旁提示小框（字體較小、含淡陰影） -->
+
+  <!-- 單行提示膠囊，高度=38px，與鎖定並排 -->
   <div class="hint-bubble" aria-hidden="true">
     按下「鎖定」後，請稍候片刻⚠️<br>
     因為偶很廉價，所以跑比較慢ಠ_ಠ<br>
@@ -693,6 +693,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   </script>
 </body>
 </html>
+
 
 
 
