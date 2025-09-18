@@ -78,6 +78,11 @@ html,body{ margin:0; color:var(--ink); background:var(--brand); font-weight:700;
   max-width: 240px;           /* 可自行調整寬度 */
 }
 
+  /* 手機直向：讓小框框自動換行到下一列 */
+@media (orientation:portrait){
+  .hint-bubble{ max-width: 100%; }
+}
+
 /* 只有「操作說明」彈窗維持原樣（不粗體、不描邊） */
 #guideOverlay .dialog, #guideOverlay .dialog *{
   font-weight:500 !important;
@@ -240,11 +245,6 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   .row-line2 .pair, .row-line3 .pair, .row-line3 .actions-inline{ flex: 0 0 100%; }
   .align-to-email{ margin-left:0 !important; }
   #lastNote{ width:var(--w-lastNote-m); }
-}
-
-/* 手機直向：讓小框框自動換行到下一列 */
-@media (orientation:portrait){
-  .hint-bubble{ max-width: 100%; }
 }
 
 </style>
@@ -670,5 +670,6 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   </script>
 </body>
 </html>
+
 
 
