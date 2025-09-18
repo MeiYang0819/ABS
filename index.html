@@ -13,7 +13,7 @@
   --title:#A68A7C;
   --neutral:#E4E4E4;
   --soft:#F5F1EC;
-  --accent:#BFA5A0; /* 提亮色 */
+  --accent:#BFA5A0; /* 提亮色（暖玫瑰灰） */
   --rim:#E4E4E4;
   --ink:#0f172a;
 
@@ -81,7 +81,7 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 .btn-compact{ width:60px !important; } /* 供「重設/鎖定」使用 */
 
 /* NEW: 說明按鈕（請點我）可自訂寬度，維持同高度 */
-#hintBtn{ width: var(--w-hintbtn) !important; }
+#hintBtn{ width: var(--w-hintbtn) !important; white-space:nowrap; } /* ← 防止🥺被擠到下一行 */
 
 /* 互動狀態 */
 .row button:disabled{ opacity:.55; cursor:not-allowed; }
@@ -102,7 +102,7 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 /* === NEW: 備註小浮層（與鎖定同排，按鈕點擊後顯示） === */
 .actions-inline{ display:flex; gap:var(--gap); position:relative; } /* 不改既有排版，只加定位 */
 .hint-popover{
-  position:absolute; right:0; top:44px; /* 按鈕下方（桌機） */
+  position:absolute; right:0; top:44px; /* 桌機：按鈕下方 */
   z-index:50;
   max-width: 520px; min-width: 260px;
   padding:10px 12px;
@@ -112,7 +112,7 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
   display:none; white-space:normal;
 }
 .hint-popover.show{ display:block; }
-/* 小箭頭（桌機用） */
+/* 小箭頭（桌機：朝下） */
 .hint-popover::before{
   content:""; position:absolute; right:24px; top:-8px;
   width:0; height:0; border-left:8px solid transparent; border-right:8px solid transparent; border-bottom:8px solid var(--accent);
@@ -177,24 +177,7 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 
 footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
 
-/* === 手機（直向＋橫向）把浮層固定在底部置中，避免偏移 === */
-@media (max-width: 860px){
-  .hint-popover{
-    position: fixed !important;
-    left: 50% !important;
-    right: auto !important;
-    top: auto !important;
-    bottom: calc(env(safe-area-inset-bottom) + 16px) !important;
-    transform: translateX(-50%);
-    max-width: min(680px, 92vw);
-    min-width: auto;
-    padding: 12px 16px;
-  }
-  /* 底部版不需要箭頭，避免歪掉 */
-  .hint-popover::before, .hint-popover::after{ display:none !important; }
-}
-
-/* === 手機直向（原有設定保留）=== */
+/* === 手機直向（偶爾會改）=== */
 @media (orientation:portrait){
   .row-line2, .row-line3{ width:100%; gap:12px; }
   .pair{ display:flex; align-items:center; gap:var(--gap); width:100%; }
@@ -202,6 +185,24 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   .row-line2 .pair, .row-line3 .pair, .row-line3 .actions-inline{ flex: 0 0 100%; }
   .align-to-email{ margin-left:0 !important; }
   #lastNote{ width:var(--w-lastNote-m); }
+
+  /* 直向：浮層固定在視窗底部置中，避免被鋼琴推到看不到 */
+  .hint-popover{
+    position:fixed;
+    left:50%; right:auto; top:auto; bottom: calc(16px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    max-width: min(92vw, 520px);
+    z-index: 9990;
+  }
+  /* 直向：箭頭朝上 */
+  .hint-popover::before{
+    right:auto; left:50%; top:auto; bottom:-8px; transform:translateX(-50%);
+    border-left:8px solid transparent; border-right:8px solid transparent; border-top:8px solid var(--accent); border-bottom:none;
+  }
+  .hint-popover::after{
+    right:auto; left:50%; top:auto; bottom:-7px; transform:translateX(-50%);
+    border-left:7px solid transparent; border-right:7px solid transparent; border-top:7px solid #fff; border-bottom:none;
+  }
 }
 </style>
 
@@ -247,7 +248,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
         <button id="lockBtn" type="button" class="btn-compact" disabled>鎖定</button>
         <!-- NEW：與鎖定同排的說明觸發按鈕（可自訂寬度） -->
         <button id="hintBtn" type="button" class="btn-compact" aria-expanded="false" aria-controls="hintPopover" title="點我查看備註">💡先點我查看好咪🥺</button>
-        <!-- NEW：備註小浮層（固定兩行） -->
+        <!-- NEW：備註小浮層（兩行固定斷句） -->
         <div id="hintPopover" class="hint-popover" role="note" aria-live="polite">
           按「鎖定」後請稍候，本人有缺陷導致速度較慢🥲<br>
           確認送出成功，下方「狀態列」會立即通知您溜🎉
