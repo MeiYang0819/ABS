@@ -6,40 +6,42 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+
 <style>
-/* ===== 調色盤與尺寸（欄位寬度可在這裡改） ===== */
+/* === 站內配色與欄寬（最常改）=== */
+/* 可自行調整：直接改變色碼或數值即可 */
 :root{
-  --brand:#D4BFAA;   /* 主色：整頁底色 */
-  --title:#A68A7C;   /* 標題字色 */
-  --neutral:#E4E4E4; /* 區塊背景 */
-  --soft:#F5F1EC;    /* 內頁/容器底 */
-  --accent:#BFA5A0;  /* 提亮色（載入完成） */
-  --rim:#E4E4E4;
-  --ink:#0f172a;
+  --brand:#D4BFAA;   /* 主色：整頁底色｜可自行調整 */
+  --title:#A68A7C;   /* 標題字色｜可自行調整 */
+  --neutral:#E4E4E4; /* 區塊背景｜可自行調整 */
+  --soft:#F5F1EC;    /* 內頁/容器底｜可自行調整 */
+  --accent:#BFA5A0;  /* 提亮色（狀態列）｜可自行調整 */
+  --rim:#E4E4E4;     /* 邊框色｜可自行調整 */
+  --ink:#0f172a;     /* 內文字色｜可自行調整 */
 
-  --w-displayName: 96px;   /* 親友姓名 input */
-  --w-email:      261px;   /* 電子郵件 input */
-  --w-code:        96px;   /* 取得代號 input */
-  --w-instrument:  96px;   /* 樂器轉換 select */
-  --w-lastNote:   125px;   /* 音符紀錄 input（桌機） */
-  --w-lastNote-m: 160px;   /* 音符紀錄 input（手機直向，可調） */
+  /* 欄位寬度（桌機） */
+  --w-displayName: 96px;   /* 親友姓名 input｜可自行調整 */
+  --w-email:      261px;   /* 電子郵件 input｜可自行調整 */
+  --w-code:        96px;   /* 取得代號 input｜可自行調整 */
+  --w-instrument:  96px;   /* 樂器轉換 select｜可自行調整 */
+  --w-lastNote:   125px;   /* 音符紀錄 input（桌機）｜可自行調整 */
+  --w-lastNote-m: 160px;   /* 音符紀錄 input（手機直向）｜可自行調整 */
 
-  --label-w:88px;          /* 統一每個 label 的寬度，確保左緣對齊 */
-  --gap:10px;              /* 兩個項目間的水平間距 */
-  --kb-h:280px;            /* 樂器區高度 */
-  --sep:2px;
+  --label-w:88px;  /* 每個 label 的寬度，確保左緣對齊｜可自行調整 */
+  --gap:10px;      /* 項目間水平間距｜可自行調整 */
+  --kb-h:280px;    /* 樂器區高度｜可自行調整 */
+  --sep:2px;       /* 白鍵之間的分隔線寬｜可自行調整 */
   --stroke:rgba(0,0,0,.18);
   --glow:rgba(255,255,255,.65);
 }
 
+/* === 全站字體與粗細（常改）=== */
 *{
   box-sizing:border-box;
   font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif !important;
   -webkit-text-stroke:.35px var(--stroke);
   text-shadow:0 1px 0 var(--glow);
 }
-
-/* === 全站改為粗體（保留你的需求）=== */
 html,body{ margin:0; color:var(--ink); background:var(--brand); font-weight:700; }
 
 /* 只有「操作說明」彈窗維持原樣（不粗體、不描邊） */
@@ -49,20 +51,19 @@ html,body{ margin:0; color:var(--ink); background:var(--brand); font-weight:700;
   text-shadow:none !important;
 }
 
+/* === 版面容器（次常改）=== */
 .bg-notes{ position:fixed; inset:0; width:100%; height:100%; object-fit:cover; opacity:.60; mix-blend-mode:multiply; filter:contrast(1.1); pointer-events:none; z-index:0; }
-
-/* 容器 */
 .panel{ position:relative; z-index:1; max-width:1060px; margin:22px auto; background:var(--neutral); border:1px solid var(--neutral); border-radius:16px; padding:18px 18px 26px; box-shadow:0 10px 26px rgba(0,0,0,.10); backdrop-filter:blur(8px) saturate(115%); }
 
-/* 標題 */
+/* === 標題（次常改）=== */
 h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; letter-spacing:1px; color:var(--title); -webkit-text-stroke:.6px rgba(0,0,0,.12); text-shadow:0 3px 4px rgba(255,255,255,.75); }
 
-/* 控制列 */
+/* === 表單列（常改）=== */
 .row{ display:flex; gap:var(--gap); align-items:center; flex-wrap:wrap; margin-top:10px; }
 .row label{ width:var(--label-w); opacity:.92; white-space:nowrap; font-weight:700; -webkit-text-stroke:0; text-shadow:none; }
 .row input,.row select,.row button{ height:38px; font-size:14px; background:#fff; padding:8px 10px; border:1px solid var(--rim); border-radius:10px; -webkit-text-stroke:.25px rgba(0,0,0,.12); text-shadow:0 1px 0 rgba(255,255,255,.5); }
 
-/* 欄位寬度 */
+/* 欄位寬度（常改）*/
 #displayName{ width:var(--w-displayName); }
 #email{       width:var(--w-email); }
 #code{        width:var(--w-code); }
@@ -70,14 +71,14 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 #lastNote{    width:var(--w-lastNote); text-align:center; letter-spacing:.3px; }
 #lastNote::placeholder{ text-align:center; }
 
-/* 「音符紀錄」與上方「電子郵件」左緣對齊（桌機用） */
+/* 「音符紀錄」與上方「電子郵件」左緣對齊（桌機） */
 @media (min-width: 861px){
   .align-to-email{ margin-left: calc(var(--w-displayName) - var(--w-instrument)); }
 }
 
-/* 按鈕 */
+/* === 按鈕（常改）=== */
 .row select option{text-align:center}
-.row button{ width:120px; cursor:pointer; font-weight:700; 
+.row button{ width:120px; cursor:pointer; font-weight:700;
   transition: transform .08s ease, box-shadow .08s ease, filter .08s ease;
   box-shadow: 0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06);
 }
@@ -89,63 +90,115 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
   filter: brightness(.98);
 }
 
-/* ===== 狀態列 ===== */
-#status{ background: var(--soft); border:1px solid var(--neutral); border-radius:12px; padding:10px; margin-top:10px; font-size:14px; white-space:pre-wrap; text-align:center; color: var(--accent) !important; font-weight:700; -webkit-text-stroke:.35px rgba(0,0,0,.10); text-shadow:0 1px 0 rgba(255,255,255,.85), 0 3px 6px rgba(0,0,0,.04); }
-#status.ok,#status.busy,#status.err{ color: var(--accent) !重要; font-weight:700; -webkit-text-stroke:.35px rgba(0,0,0,.10); text-shadow:0 1px 0 rgba(255,255,255,.85), 0 3px 6px rgba(0,0,0,.04); }
+/* === 狀態列（常改）=== */
+#status{
+  background: var(--soft); border:1px solid var(--neutral); border-radius:12px;
+  padding:10px; margin-top:10px; font-size:14px; white-space:pre-wrap; text-align:center;
+  color: var(--accent) !important; font-weight:700; -webkit-text-stroke:.35px rgba(0,0,0,.10);
+  text-shadow:0 1px 0 rgba(255,255,255,.85), 0 3px 6px rgba(0,0,0,.04);
+}
+#status.ok,#status.busy,#status.err{
+  color: var(--accent) !important; font-weight:700; -webkit-text-stroke:.35px rgba(0,0,0,.10);
+  text-shadow:0 1px 0 rgba(255,255,255,.85), 0 3px 6px rgba(0,0,0,.04);
+}
 
-/* 鍵盤外框：✅ 需要時可水平卷軸 */
+/* === 鍵盤容器（次常改）=== */
 .kb-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; background:var(--soft); border:1px solid var(--rim); border-radius:14px; margin-top:14px; }
 #keyboard{ position:relative; height:var(--kb-h); user-select:none; -webkit-user-select:none; touch-action: pan-x pan-y; }
 
-/* ===== 鋼琴樣式 ===== */
-.white{ position:absolute; bottom:0; height:100%; background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5); border-radius:0 0 12px 12px; box-shadow:inset 0 -12px 16px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.9), 0 1px 0 rgba(0,0,0,.04); }
-.white::after{ content:""; position:absolute; top:0; bottom:0; right:0; width:var(--sep); background:linear-gradient(透明,#cfd3dc 50%,透明); }
-.white:first-child::before{ content:""; position:absolute; top:0; bottom:0; left:0; width:var(--sep); background:linear-gradient(透明,#cfd3dc 50%,透明); }
+/* === 鋼琴樣式（幾乎不改）=== */
+.white{ position:absolute; bottom:0; height:100%;
+  background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5);
+  border-radius:0 0 12px 12px;
+  box-shadow:inset 0 -12px 16px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.9), 0 1px 0 rgba(0,0,0,.04);
+}
+.white::after{ content:""; position:absolute; top:0; bottom:0; right:0; width:var(--sep); background:linear-gradient(transparent,#cfd3dc 50%,transparent); }
+.white:first-child::before{ content:""; position:absolute; top:0; bottom:0; left:0; width:var(--sep); background:linear-gradient(transparent,#cfd3dc 50%,transparent); }
 .white.active{ filter:brightness(1.06); }
-.black{ position:absolute; bottom:38%; height:62%; background:linear-gradient(#2d2f36,#0e0f13); border:1px solid #0b0d11; border-top:none; border-radius:0 0 10px 10px; z-index:5; box-shadow:inset 0 -6px 10px rgba(0,0,0,.45), 0 3px 10px rgba(0,0,0,.35); transform: translateX(-50%); }
+.black{ position:absolute; bottom:38%; height:62%;
+  background:linear-gradient(#2d2f36,#0e0f13); border:1px solid #0b0d11; border-top:none;
+  border-radius:0 0 10px 10px; z-index:5; box-shadow:inset 0 -6px 10px rgba(0,0,0,.45), 0 3px 10px rgba(0,0,0,.35);
+  transform: translateX(-50%);
+}
 .black.active{ filter:brightness(1.22); }
-.label{ position:absolute; bottom:12px; left:50%; transform:translateX(-50%); font-size:11px; color:#475569; background:#ffffffee; border:1px solid var(--rim); padding:2px 6px; border-radius:8px; }
 
-/* ===== 吉他（繞銅弦 + 震動保留） ===== */
-.fretboard{ position:relative; display:grid; grid-template-columns: repeat(13, 1fr); width:100%; height:var(--kb-h); background:linear-gradient(180deg,#6b4f2e 0%, #5b4429 50%, #533c24 100%); border-radius:12px; box-shadow:inset 0 10px 20px rgba(0,0,0,.25), inset 0 -8px 16px rgba(0,0,0,.2); }
-.head{ position:absolute; left:0; top:0; bottom:0; width:86px; z-index:2; background:linear-gradient(180deg, rgba(0,0,0,.12), transparent 40%),linear-gradient(180deg,#7a5534 0%, #6b4f2e 55%, #5a3f24 100%); box-shadow: inset -8px 0 16px rgba(0,0,0,.18); border-radius:12px 0 0 12px; pointer-events:none; }
-.nut{ position:absolute; left:86px; top:0; bottom:0; width:8px; z-index:3; background:linear-gradient(180deg,#e5e1d6,#c9c5ba); box-shadow: inset -1px 0 0 rgba(0,0,0,.35), inset 1px 0 0 rgba(255,255,255,.6); border-right:2px solid rgba(120,120,120,.5); pointer-events:none; }
-.bridge{ position:absolute; right:0; top:0; bottom:0; width:10px; z-index:2; background:linear-gradient(180deg,#b9b6ad,#8f8c83); box-shadow: inset 1px 0 0 rgba(255,255,255,.5), inset -1px 0 0 rgba(0,0,0,.25); pointer-events:none; border-left:1px solid rgba(0,0,0,.18); }
-.fret-col{ position:relative; background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02)); box-shadow: inset -2px 0 0 rgba(255,255,255,.18), inset -4px 0 0 rgba(0,0,0,.28); }
+/* === 吉他樣式（幾乎不改）=== */
+.fretboard{ position:relative; display:grid; grid-template-columns: repeat(13, 1fr);
+  width:100%; height:var(--kb-h);
+  background:linear-gradient(180deg,#6b4f2e 0%, #5b4429 50%, #533c24 100%);
+  border-radius:12px; box-shadow:inset 0 10px 20px rgba(0,0,0,.25), inset 0 -8px 16px rgba(0,0,0,.2);
+}
+.head{ position:absolute; left:0; top:0; bottom:0; width:86px; z-index:2;
+  background:linear-gradient(180deg, rgba(0,0,0,.12), transparent 40%),linear-gradient(180deg,#7a5534 0%, #6b4f2e 55%, #5a3f24 100%);
+  box-shadow: inset -8px 0 16px rgba(0,0,0,.18); border-radius:12px 0 0 12px; pointer-events:none;
+}
+.nut{ position:absolute; left:86px; top:0; bottom:0; width:8px; z-index:3;
+  background:linear-gradient(180deg,#e5e1d6,#c9c5ba);
+  box-shadow: inset -1px 0 0 rgba(0,0,0,.35), inset 1px 0 0 rgba(255,255,255,.6); border-right:2px solid rgba(120,120,120,.5);
+  pointer-events:none;
+}
+.bridge{ position:absolute; right:0; top:0; bottom:0; width:10px; z-index:2;
+  background:linear-gradient(180deg,#b9b6ad,#8f8c83);
+  box-shadow: inset 1px 0 0 rgba(255,255,255,.5), inset -1px 0 0 rgba(0,0,0,.25);
+  pointer-events:none; border-left:1px solid rgba(0,0,0,.18);
+}
+.fret-col{
+  position:relative; background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  box-shadow: inset -2px 0 0 rgba(255,255,255,.18), inset -4px 0 0 rgba(0,0,0,.28);
+}
 
-/* 弦繞紋與高光（保留） */
-.string{ --sw:2px; position:absolute; left:94px; right:0; height:0; z-index:3; border-top: var(--sw) solid transparent; transform-origin:center; filter:drop-shadow(0 1px 0 rgba(0,0,0,.18)); background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.45) 50%, rgba(255,255,255,0) 100%); background-size:160px 1px; background-repeat:no-repeat; background-position:-160px 0; }
-.string::before{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5); height: var(--sw); background: repeating-linear-gradient(90deg, #caa56b 0 2.4px, #906a3d 2.4px 3.1px), repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 2.4px, rgba(0,0,0,.10) 2.4px 3.1px), linear-gradient(180deg, rgba(255,255,255,.70), rgba(255,255,255,.15) 55%, rgba(0,0,0,.18) 100%); border-radius:999px; opacity:.98; pointer-events:none; }
-.string::after{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5 + 0.2px); height: calc(var(--sw) * .25); background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0)); pointer-events:none; border-radius:999px; opacity:.9; }
+/* 弦繞紋與高光（幾乎不改）*/
+.string{ --sw:2px; position:absolute; left:94px; right:0; height:0; z-index:3; border-top: var(--sw) solid transparent; transform-origin:center; filter:drop-shadow(0 1px 0 rgba(0,0,0,.18));
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.45) 50%, rgba(255,255,255,0) 100%);
+  background-size:160px 1px; background-repeat:no-repeat; background-position:-160px 0;
+}
+.string::before{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5); height: var(--sw);
+  background: repeating-linear-gradient(90deg, #caa56b 0 2.4px, #906a3d 2.4px 3.1px),
+              repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 2.4px, rgba(0,0,0,.10) 2.4px 3.1px),
+              linear-gradient(180deg, rgba(255,255,255,.70), rgba(255,255,255,.15) 55%, rgba(0,0,0,.18) 100%);
+  border-radius:999px; opacity:.98; pointer-events:none;
+}
+.string::after{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5 + 0.2px); height: calc(var(--sw) * .25);
+  background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0));
+  pointer-events:none; border-radius:999px; opacity:.9;
+}
 .string[data-s="2"]{ --sw:2.5px; } .string[data-s="3"]{ --sw:3px; } .string[data-s="4"]{ --sw:3.5px; } .string[data-s="5"]{ --sw:4px; }
 
 .head-line{ --sw:2px; position:absolute; left:0; width:86px; height:0; z-index:2; border-top: var(--sw) solid transparent; filter:drop-shadow(0 1px 0 rgba(0,0,0,.06)); pointer-events:none; }
-.head-line::before{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5); height: var(--sw); background: repeating-linear-gradient(90deg, #caa56b 0 2.4px, #906a3d 2.4px 3.1px), repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 2.4px, rgba(0,0,0,.10) 2.4px 3.1px), linear-gradient(180deg, rgba(255,255,255,.70), rgba(255,255,255,.15) 55%, rgba(0,0,0,.18) 100%); border-radius:999px; opacity:.98; }
-.head-line::after{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5 + 0.2px); height: calc(var(--sw) * .25); background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0)); border-radius:999px; opacity:.9; }
+.head-line::before{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5); height: var(--sw);
+  background: repeating-linear-gradient(90deg, #caa56b 0 2.4px, #906a3d 2.4px 3.1px),
+              repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 2.4px, rgba(0,0,0,.10) 2.4px 3.1px),
+              linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0));
+  border-radius:999px; opacity:.98;
+}
+.head-line::after{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5 + 0.2px); height: calc(var(--sw) * .25);
+  background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0));
+  border-radius:999px; opacity:.9;
+}
 .head-line[data-s="2"]{ --sw:2.5px; } .head-line[data-s="3"]{ --sw:3px; } .head-line[data-s="4"]{ --sw:3.5px; } .head-line[data-s="5"]{ --sw:4px; }
 
-/* 觸控區與震動動畫 */
+/* 觸控區與震動動畫（幾乎不改） */
 .hit-row{ position:absolute; left:0; right:0; height:28px; transform:translateY(-50%); background:transparent; cursor:pointer; z-index:4; }
 @media (pointer:coarse){ .hit-row{ height:34px; } }
 .string.vibrate{ animation: vibrCurve 360ms ease-out, shine 360ms ease-out; }
 @keyframes vibrCurve{ 0%{transform:translateY(0)} 10%{transform:translateY(-3.2px)} 20%{transform:translateY(0)} 30%{transform:translateY(2.6px)} 45%{transform:translateY(0)} 60%{transform:translateY(-1.8px)} 75%{transform:translateY(0.6px)} 100%{transform:translateY(0)} }
 @keyframes shine{ 0%{ background-position:-160px 0; opacity:.95 } 100%{ background-position:160px 0; opacity:.96 } }
 
-/* Overlay */
+/* === Overlay（兩個彈跳視窗樣式，偶爾會改）=== */
 .overlay{ position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; background:rgba(17,24,39,.35); backdrop-filter:blur(3px); }
 .overlay.hidden{ display:none; }
 .dialog{ min-width:300px; max-width:92vw; background:var(--soft); border:1px solid var(--neutral); border-radius:14px; padding:18px; box-shadow:0 18px 44px rgba(0,0,0,.18); text-align:center; }
 .dialog h3{ margin:0 0 8px; font-size:18px; color:#6b5e52; }
-.dialog p.ios-hint{ margin:6px 0; line-height:1.6; font-size:13px; color:#d11; } /* 🔻更小 */
+.dialog p.ios-hint{ margin:6px 0; line-height:1.6; font-size:13px; color:#d11; } /* iPhone靜音提示字體較小｜可自行調整 */
 
 .dialog .actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
 .dialog button{ width:120px; height:38px; border-radius:10px; border:1px solid var(--rim); background:#fff; cursor:pointer; font-weight:700; }
 .dialog button.primary{ background:#fff; }
 
-#lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:透明; }
+#lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:transparent; }
 footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
 
-/* =============== 📱手機直向：一組「名稱＋input」一行 =============== */
+/* === 手機直向（偶爾會改）=== */
 @media (orientation:portrait){
   .row-line2, .row-line3{ width:100%; gap:12px; }
   .pair{ display:flex; align-items:center; gap:var(--gap); width:100%; }
@@ -157,11 +210,13 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
 </style>
 
 <body>
+  <!-- === 背景圖（次常改）=== -->
   <img class="bg-notes" src="./assets/notes.png?v=4" alt="">
+
   <div class="panel">
     <h2>🎼互動音符🎼</h2>
 
-    <!-- 第 1 行：姓名 → Email → 代號 -->
+    <!-- === 第 1 行（姓名 / Email / 代號）=== -->
     <div class="row row-line2">
       <div class="pair">
         <label for="displayName">親友姓名：</label>
@@ -177,7 +232,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
       </div>
     </div>
 
-    <!-- 第 2 行：樂器 → 音符紀錄 → 重設 → 鎖定 -->
+    <!-- === 第 2 行（樂器 / 音符紀錄 / 重設 / 鎖定）=== -->
     <div class="row row-line3">
       <div class="pair">
         <label for="instrument">樂器轉換：</label>
@@ -196,12 +251,14 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
       </div>
     </div>
 
+    <!-- === 狀態列 === -->
     <p id="status">尚未初始化</p>
 
+    <!-- === 樂器容器 === -->
     <div class="kb-wrap"><div id="keyboard"></div></div>
   </div>
 
-  <!-- 彈跳視窗 ①：操作說明 -->
+  <!-- === 彈跳視窗 ①：操作說明（最先看到）=== -->
   <div id="guideOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
     <div class="dialog">
       <h3 id="guideTitle">📍操作說明📍</h3>
@@ -215,11 +272,11 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     </div>
   </div>
 
-  <!-- 彈跳視窗 ②：啟用聲音 / 音色載入 -->
+  <!-- === 彈跳視窗 ②：啟用聲音（第二個看到）=== -->
   <div id="unlockOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="unlockTitle">
     <div class="dialog">
       <h3 id="unlockTitle">啟用聲音</h3>
-      <p class="ios-hint">iPhone請確保側邊「靜音鍵」有開啟響鈴模式</p>
+      <p class="ios-hint">iPhone請確保側邊「靜音鍵」有開啟響鈴模式</p> <!-- 字體已略縮小 -->
       <div class="actions">
         <button id="cancelUnlock">取消</button>
         <button id="confirmUnlock" class="primary">確定</button>
@@ -230,185 +287,45 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   <div id="lockScreen" aria-hidden="true"></div>
   <footer>© Copyright 2025 MY‘s system Version:b1.0.1</footer>
 
+  <!-- === 音源庫（不動即可）=== -->
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
+
   <script>
-  /* ===== 主程式 ===== */
-  const WEBHOOK = "https://script.google.com/macros/s/AKfycbzC7peAfpyQvJcxNez9czrCHos64D-FSnVDi-BSVeZXKNQGWs7AIOI7I1s6gy7Vc7fP/exec";
+  /* === 常用參數（最常改）=== */
+  const WEBHOOK = "https://script.google.com/macros/s/AKfycbzhiO8ubHy5BYXW2OZ263Zuo5F_HhYQ4SmUQLaRD6IXGTtcq2fBdrNUF65m1D_yrySl/exec"; // 後端網址｜可自行調整
+  const TIMEOUT_MS = 10000;   /* 送出逾時：毫秒｜可自行調整 */
+  const PRECHECK = true;      /* 送出前先快速查詢（避免重複）｜可自行調整 */
+
   const $ = s => document.querySelector(s);
 
-  >
-  const WEBHOOK="https://script.google.com/macros/s/AKfycbzC7peAfpyQvJcxNez9czrCHos64D-FSnVDi-BSVeZXKNQGWs7AIOI7I1s6gy7Vc7fP/exec";
-  const $=s=>document.querySelector(s);
+  /* === 低價值/一次性信箱黑名單（可增減）=== */
+  const DISPOSABLE_DOMAINS = new Set([
+    'mailinator.com','guerrillamail.com','sharklasers.com','10minutemail.com','tempmail.com',
+    'tempmail.dev','temp-mail.org','moakt.com','yopmail.com','throwawaymail.com','trashmail.com',
+    'maildrop.cc','dispostable.com','mail-temp.com'
+  ]); // 可自行增減
 
-  // 小型臨時信箱封鎖名單（可自行增減）
-  const DISPOSABLE_DOMAINS=new Set([
-    'mailinator.com','guerrillamail.com','sharklasers.com','10minutemail.com','tempmail.com','tempmail.dev','temp-mail.org',
-    'moakt.com','yopmail.com','throwawaymail.com','trashmail.com','maildrop.cc','dispostable.com','mail-temp.com'
-  ]);
-
-  // 強化 Email 驗證：字母開頭、local 不全數字、無連續兩個特殊符號、網域/TLD 合規、封鎖臨時網域
+  /* === Email 檢核（前端）=== */
+  // 用途：先擋掉明顯不合理的 Email，提升體驗（避免送出才失敗）
+  // 可自行調整：規則想放寬/加嚴可改這裡
   function validEmail(v){
     const s=(v||'').trim();
-    // 快速基本檢查
-    if(!/^[A-Za-z][A-Za-z0-9._%+-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,24}$/.test(s)) return false;
-    if(/\.\./.test(s)) return false;                // 不允許連續兩個點
-    const [local,domain]=s.split('@');
-    if(/^[0-9]+$/.test(local)) return false;        // local 不能全數字
-    if(/[._%+-]$/.test(local)) return false;        // local 不得以符號結尾
-    // 網域 label 規則
-    const labels=domain.split('.');
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s)) return false; // 需要 TLD 長度 >= 2
+    if(/\.\./.test(s)) return false;                            // 不允許連續兩個點
+    const [local,domain] = s.split('@');
+    if(/^[0-9]+$/.test(local)) return false;                    // local 不可全數字（擋 00000@）
+    if(/[._%+-]$/.test(local)) return false;                    // local 不得以符號結尾
+    const labels = domain.split('.');
     if(labels.some(l=>!l || l.length>63 || /^-/.test(l) || /-$/.test(l))) return false;
-    const tld=labels[labels.length-1];
-    if(!/^[A-Za-z]{2,24}$/.test(tld)) return false; // TLD 僅英文字母
+    const tld = labels[labels.length-1];
+    if(!/^[A-Za-z]{2,24}$/.test(tld)) return false;             // TLD 只允許英文字母
     // 封鎖臨時網域（含子網域）
-    const domLower=domain.toLowerCase();
-    for(const bad of DISPOSABLE_DOMAINS){
-      if(domLower===bad || domLower.endsWith('.'+bad)) return false;
-    }
+    const d = domain.toLowerCase();
+    for(const bad of DISPOSABLE_DOMAINS){ if(d===bad || d.endsWith('.'+bad)) return false; }
     return true;
   }
 
-  const setStatus=m=>{
-    const el=$('#status'); el.textContent=m;
-    el.classList.remove('ok','busy','err');
-    if(/已載入/.test(m)) el.classList.add('ok');
-    else if(/送出中/.test(m)) el.classList.add('busy');
-    else if(/❌|失敗|逾時|找尋不到|已過|格式不正確|忙碌/.test(m)) el.classList.add('err');
-  };
-
-  let audioCtx=null,sampler=null,samplerReady=false,unlocked=false,hardLocked=false;
-  let currentInstrument='piano';
-  let selectedNotes=[], selectedInsts=[];
-
-  const PIANO_BASE=new URL('./piano/',location.href).href;
-  const GUITAR_BASE=new URL('./guitar/',location.href).href;
-  const PIANO_URLS={'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3','C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3','C4':'C4.mp3','D#4':'Ds4.mp3','F#4':'Fs4.mp3','A4':'A4.mp3','C5':'C5.mp3'};
-  const GUITAR_URLS={'E2':'E2.wav','A2':'A2.wav','D3':'D3.wav','G3':'G3.wav','B3':'B3.wav','E4':'E4.wav'};
-  const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
-  const BLACK_AFTER={C:'C#',D:'D#',F:'F#',G:'G#',A:'A#'};
-  const MIN_WHITE_PX=64,TOTAL_WHITE=WHITE.length;
-  const TUNING_MIDI=[40,45,50,55,59,64];
-  const NOTE_NAMES=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
-
-  async function unlockAudio(){
-    try{
-      const Ctx=window.webkitAudioContext||window.AudioContext;
-      if(!audioCtx) audioCtx=new Ctx({latencyHint:'interactive'});
-      if(audioCtx.state!=='running') await audioCtx.resume();
-      Tone.setContext(new Tone.Context(audioCtx)); await Tone.start();
-      loadSampler(currentInstrument); unlocked=true; $('#unlockOverlay').classList.add('hidden');
-    }catch(e){ setStatus('啟用失敗：'+e.message); }
-  }
-  function loadSampler(inst='piano'){
-    sampler?.dispose?.(); sampler=null; samplerReady=false;
-    let urls=PIANO_URLS,base=PIANO_BASE,label='🎹 ';
-    if(inst==='guitar'){ urls=GUITAR_URLS; base=GUITAR_BASE; label='🎸 '; }
-    setStatus(label+'載入中…');
-    sampler=new Tone.Sampler({urls,release:1,baseUrl:base,onload:()=>{samplerReady=true; setStatus(label+'已載入 ✅');}}).toDestination();
-  }
-  function refreshNotesDisplay(){ const parts=[selectedNotes[0]||'—',selectedNotes[1]||'—',selectedNotes[2]||'—']; $('#lastNote').value=parts.join(' , '); }
-  function trigger(note){
-    if(hardLocked) return;
-    if(!samplerReady){ setStatus('音色載入中…'); return; }
-    sampler.triggerAttackRelease(note,'8n');
-    if(selectedNotes.length<3){ selectedNotes.push(note); selectedInsts.push(currentInstrument); }
-    else{ selectedNotes[2]=note; selectedInsts[2]=currentInstrument; }
-    refreshNotesDisplay(); validateLockBtn();
-  }
-  function validateLockBtn(){
-    const nameOk=($('#displayName').value||'').trim().length>0;
-    const codeOk=($('#code').value||'').trim().length>0;
-    const emailOk=validEmail($('#email').value);
-    const notesOk=selectedNotes.length===3;
-    $('#lockBtn').disabled=!(nameOk&&codeOk&&emailOk&&notesOk);
-  }
-
-  function attachPressFeedback(){
-    ['#resetBtn','#lockBtn'].forEach(sel=>{
-      const btn=$(sel); if(!btn) return;
-      const press=()=>{ btn.classList.add('pressed'); setTimeout(()=>btn.classList.remove('pressed'),160); };
-      btn.addEventListener('pointerdown',press);
-      btn.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ press(); }});
-    });
-  }
-
-  function renderPiano(){
-    const kb=$('#keyboard'); kb.innerHTML=''; kb.className=''; sizePiano();
-    const keyW=100/TOTAL_WHITE;
-    WHITE.forEach((note,i)=>{
-      const w=document.createElement('div'); w.className='white'; w.dataset.note=note;
-      w.style.left=(i*keyW)+'%'; w.style.width=keyW+'%';
-      if(note[0]==='C'||note[0]==='G'){ const lab=document.createElement('div'); lab.className='label'; lab.textContent=note; w.appendChild(lab); }
-      w.addEventListener('pointerdown',()=>{ if(hardLocked) return; if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; } trigger(note); w.classList.add('active'); });
-      w.addEventListener('pointerup',()=>w.classList.remove('active')); kb.appendChild(w);
-    });
-    WHITE.forEach((note,i)=>{
-      const l=note[0],sharp=BLACK_AFTER[l]?(BLACK_AFTER[l]+note.slice(1)):null;
-      if(!sharp||(l==='A'&&i===TOTAL_WHITE-1)) return;
-      const b=document.createElement('div'); b.className='black'; b.dataset.note=sharp;
-      const blackWidthPct=keyW*0.62; b.style.width=blackWidthPct+'%'; b.style.left=((i+1)*keyW)+'%';
-      b.addEventListener('pointerdown',()=>{ if(hardLocked) return; if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; } trigger(sharp); b.classList.add('active'); });
-      b.addEventListener('pointerup',()=>b.classList.remove('active')); kb.appendChild(b);
-    });
-  }
-  function sizePiano(){
-    const wrap=document.querySelector('.kb-wrap'), kb=document.querySelector('#keyboard');
-    const wrapW=wrap.clientWidth; const sep=parseInt(getComputedStyle(kb).getPropertyValue('--sep')||'2',10);
-    const minW=WHITE.length*(MIN_WHITE_PX+sep); kb.style.width=(wrapW>=minW?wrapW-1:minW)+'px'; kb.style.height='var(--kb-h)';
-  }
-
-  function renderGuitar(){
-    const kb=$('#keyboard'); kb.innerHTML=''; kb.className='fretboard'; kb.style.height='var(--kb-h)';
-    const head=document.createElement('div'); head.className='head'; kb.appendChild(head);
-    const nut=document.createElement('div'); nut.className='nut'; kb.appendChild(nut);
-    const bridge=document.createElement('div'); bridge.className='bridge'; kb.appendChild(bridge);
-    for(let s=0;s<6;s++){
-      const y=(s+1)*(100/7);
-      const str=document.createElement('div'); str.className='string'; str.dataset.s=String(s); str.style.top=`${y}%`; kb.appendChild(str);
-      const hline=document.createElement('div'); hline.className='head-line'; hline.dataset.s=String(s); hline.style.top=`${y}%`; kb.appendChild(hline);
-    }
-    for(let f=1; f<=13; f++){
-      const col=document.createElement('div'); col.className='fret-col';
-      for(let s=0; s<6; s++){
-        const y=(s+1)*(100/7);
-        const hit=document.createElement('div'); hit.className='hit-row'; hit.style.top=`${y}%`; col.appendChild(hit);
-      }
-      if([4,6,8,10].includes(f)){
-        const dot=document.createElement('div'); dot.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#dbc6a4;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.35);pointer-events:none;'; col.appendChild(dot);
-      }else if(f===13){
-        const d1=document.createElement('div'); const d2=document.createElement('div');
-        d1.style.cssText='position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;background:#dbc6a4;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.35);pointer-events:none;';
-        d2.style.cssText='position:absolute;left:50%;top:62%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;background:#dbc6a4;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.35);pointer-events:none;';
-        col.appendChild(d1); col.appendChild(d2);
-      }
-      col.addEventListener('pointerdown',(ev)=>{
-        if(hardLocked) return; if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; }
-        const rect=col.getBoundingClientRect(); const y=ev.clientY-rect.top; const slot=rect.height/7;
-        let idx=Math.round(y/slot-1); idx=Math.max(0,Math.min(5,idx));
-        if(f<=12){ const midi=TUNING_MIDI[5-idx]+f; const note=NOTE_NAMES[midi%12]+(Math.floor(midi/12)-1); trigger(note); }
-        const target=kb.querySelector(`.string[data-s="${idx}"]`);
-        if(target){ target.classList.remove('vibrate'); void target.offsetWidth; target.classList.add('vibrate'); setTimeout(()=>target.classList.remove('vibrate'),380); }
-      });
-      kb.appendChild(col);
-    }
-  }
-
-  async function getStatusFast(code,email,signal){
-    try{
-      const url=WEBHOOK+'?action=status&code='+encodeURIComponent(code)+'&email='+encodeURIComponent(email);
-      const r=await fetch(url,{method:'GET',cache:'no-store',signal}); if(!r.ok) return {ok:false};
-      const j=await r.json(); return {ok:true,status:j.status||'none'};
-    }catch(_){ return {ok:false}; }
-  }
-
-  $('#instrument').addEventListener('change',()=>{ if(hardLocked) return; currentInstrument=$('#instrument').value; loadSampler(currentInstrument); if(currentInstrument==='guitar') renderGuitar(); else renderPiano(); validateLockBtn(); });
-  $('#displayName').addEventListener('input',validateLockBtn);
-  $('#code').addEventListener('input',validateLockBtn);
-  $('#email').addEventListener('input',validateLockBtn);
-
-  $('#resetBtn').addEventListener('click',()=>{ if(hardLocked) return; if(selectedNotes.length>0){ selectedNotes.pop(); selectedInsts.pop(); refreshNotesDisplay(); validateLockBtn(); }});
-  $('#guideOk').addEventListener('click',()=>{ $('#guideOverlay').classList.add('hidden'); $('#unlockOverlay
-
+  /* === 狀態列工具（常改文案）=== */
   const setStatus = m => {
     const el = $('#status'); el.textContent = m;
     el.classList.remove('ok','busy','err');
@@ -417,23 +334,39 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     else if(/❌|失敗|逾時|找尋不到|已過|格式不正確|忙碌/.test(m)) el.classList.add('err');
   };
 
+  /* === 全域變數（不常改）=== */
   let audioCtx=null, sampler=null, samplerReady=false, unlocked=false, hardLocked=false;
   let currentInstrument='piano';
-  let selectedNotes = [];
-  let selectedInsts = []; // 🔹 每一下用什麼樂器彈
+  let selectedNotes = [];     // 三個音
+  let selectedInsts = [];     // 三次擊鍵分別使用的樂器（piano/guitar）
 
+  /* === 音色路徑（不常改）=== */
   const PIANO_BASE  = new URL('./piano/',  location.href).href;
   const GUITAR_BASE = new URL('./guitar/', location.href).href;
   const PIANO_URLS  = {'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3','C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3','C4':'C4.mp3','D#4':'Ds4.mp3','F#4':'Fs4.mp3','A4':'A4.mp3','C5':'C5.mp3'};
   const GUITAR_URLS = {'E2':'E2.wav','A2':'A2.wav','D3':'D3.wav','G3':'G3.wav','B3':'B3.wav','E4':'E4.wav'};
 
+  /* === 鋼琴音階（不常改；這次只「移除鍵帽文字標籤」，可彈音保持）=== */
   const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
   const BLACK_AFTER={ 'C':'C#','D':'D#','F':'F#','G':'G#','A':'A#' };
   const MIN_WHITE_PX=64, TOTAL_WHITE=WHITE.length;
 
+  /* === 吉他計算（不常改）=== */
   const TUNING_MIDI = [40,45,50,55,59,64];
   const NOTE_NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
 
+  /* === 送出前/後的「快速狀態查詢」=== */
+  async function getStatusFast(code, email, signal){
+    try{
+      const url = WEBHOOK + '?action=status&code=' + encodeURIComponent(code) + '&email=' + encodeURIComponent(email);
+      const r = await fetch(url, { method:'GET', cache:'no-store', signal });
+      if(!r.ok) return { ok:false };
+      const j = await r.json();
+      return { ok:true, status: j.status || 'none' };
+    }catch(_){ return { ok:false }; }
+  }
+
+  /* === 啟用音訊與音色載入（第二個彈窗）=== */
   async function unlockAudio(){
     try{
       const Ctx=window.webkitAudioContext||window.AudioContext;
@@ -447,6 +380,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     }catch(e){ setStatus('啟用失敗：'+e.message); }
   }
 
+  /* === 切換音色 === */
   function loadSampler(inst='piano'){
     sampler?.dispose?.(); sampler=null; samplerReady=false;
     let urls=PIANO_URLS, base=PIANO_BASE, label='🎹 ';
@@ -455,11 +389,13 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     sampler=new Tone.Sampler({ urls, release:1, baseUrl:base, onload:()=>{ samplerReady=true; setStatus(label+'已載入 ✅'); } }).toDestination();
   }
 
+  /* === 目前三音顯示 === */
   function refreshNotesDisplay(){
     const parts=[selectedNotes[0]||'—', selectedNotes[1]||'—', selectedNotes[2]||'—'];
     $('#lastNote').value = parts.join(' , ');
   }
 
+  /* === 彈下一個音（最多保留三個；第 4 次覆蓋第 3 個）=== */
   function trigger(note){
     if(hardLocked) return;
     if(!samplerReady){ setStatus('音色載入中…'); return; }
@@ -469,6 +405,9 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     refreshNotesDisplay(); validateLockBtn();
   }
 
+  /* === 鎖定鍵可用性檢查（你可改這四個條件）=== */
+  // 用途：控制鎖定按鈕是否可點
+  // 可自行調整：需要哪些欄位才開啟鎖定，就改下面四個布林條件
   function validateLockBtn(){
     const nameOk = ($('#displayName').value||'').trim().length>0;
     const codeOk = ($('#code').value||'').trim().length>0;
@@ -477,31 +416,127 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     $('#lockBtn').disabled = !(nameOk && codeOk && emailOk && notesOk);
   }
 
-  // 觸覺回饋
-  function attachPressFeedback(){
-    ['#resetBtn','#lockBtn'].forEach(sel=>{
-      const btn = $(sel); if(!btn) return;
-      const press=()=>{ btn.classList.add('pressed'); setTimeout(()=>btn.classList.remove('pressed'), 160); };
-      btn.addEventListener('pointerdown', press);
-      btn.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ press(); }});
-    });
+  /* === 事件綁定（表單）=== */
+  $('#instrument').addEventListener('change', ()=>{
+    if(hardLocked) return;
+    currentInstrument=$('#instrument').value;
+    loadSampler(currentInstrument);
+    if(currentInstrument==='guitar') renderGuitar(); else renderPiano();
+    validateLockBtn();
+  });
+  $('#displayName').addEventListener('input', validateLockBtn);
+  $('#code').addEventListener('input', validateLockBtn);
+  $('#email').addEventListener('input', validateLockBtn);
+
+  /* === 重設最後一次擊鍵 === */
+  $('#resetBtn').addEventListener('click', ()=>{
+    if(hardLocked) return;
+    if(selectedNotes.length>0){ selectedNotes.pop(); selectedInsts.pop(); refreshNotesDisplay(); validateLockBtn(); }
+  });
+
+  /* === 兩個彈跳視窗的事件 === */
+  $('#guideOk').addEventListener('click', ()=>{ $('#guideOverlay').classList.add('hidden'); $('#unlockOverlay').classList.remove('hidden'); });
+  $('#cancelUnlock').addEventListener('click', ()=>{ $('#unlockOverlay').classList.add('hidden'); });
+  $('#confirmUnlock').addEventListener('click', unlockAudio, {once:true});
+  window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ $('#guideOverlay').classList.add('hidden'); $('#unlockOverlay').classList.add('hidden'); }});
+
+  /* === 送出（鎖定）=== */
+  $('#lockBtn').addEventListener('click', async ()=>{
+    if(hardLocked) return;
+    const name=($('#displayName').value||'').trim();
+    const code=($('#code').value||'').trim();
+    const email=($('#email').value||'').trim();
+    if(!name||!code||!validEmail(email)||selectedNotes.length!==3){
+      alert('請填姓名、代號、Email 並彈滿 3 個音再鎖定');
+      return;
+    }
+
+    // ① 送出前快速查詢（避免你看到延遲卻已入表）
+    if(PRECHECK){
+      try{
+        const pre = await getStatusFast(code, email);
+        if(pre.ok){
+          if(pre.status==='used'){ setStatus('📝 已填寫過囉，想要重新填寫請洽ㄟ咪🙏'); return; }
+          if(pre.status==='inflight'){ setStatus('🕒 資料已在處理中，請勿重複送出⛔'); return; }
+        }
+      }catch(_e){}
+    }
+
+    setStatus('⏳ 送出中…');
+
+    // 僅送 logs 的「instrument」為逗號序列；不再送 instruments（避免 H 欄）
+    const instrumentField = selectedInsts.length ? selectedInsts.join(',') : currentInstrument;
+
+    const payload={
+      userId:code,
+      displayName:name,
+      instrument:instrumentField,      // ✅ 只寫入 logs 的 D 欄
+      note:selectedNotes.join(','),    // ✅ 寫入 logs 的 E 欄
+      velocity:1,
+      sessionId:'demo',
+      email
+    };
+
+    const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),TIMEOUT_MS);
+    try{
+      const r=await fetch(WEBHOOK,{ method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload), signal:controller.signal });
+      clearTimeout(timer);
+      if(r.headers.get('content-type')?.includes('application/json')){
+        const data = await r.json();
+        if(data.ok){ setStatus('✅ 已送出成功，可跪安囉'); enterHardLock(); }
+        else{
+          let msg='❌ 送出失敗'; const err=String(data.error||'');
+          if(err.includes('duplicate+deadline_passed')) msg='📅 已填寫過囉，且已過截止日💔';
+          else if(err.includes('duplicate+code_not_found')) msg='🔎 已填寫過囉，且代號不存在👀';
+          else if(err==='duplicate') msg='📝 已填寫過囉，想要更換音階請洽ㄟ咪🙏';
+          else if(err==='email_required') msg='⚠️ Email缺少或格式不正確📧';
+          else if(err==='email_domain_invalid') msg='🔐 Email網域無法收信，請確認拼字或更換📮';
+          else if(err==='deadline_passed') msg='📣 已過填寫截止日，但仍可在此玩耍👣';
+          else if(err==='code_not_found') msg='🔎 找尋不到代號，請洽新人🤵🏻‍♂️👰🏻‍♀️';
+          else if(err==='busy') msg='⚠️ 系統忙碌，稍後再試🌀';
+          setStatus(msg);
+        }
+      }else{
+        if(r.ok){ setStatus('✅ 已送出成功，可跪安囉'); enterHardLock(); }
+        else{ setStatus('❌ 送出失敗'); }
+      }
+    }catch(e){
+      try{
+        const post = await getStatusFast(code, email);
+        if(post.ok){
+          if(post.status==='used'){ setStatus('✅ 已送出成功，可退出此介面'); enterHardLock(); return; }
+          if(post.status==='inflight'){ setStatus('⏳ 可能已送達，伺服器處理中，請勿重複送出'); return; }
+        }
+      }catch(_e){}
+      setStatus('❌ 送出逾時或失敗');
+    }
+  });
+
+  /* === 成功後凍結畫面 === */
+  function enterHardLock(){
+    hardLocked=true;
+    $('#displayName').disabled=true; $('#code').disabled=true; $('#email').disabled=true;
+    $('#instrument').disabled=true;  $('#resetBtn').disabled=true; $('#lockBtn').disabled=true;
+    $('#lockScreen').style.display='block';
   }
 
-  /* === 鋼琴 === */
+  /* === 鋼琴繪製（這次移除了鍵帽上的 C/G 標籤）=== */
   function renderPiano(){
     const kb=$('#keyboard'); kb.innerHTML=''; kb.className='';
     sizePiano();
     const keyW=100/TOTAL_WHITE;
 
+    // 白鍵
     WHITE.forEach((note,i)=>{
       const w=document.createElement('div'); w.className='white'; w.dataset.note=note;
       w.style.left=(i*keyW)+'%'; w.style.width=keyW+'%';
-      if(note[0]==='C'||note[0]==='G'){ const lab=document.createElement('div'); lab.className='label'; lab.textContent=note; w.appendChild(lab); }
+      // ❌ 不再加入任何標籤（如 C3 / G3 / C4 / G4）
       w.addEventListener('pointerdown', ()=>{ if(hardLocked) return; if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; } trigger(note); w.classList.add('active'); });
       w.addEventListener('pointerup', ()=>w.classList.remove('active'));
       kb.appendChild(w);
     });
 
+    // 黑鍵
     WHITE.forEach((note,i)=>{
       const l=note[0], sharp = BLACK_AFTER[l]? (BLACK_AFTER[l]+note.slice(1)) : null;
       if(!sharp || (l==='A' && i===TOTAL_WHITE-1)) return;
@@ -513,6 +548,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     });
   }
 
+  /* === 鋼琴尺寸調整（不常改）=== */
   function sizePiano(){
     const wrap=document.querySelector('.kb-wrap');
     const kb=document.querySelector('#keyboard');
@@ -523,7 +559,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     kb.style.height='var(--kb-h)';
   }
 
-  /* === 吉他 === */
+  /* === 吉他繪製（幾乎不改）=== */
   function renderGuitar(){
     const kb=$('#keyboard'); kb.innerHTML=''; kb.className='fretboard'; kb.style.height='var(--kb-h)';
 
@@ -575,126 +611,18 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     }
   }
 
-  /* === Pre/Post 狀態查詢 === */
-  async function getStatusFast(code, email, signal){
-    try{
-      const url = WEBHOOK + '?action=status&code=' + encodeURIComponent(code) + '&email=' + encodeURIComponent(email);
-      const r = await fetch(url, { method:'GET', cache:'no-store', signal });
-      if(!r.ok) return { ok:false };
-      const j = await r.json();
-      return { ok:true, status: j.status || 'none' };
-    }catch(_){ return { ok:false }; }
-  }
-
-  /* === 事件與流程 === */
-  $('#instrument').addEventListener('change', ()=>{
-    if(hardLocked) return;
-    currentInstrument=$('#instrument').value;
-    loadSampler(currentInstrument);
-    if(currentInstrument==='guitar') renderGuitar(); else renderPiano();
-    validateLockBtn();
-  });
-  $('#displayName').addEventListener('input', validateLockBtn);
-  $('#code').addEventListener('input', validateLockBtn);
-  $('#email').addEventListener('input', validateLockBtn);
-
-  $('#resetBtn').addEventListener('click', ()=>{
-    if(hardLocked) return;
-    if(selectedNotes.length>0){ selectedNotes.pop(); selectedInsts.pop(); refreshNotesDisplay(); validateLockBtn(); }
-  });
-
-  $('#guideOk').addEventListener('click', ()=>{ $('#guideOverlay').classList.add('hidden'); $('#unlockOverlay').classList.remove('hidden'); });
-  $('#cancelUnlock').addEventListener('click', ()=>{ $('#unlockOverlay').classList.add('hidden'); });
-  $('#confirmUnlock').addEventListener('click', unlockAudio, {once:true});
-  window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ $('#guideOverlay').classList.add('hidden'); $('#unlockOverlay').classList.add('hidden'); }});
-
-  // 鎖定
-  $('#lockBtn').addEventListener('click', async ()=>{
-    if(hardLocked) return;
-    const name=($('#displayName').value||'').trim();
-    const code=($('#code').value||'').trim();
-    const email=($('#email').value||'').trim();
-    if(!name||!code||!validEmail(email)||selectedNotes.length!==3){ alert('請填姓名、代號、Email 並彈滿 3 個音再鎖定'); return; }
-
-    // ① 送出前快速查詢
-    try{
-      const pre = await getStatusFast(code, email);
-      if(pre.ok){
-        if(pre.status==='used'){ setStatus('📝 已填寫過囉，想要重新填寫請洽ㄟ咪🙏'); return; }
-        if(pre.status==='inflight'){ setStatus('🕒 資料已在處理中，請勿重複送出⛔'); return; }
-      }
-    }catch(_e){}
-
-    setStatus('⏳ 送出中…');
-
-    // 只送 instrument（多值以逗號分隔），不再送 instruments，避免被寫入 H 欄
-    const instrumentField =
-      selectedInsts.length ? selectedInsts.join(',') : currentInstrument;
-
-    const payload={
-      userId:code,
-      displayName:name,
-      instrument:instrumentField,         // ✅ logs 的 D 欄（instrument）
-      note:selectedNotes.join(','),       // ✅ logs 的 E 欄（note）
-      velocity:1,
-      sessionId:'demo',
-      email
-    };
-
-    const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),10000);
-    try{
-      const r=await fetch(WEBHOOK,{ method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload), signal:controller.signal });
-      clearTimeout(timer);
-      if(r.headers.get('content-type')?.includes('application/json')){
-        const data = await r.json();
-        if(data.ok){ setStatus('✅ 已送出成功，可跪安囉'); enterHardLock(); }
-        else{
-          let msg='❌ 送出失敗'; const err=String(data.error||'');
-          if(err.includes('duplicate+deadline_passed')) msg='📅 已填寫過囉，重要的是，已過填寫截止日了💔';
-          else if(err.includes('duplicate+code_not_found')) msg='🔎 已填寫過囉，且輸入的這組代號找尋不到，我感到萬分抱歉👀';
-          else if(err==='duplicate') msg='📝 已填寫過囉，想要更換音階請洽ㄟ咪🙏';
-          else if(err==='email_required') msg='⚠️ Email缺少或格式不正確，再幫我仔細看看好咪📧';
-          else if(err==='email_domain_invalid') msg='🔐 Email網域無法收信，請確認拼字或改用另一個Email，跪求🙇‍♂️';
-          else if(err==='deadline_passed') msg='📣 非常抱歉，已過了填寫截止日，但還是可以在這玩耍呢👣';
-          else if(err==='code_not_found') msg='🔎 找尋不到代號，請洽新人唷🤵🏻‍♂️👰🏻‍♀️';
-          else if(err==='busy') msg='⚠️ 系統忙碌，請稍後再試，給它進擊的重新整理💋';
-          setStatus(msg);
-        }
-      }else{
-        if(r.ok){ setStatus('✅ 已送出成功，可跪安囉'); enterHardLock(); }
-        else{ setStatus('❌ 送出失敗'); }
-      }
-    }catch(e){
-      try{
-        const post = await getStatusFast(code, email);
-        if(post.ok){
-          if(post.status==='used'){ setStatus('✅ 已送出成功，可退出此介面'); enterHardLock(); return; }
-          if(post.status==='inflight'){ setStatus('⏳ 可能已送達，伺服器處理中，請勿重複送出'); return; }
-        }
-      }catch(_e){}
-      setStatus('❌ 送出逾時或失敗');
-    }
-  });
-
-  function enterHardLock(){
-    hardLocked=true;
-    $('#displayName').disabled=true; $('#code').disabled=true; $('#email').disabled=true;
-    $('#instrument').disabled=true;  $('#resetBtn').disabled=true; $('#lockBtn').disabled=true;
-    $('#lockScreen').style.display='block';
-  }
-
+  /* === 視窗尺寸事件（不常改）=== */
   window.addEventListener('resize', ()=>{ if(currentInstrument==='piano') sizePiano(); });
   window.addEventListener('orientationchange', ()=>{ if(currentInstrument==='piano') sizePiano(); });
 
-  // 啟動
+  /* === 初始化（載入頁面先出現操作說明，再提示啟用聲音）=== */
   window.addEventListener('DOMContentLoaded', ()=>{
-    renderPiano();
+    renderPiano();                    // 預設先畫鋼琴
     setStatus('等待啟用聲音…');
     validateLockBtn();
-    attachPressFeedback();
-    $('#guideOverlay').classList.remove('hidden');
+    // 按鈕觸覺手感視覺已內建（:active / pressed），保留在樣式中
+    $('#guideOverlay').classList.remove('hidden');  // 先顯示「操作說明」
   });
   </script>
 </body>
 </html>
-
