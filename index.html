@@ -32,6 +32,9 @@
 
   --stroke:rgba(0,0,0,.18);
   --glow:rgba(255,255,255,.65);
+
+  /* NEW: 說明按鈕自訂寬度（你可自行修改） */
+  --w-hintbtn: 160px;
 }
 
 /* === 全站字體與粗細（常改）=== */
@@ -75,7 +78,12 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
   transition: transform .08s ease, box-shadow .08s ease, filter .08s ease;
   box-shadow: 0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06);
 }
-.btn-compact{ width:60px !important; }
+.btn-compact{ width:60px !important; } /* 供「重設/鎖定」使用 */
+
+/* NEW: 說明按鈕（請點我）可自訂寬度，維持同高度 */
+#hintBtn{ width: var(--w-hintbtn) !important; }
+
+/* 互動狀態 */
 .row button:disabled{ opacity:.55; cursor:not-allowed; }
 .row button:active, .row button.pressed{ transform: translateY(1px) scale(.99); box-shadow: 0 1px 0 rgba(0,0,0,.18), 0 1px 4px rgba(0,0,0,.06); filter: brightness(.98); }
 
@@ -93,7 +101,6 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 
 /* === NEW: 備註小浮層（與鎖定同排，按鈕點擊後顯示） === */
 .actions-inline{ display:flex; gap:var(--gap); position:relative; } /* 不改既有排版，只加定位 */
-#hintBtn{ /* 跟鎖定同風格尺寸（btn-compact 已控制寬度 60px、高度 38px）*/ }
 .hint-popover{
   position:absolute; right:0; top:44px; /* 按鈕下方 */
   z-index:50;
@@ -121,8 +128,8 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 
 /* === 鋼琴樣式（幾乎不改）=== */
 .white{ position:absolute; bottom:0; height:100%; background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5); border-radius:0 0 12px 12px; box-shadow:inset 0 -12px 16px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.9), 0 1px 0 rgba(0,0,0,.04); }
-.white::after{ content:""; position:absolute; top:0; bottom:0; right:0; width:var(--sep); background:linear-gradient(透明,#cfd3dc 50%,透明); }
-.white:first-child::before{ content:""; position:absolute; top:0; bottom:0; left:0; width:var(--sep); background:linear-gradient(透明,#cfd3dc 50%,透明); }
+.white::after{ content:""; position:absolute; top:0; bottom:0; right:0; width:var(--sep); background:linear-gradient(transparent,#cfd3dc 50%,transparent); }
+.white:first-child::before{ content:""; position:absolute; top:0; bottom:0; left:0; width:var(--sep); background:linear-gradient(transparent,#cfd3dc 50%,transparent); }
 .white.active{ filter:brightness(1.06); }
 .black{ position:absolute; bottom:38%; height:62%; background:linear-gradient(#2d2f36,#0e0f13); border:1px solid #0b0d11; border-top:none; border-radius:0 0 10px 10px; z-index:5; box-shadow:inset 0 -6px 10px rgba(0,0,0,.45), 0 3px 10px rgba(0,0,0,.35); transform: translateX(-50%); }
 .black.active{ filter:brightness(1.22); }
@@ -133,15 +140,15 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 .nut{ position:absolute; left:86px; top:0; bottom:0; width:8px; z-index:3; background:linear-gradient(180deg,#e5e1d6,#c9c5ba); box-shadow: inset -1px 0 0 rgba(0,0,0,.35), inset 1px 0 0 rgba(255,255,255,.6); border-right:2px solid rgba(120,120,120,.5); pointer-events:none; }
 .bridge{ position:absolute; right:0; top:0; bottom:0; width:10px; z-index:2; background:linear-gradient(180deg,#b9b6ad,#8f8c83); box-shadow: inset 1px 0 0 rgba(255,255,255,.5), inset -1px 0 0 rgba(0,0,0,.25); pointer-events:none; border-left:1px solid rgba(0,0,0,.18); }
 .fret-col{ position:relative; background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02)); box-shadow: inset -2px 0 0 rgba(255,255,255,.18), inset -4px 0 0 rgba(0,0,0,.28); }
-/* 弦繞紋與高光（幾乎不改）*/
-.string{ --sw:2px; position:absolute; left:94px; right:0; height:0; z-index:3; border-top: var(--sw) solid透明; transform-origin:center; filter:drop-shadow(0 1px 0 rgba(0,0,0,.18)); background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.45) 50%, rgba(255,255,255,0) 100%); background-size:160px 1px; background-repeat:no-repeat; background-position:-160px 0; }
+/* 弦繞紋與高光 */
+.string{ --sw:2px; position:absolute; left:94px; right:0; height:0; z-index:3; border-top: var(--sw) solid transparent; transform-origin:center; filter:drop-shadow(0 1px 0 rgba(0,0,0,.18)); background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.45) 50%, rgba(255,255,255,0) 100%); background-size:160px 1px; background-repeat:no-repeat; background-position:-160px 0; }
 .string::before{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5); height: var(--sw); background: repeating-linear-gradient(90deg, #caa56b 0 2.4px, #906a3d 2.4px 3.1px), repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 2.4px, rgba(0,0,0,.10) 2.4px 3.1px), linear-gradient(180deg, rgba(255,255,255,.70), rgba(255,255,255,.15) 55%, rgba(0,0,0,.18) 100%); border-radius:999px; opacity:.98; pointer-events:none; }
 .string::after{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5 + 0.2px); height: calc(var(--sw) * .25); background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0)); pointer-events:none; border-radius:999px; opacity:.9; }
 .string[data-s="2"]{ --sw:2.5px; }
 .string[data-s="3"]{ --sw:3px; }
 .string[data-s="4"]{ --sw:3.5px; }
 .string[data-s="5"]{ --sw:4px; }
-.head-line{ --sw:2px; position:absolute; left:0; width:86px; height:0; z-index:2; border-top: var(--sw) solid透明; filter:drop-shadow(0 1px 0 rgba(0,0,0,.06)); pointer-events:none; }
+.head-line{ --sw:2px; position:absolute; left:0; width:86px; height:0; z-index:2; border-top: var(--sw) solid transparent; filter:drop-shadow(0 1px 0 rgba(0,0,0,.06)); pointer-events:none; }
 .head-line::before{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5); height: var(--sw); background: repeating-linear-gradient(90deg, #caa56b 0 2.4px, #906a3d 2.4px 3.1px), repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 2.4px, rgba(0,0,0,.10) 2.4px 3.1px), linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0)); border-radius:999px; opacity:.98; }
 .head-line::after{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5 + 0.2px); height: calc(var(--sw) * .25); background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0)); border-radius:999px; opacity:.9; }
 .head-line[data-s="2"]{ --sw:2.5px; }
@@ -221,14 +228,12 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
       <div class="actions-inline">
         <button id="resetBtn" type="button" class="btn-compact">重設</button>
         <button id="lockBtn" type="button" class="btn-compact" disabled>鎖定</button>
-        <!-- NEW：與鎖定同排同風格的說明觸發按鈕 -->
-        <button id="hintBtn" type="button" class="btn-compact" aria-expanded="false" aria-controls="hintPopover">💡請先點我唷</button>
+        <!-- NEW：與鎖定同排的說明觸發按鈕（可自訂寬度） -->
+        <button id="hintBtn" type="button" class="btn-compact" aria-expanded="false" aria-controls="hintPopover" title="💡先點我查看好咪">請點我</button>
         <!-- NEW：備註小浮層 -->
         <div id="hintPopover" class="hint-popover" role="note" aria-live="polite">
-          <p>送出鎖定後請稍候片刻</p>
-          <p>因鄙人為較為廉價速度較慢，</p>
-          <p>但成功後下方「狀態列」會通知喔</p>
-          <p>就可以退安溜🎉</p>
+          按下「鎖定」後請稍候片刻，本人有缺陷導致速度較慢🥲
+       <p>如果確認送出成功，下方「狀態列」會立即通知您的溜🎉</p>
         </div>
       </div>
     </div>
@@ -581,4 +586,3 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   </script>
 </body>
 </html>
-
