@@ -44,6 +44,40 @@
 }
 html,body{ margin:0; color:var(--ink); background:var(--brand); font-weight:700; }
 
+  /* === 輕微立體陰影（input/select/小提示框）=== */
+/* 可自行調整：陰影強度與圓角 */
+.row input,
+.row select {
+  box-shadow:
+    0 1px 0 rgba(0,0,0,.10),
+    0 3px 8px rgba(0,0,0,.05);
+  border: 1px solid var(--rim);
+  background: #fff;
+}
+.row input:focus,
+.row select:focus {
+  outline: none;
+  box-shadow:
+    0 0 0 2px rgba(0,0,0,.06),
+    0 6px 14px rgba(0,0,0,.08);
+}
+
+/* 小說明框（鎖定旁）｜可自行調整外觀 */
+.hint-bubble{
+  align-self: center;
+  font-size: 12px;            /* 字體較小 */
+  line-height: 1.5;
+  color: #444;
+  background: #fff;
+  border: 1px solid var(--rim);
+  border-radius: 10px;
+  padding: 8px 10px;
+  box-shadow:
+    0 1px 0 rgba(0,0,0,.10),
+    0 6px 16px rgba(0,0,0,.08);
+  max-width: 240px;           /* 可自行調整寬度 */
+}
+
 /* 只有「操作說明」彈窗維持原樣（不粗體、不描邊） */
 #guideOverlay .dialog, #guideOverlay .dialog *{
   font-weight:500 !important;
@@ -207,6 +241,12 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   .align-to-email{ margin-left:0 !important; }
   #lastNote{ width:var(--w-lastNote-m); }
 }
+
+/* 手機直向：讓小框框自動換行到下一列 */
+@media (orientation:portrait){
+  .hint-bubble{ max-width: 100%; }
+}
+
 </style>
 
 <body>
@@ -246,10 +286,14 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
         <input id="lastNote" placeholder="— , — , —" readonly />
       </div>
       <div class="actions-inline">
-        <button id="resetBtn" type="button" class="btn-compact">重設</button>
-        <button id="lockBtn"  type="button" class="btn-compact" disabled>鎖定</button>
-      </div>
-    </div>
+  <button id="resetBtn" type="button" class="btn-compact">重設</button>
+  <button id="lockBtn"  type="button" class="btn-compact" disabled>鎖定</button>
+  <div class="hint-bubble" aria-live="polite">
+    按下「鎖定」後，請稍後片刻🔔<br>
+    因為偶很廉價，所以跑比較慢🥲<br>
+    成功後下方「狀態列」會通知喔🚨
+  </div>
+</div>
 
     <!-- === 狀態列 === -->
     <p id="status">尚未初始化</p>
@@ -292,7 +336,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
 
   <script>
   /* === 常用參數（最常改）=== */
-  const WEBHOOK = "https://script.google.com/macros/s/AKfycbxSy9y61tVEv4q9u-oGGIJptZX3kitnhmCtltYhv5-1I7eupPocS2pdS7_zQmS6KdNb/exec"; // 後端網址｜可自行調整
+  const WEBHOOK = "https://script.google.com/macros/s/AKfycbwVLl3fjdTyixbgT1aQVPHHGE-ap2s5tirzWaCC_nxm8g1oBB_hOEUWtU8qbH1-nAg3/exec"; // 後端網址｜可自行調整
   const TIMEOUT_MS = 10000;   /* 送出逾時：毫秒｜可自行調整 */
   const PRECHECK = true;      /* 送出前先快速查詢（避免重複）｜可自行調整 */
 
@@ -456,8 +500,8 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
       try{
         const pre = await getStatusFast(code, email);
         if(pre.ok){
-          if(pre.status==='used'){ setStatus('📝 已填寫過囉，想要重新填寫請洽ㄟ咪🙏'); return; }
-          if(pre.status==='inflight'){ setStatus('🕒 資料已在處理中，請勿重複送出⛔'); return; }
+          if(pre.status==='used'){ setStatus('📝 已填寫過囉，想要更換音階請洽ㄟ咪🙏'); return; }
+          if(pre.status==='inflight'){ setStatus('🕒 資料處理中，請勿重複送出噢⛔'); return; }
         }
       }catch(_e){}
     }
@@ -483,13 +527,13 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
       clearTimeout(timer);
       if(r.headers.get('content-type')?.includes('application/json')){
         const data = await r.json();
-        if(data.ok){ setStatus('✅ 已送出成功，可跪安囉'); enterHardLock(); }
+        if(data.ok){ setStatus('✅ 已送出成功，可退安囉'); enterHardLock(); }
         else{
           let msg='❌ 送出失敗'; const err=String(data.error||'');
           if(err.includes('duplicate+deadline_passed')) msg='📅 已填寫過囉，且已過截止日💔';
           else if(err.includes('duplicate+code_not_found')) msg='🔎 已填寫過囉，且代號不存在👀';
           else if(err==='duplicate') msg='📝 已填寫過囉，想要更換音階請洽ㄟ咪🙏';
-          else if(err==='email_required') msg='⚠️ Email缺少或格式不正確📧';
+          else if(err==='email_required') msg='⚠️ Email缺少或格式不正確，跪求真正的mail🙇‍♂️';
           else if(err==='email_domain_invalid') msg='🔐 Email網域無法收信，請確認拼字或更換📮';
           else if(err==='deadline_passed') msg='📣 已過填寫截止日，但仍可在此玩耍👣';
           else if(err==='code_not_found') msg='🔎 找尋不到代號，請洽新人🤵🏻‍♂️👰🏻‍♀️';
@@ -497,15 +541,15 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
           setStatus(msg);
         }
       }else{
-        if(r.ok){ setStatus('✅ 已送出成功，可跪安囉'); enterHardLock(); }
+        if(r.ok){ setStatus('✅ 已送出成功，可退安囉'); enterHardLock(); }
         else{ setStatus('❌ 送出失敗'); }
       }
     }catch(e){
       try{
         const post = await getStatusFast(code, email);
         if(post.ok){
-          if(post.status==='used'){ setStatus('✅ 已送出成功，可退出此介面'); enterHardLock(); return; }
-          if(post.status==='inflight'){ setStatus('⏳ 可能已送達，伺服器處理中，請勿重複送出'); return; }
+          if(post.status==='used'){ setStatus('✅ 已送出成功，可退安唷'); enterHardLock(); return; }
+          if(post.status==='inflight'){ setStatus('⏳ 可能已送達，伺服器處理中，請勿重複送出⛔'); return; }
         }
       }catch(_e){}
       setStatus('❌ 送出逾時或失敗');
@@ -626,4 +670,5 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   </script>
 </body>
 </html>
+
 
