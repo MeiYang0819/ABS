@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+/* === 站內配色與欄寬（最常改）=== */
 :root{
   --brand:#D4BFAA;
   --title:#A68A7C;
@@ -16,8 +17,9 @@
   --rim:#E4E4E4;
   --ink:#0f172a;
 
+  /* 欄位寬度（桌機） */
   --w-displayName: 96px;
-  --w-email: 268px;
+  --w-email: 261px;
   --w-code: 96px;
   --w-instrument: 96px;
   --w-lastNote: 125px;
@@ -31,25 +33,26 @@
   --stroke:rgba(0,0,0,.18);
   --glow:rgba(255,255,255,.65);
 
-  --w-hintbtn: 160px;
-
-  /* 直向時會被 JS 設定，用來放箭頭的 X 位置 */
-  --arrow-x: 24px;
+  /* === 可調：說明按鈕寬度 / 備註字體與寬度 / 箭頭X（JS會動態更新） === */
+  --w-hintbtn: 160px;     /* 「請先看我」按鈕寬度 */
+  --hint-font: 12px;      /* 備註字體大小 */
+  --hint-maxw: 520px;     /* 備註最大寬度 */
+  --arrow-x: 24px;        /* 箭頭在浮層內的X位置（JS會算） */
 }
 
-/* 全站字體 */
+/* === 全站字體與粗細 === */
 *{ box-sizing:border-box; font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif !important; -webkit-text-stroke:.35px var(--stroke); text-shadow:0 1px 0 var(--glow); }
 html,body{ margin:0; color:var(--ink); background:var(--brand); font-weight:700; }
 #guideOverlay .dialog, #guideOverlay .dialog *{ font-weight:500 !important; -webkit-text-stroke:0 !important; text-shadow:none !important; }
 
-/* 版面 */
+/* === 版面容器 === */
 .bg-notes{ position:fixed; inset:0; width:100%; height:100%; object-fit:cover; opacity:.60; mix-blend-mode:multiply; filter:contrast(1.1); pointer-events:none; z-index:0; }
 .panel{ position:relative; z-index:1; max-width:1060px; margin:22px auto; background:var(--neutral); border:1px solid var(--neutral); border-radius:16px; padding:18px 18px 26px; box-shadow:0 10px 26px rgba(0,0,0,.10); backdrop-filter:blur(8px) saturate(115%); }
 
-/* 標題 */
+/* === 標題 === */
 h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; letter-spacing:1px; color:var(--title); -webkit-text-stroke:.6px rgba(0,0,0,.12); text-shadow:0 3px 4px rgba(255,255,255,.75); }
 
-/* 表單列 */
+/* === 表單列 === */
 .row{ display:flex; gap:var(--gap); align-items:center; flex-wrap:wrap; margin-top:10px; }
 .row label{ width:var(--label-w); opacity:.92; white-space:nowrap; font-weight:700; -webkit-text-stroke:0; text-shadow:none; }
 .row input,.row select,.row button{
@@ -58,6 +61,7 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 }
 .row input,.row select{ box-shadow: 0 2px 0 rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.04); }
 
+/* 欄位寬度 */
 #displayName{ width:var(--w-displayName); }
 #email{ width:var(--w-email); }
 #code{ width:var(--w-code); }
@@ -65,9 +69,10 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 #lastNote{ width:var(--w-lastNote); text-align:center; letter-spacing:.3px; }
 #lastNote::placeholder{ text-align:center; }
 
+/* 「音符紀錄」對齊 email（桌機） */
 @media (min-width: 861px){ .align-to-email{ margin-left: calc(var(--w-displayName) - var(--w-instrument)); } }
 
-/* 按鈕 */
+/* === 按鈕 === */
 .row select option{text-align:center}
 .row button{
   width:120px; cursor:pointer; font-weight:700;
@@ -75,11 +80,11 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
   box-shadow: 0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06);
 }
 .btn-compact{ width:60px !important; }
-#hintBtn{ width: var(--w-hintbtn) !important; white-space:nowrap; } /* 不換行，避免 emoji 掉行 */
+#hintBtn{ width: var(--w-hintbtn) !important; white-space:nowrap; } /* 不換行，避免emoji掉行 */
 .row button:disabled{ opacity:.55; cursor:not-allowed; }
 .row button:active, .row button.pressed{ transform: translateY(1px) scale(.99); box-shadow: 0 1px 0 rgba(0,0,0,.18), 0 1px 4px rgba(0,0,0,.06); filter: brightness(.98); }
 
-/* 狀態列 */
+/* === 狀態列 === */
 #status{
   background: var(--soft); border:1px solid var(--neutral); border-radius:12px; padding:10px; margin-top:10px; font-size:14px;
   white-space:pre-wrap; text-align:center; color: var(--accent) !important; font-weight:700;
@@ -91,46 +96,44 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
   text-shadow:0 1px 0 rgba(255,255,255,.85), 0 3px 6px rgba(0,0,0,.04);
 }
 
-/* 備註小浮層 */
+/* === 備註小浮層（與鎖定同排） === */
 .actions-inline{ display:flex; gap:var(--gap); position:relative; }
 .hint-popover{
-  position:absolute; right:0; top:44px; /* 橫向預設：貼齊按鈕右邊 */
+  position:absolute; left:0; top:44px;   /* ← 改用 left，配合 JS 置中；橫向/直向都共用 */
   z-index:50;
-  max-width:520px; min-width:260px;
+  max-width: var(--hint-maxw); min-width: 260px;
   padding:10px 12px;
-  font-size:12px; line-height:1.45; color:var(--accent);
+  font-size: var(--hint-font); line-height:1.45; color:var(--accent);
   background:#fff; border:1px solid var(--accent); border-radius:12px;
   box-shadow:0 8px 24px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.06);
-  display:none;
-  white-space:normal;
+  display:none; white-space:normal;
 }
 .hint-popover.show{ display:block; }
-
-/* 橫向/桌機：箭頭固定在右側 24px，指向按鈕 */
+/* 小箭頭（X 位置用 --arrow-x，由 JS 設） */
 .hint-popover::before{
-  content:""; position:absolute; right:24px; top:-8px;
+  content:""; position:absolute; left:calc(var(--arrow-x) - 8px); top:-8px;
   width:0; height:0; border-left:8px solid transparent; border-right:8px solid transparent; border-bottom:8px solid var(--accent);
 }
 .hint-popover::after{
-  content:""; position:absolute; right:24px; top:-7px;
+  content:""; position:absolute; left:calc(var(--arrow-x) - 7px); top:-7px;
   width:0; height:0; border-left:7px solid transparent; border-right:7px solid transparent; border-bottom:7px solid #fff;
 }
 /* 兩行固定各一行 */
 .hint-popover .line{ white-space:nowrap; word-break:keep-all; overflow-wrap:normal; display:block; }
 
-/* 鍵盤容器 */
+/* === 鍵盤容器 === */
 .kb-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; background:var(--soft); border:1px solid var(--rim); border-radius:14px; margin-top:14px; }
 #keyboard{ position:relative; height:var(--kb-h); user-select:none; -webkit-user-select:none; touch-action: pan-x pan-y; }
 
-/* 鋼琴鍵 */
+/* === 鋼琴樣式（略，保持原樣） === */
 .white{ position:absolute; bottom:0; height:100%; background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5); border-radius:0 0 12px 12px; box-shadow:inset 0 -12px 16px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.9), 0 1px 0 rgba(0,0,0,.04); }
-.white::after{ content:""; position:absolute; top:0; bottom:0; right:0; width:var(--sep); background:linear-gradient(transparent,#cfd3dc 50%,transparent); }
-.white:first-child::before{ content:""; position:absolute; top:0; bottom:0; left:0; width:var(--sep); background:linear-gradient(transparent,#cfd3dc 50%,transparent); }
+.white::after{ content:""; position:absolute; top:0; bottom:0; right:0; width:var(--sep); background:linear-gradient(透明,#cfd3dc 50%,透明); }
+.white:first-child::before{ content:""; position:absolute; top:0; bottom:0; left:0; width:var(--sep); background:linear-gradient(透明,#cfd3dc 50%,透明); }
 .white.active{ filter:brightness(1.06); }
 .black{ position:absolute; bottom:38%; height:62%; background:linear-gradient(#2d2f36,#0e0f13); border:1px solid #0b0d11; border-top:none; border-radius:0 0 10px 10px; z-index:5; box-shadow:inset 0 -6px 10px rgba(0,0,0,.45), 0 3px 10px rgba(0,0,0,.35); transform: translateX(-50%); }
 .black.active{ filter:brightness(1.22); }
 
-/* 吉他略（保持原樣） */
+/* === 吉他樣式（保持原樣） === */
 .fretboard{ position:relative; display:grid; grid-template-columns: repeat(13, 1fr); width:100%; height:var(--kb-h); background:linear-gradient(180deg,#6b4f2e 0%, #5b4429 50%, #533c24 100%); border-radius:12px; box-shadow:inset 0 10px 20px rgba(0,0,0,.25), inset 0 -8px 16px rgba(0,0,0,.2); }
 .head{ position:absolute; left:0; top:0; bottom:0; width:86px; z-index:2; background:linear-gradient(180deg, rgba(0,0,0,.12), transparent 40%),linear-gradient(180deg,#7a5534 0%, #6b4f2e 55%, #5a3f24 100%); box-shadow: inset -8px 0 16px rgba(0,0,0,.18); border-radius:12px 0 0 12px; pointer-events:none; }
 .nut{ position:absolute; left:86px; top:0; bottom:0; width:8px; z-index:3; background:linear-gradient(180deg,#e5e1d6,#c9c5ba); box-shadow: inset -1px 0 0 rgba(0,0,0,.35), inset 1px 0 0 rgba(255,255,255,.6); border-right:2px solid rgba(120,120,120,.5); pointer-events:none; }
@@ -139,11 +142,7 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 .string{ --sw:2px; position:absolute; left:94px; right:0; height:0; z-index:3; border-top: var(--sw) solid transparent; transform-origin:center; filter:drop-shadow(0 1px 0 rgba(0,0,0,.18)); background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.45) 50%, rgba(255,255,255,0) 100%); background-size:160px 1px; background-repeat:no-repeat; background-position:-160px 0; }
 .string::before{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5); height: var(--sw); background: repeating-linear-gradient(90deg, #caa56b 0 2.4px, #906a3d 2.4px 3.1px), repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 2.4px, rgba(0,0,0,.10) 2.4px 3.1px), linear-gradient(180deg, rgba(255,255,255,.70), rgba(255,255,255,.15) 55%, rgba(0,0,0,.18) 100%); border-radius:999px; opacity:.98; pointer-events:none; }
 .string::after{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5 + 0.2px); height: calc(var(--sw) * .25); background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0)); pointer-events:none; border-radius:999px; opacity:.9; }
-.head-line{ --sw:2px; position:absolute; left:0; width:86px; height:0; z-index:2; border-top: var(--sw) solid transparent; filter:drop-shadow(0 1px 0 rgba(0,0,0,.06)); pointer-events:none; }
-.head-line::before{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5); height: var(--sw); background: repeating-linear-gradient(90deg, #caa56b 0 2.4px, #906a3d 2.4px 3.1px), repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 2.4px, rgba(0,0,0,.10) 2.4px 3.1px), linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0)); border-radius:999px; opacity:.98; }
-.head-line::after{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5 + 0.2px); height: calc(var(--sw) * .25); background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0)); border-radius:999px; opacity:.9; }
 
-/* Overlay & footer 略 */
 .overlay{ position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; background:rgba(17,24,39,.35); backdrop-filter:blur(3px); }
 .overlay.hidden{ display:none; }
 .dialog{ min-width:300px; max-width:92vw; background:var(--soft); border:1px solid var(--neutral); border-radius:14px; padding:18px; box-shadow:0 18px 44px rgba(0,0,0,.18); text-align:center; }
@@ -156,7 +155,7 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 #lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:transparent; }
 footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
 
-/* 只在直向時，浮層改為依按鈕中心動態置中，箭頭跟著位置 */
+/* 手機直向（欄位換行） */
 @media (orientation:portrait){
   .row-line2, .row-line3{ width:100%; gap:12px; }
   .pair{ display:flex; align-items:center; gap:var(--gap); width:100%; }
@@ -164,10 +163,6 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   .row-line2 .pair, .row-line3 .pair, .row-line3 .actions-inline{ flex: 0 0 100%; }
   .align-to-email{ margin-left:0 !important; }
   #lastNote{ width:var(--w-lastNote-m); }
-
-  .hint-popover{ right:auto; left:0; top:44px; }
-  .hint-popover::before{ right:auto; left:calc(var(--arrow-x) - 8px); }
-  .hint-popover::after{  right:auto; left:calc(var(--arrow-x) - 7px); }
 }
 </style>
 
@@ -176,6 +171,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   <div class="panel">
     <h2>🎼互動音符🎼</h2>
 
+    <!-- 第 1 行 -->
     <div class="row row-line2">
       <div class="pair">
         <label for="displayName">親友姓名：</label>
@@ -191,6 +187,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
       </div>
     </div>
 
+    <!-- 第 2 行 -->
     <div class="row row-line3">
       <div class="pair">
         <label for="instrument">樂器轉換：</label>
@@ -216,10 +213,14 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
       </div>
     </div>
 
+    <!-- 狀態列 -->
     <p id="status">尚未初始化</p>
+
+    <!-- 樂器容器 -->
     <div class="kb-wrap"><div id="keyboard"></div></div>
   </div>
 
+  <!-- 彈跳視窗們（保持原樣） -->
   <div id="guideOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
     <div class="dialog">
       <h3 id="guideTitle">📍操作說明📍</h3>
@@ -247,15 +248,19 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   <div id="lockScreen" aria-hidden="true"></div>
   <footer>© Copyright 2025 MY‘s system Version:b1.0.1</footer>
 
+  <!-- 音源庫 -->
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
   <script>
+  /* === 常用參數 === */
   const WEBHOOK = "https://script.google.com/macros/s/AKfycbwVLl3fjdTyixbgT1aQVPHHGE-ap2s5tirzWaCC_nxm8g1oBB_hOEUWtU8qbH1-nAg3/exec";
   const TIMEOUT_MS = 10000;
   const PRECHECK = true;
   const $ = s => document.querySelector(s);
 
+  /* 一次性信箱黑名單 */
   const DISPOSABLE_DOMAINS = new Set(['mailinator.com','guerrillamail.com','sharklasers.com','10minutemail.com','tempmail.com','tempmail.dev','temp-mail.org','moakt.com','yopmail.com','throwawaymail.com','trashmail.com','maildrop.cc','dispostable.com','mail-temp.com']);
 
+  /* Email 檢核 */
   function validEmail(v){
     const s=(v||'').trim();
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s)) return false;
@@ -272,6 +277,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     return true;
   }
 
+  /* 狀態列 */
   const setStatus = m => {
     const el = $('#status'); el.textContent = m; el.classList.remove('ok','busy','err');
     if(/已載入/.test(m)) el.classList.add('ok');
@@ -279,23 +285,28 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     else if(/❌|失敗|逾時|找尋不到|已過|格式不正確|忙碌/.test(m)) el.classList.add('err');
   };
 
+  /* 全域變數 */
   let audioCtx=null, sampler=null, samplerReady=false, unlocked=false, hardLocked=false;
   let currentInstrument='piano';
   let selectedNotes = [];
   let selectedInsts = [];
 
+  /* 音色路徑 */
   const PIANO_BASE = new URL('./piano/', location.href).href;
   const GUITAR_BASE = new URL('./guitar/', location.href).href;
   const PIANO_URLS = {'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3','C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3','C4':'C4.mp3','D#4':'Ds4.mp3','F#4':'Fs4.mp3','A4':'A4.mp3','C5':'C5.mp3'};
   const GUITAR_URLS = {'E2':'E2.wav','A2':'A2.wav','D3':'D3.wav','G3':'G3.wav','B3':'B3.wav','E4':'E4.wav'};
 
+  /* 鋼琴音階 */
   const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
   const BLACK_AFTER={ 'C':'C#','D':'D#','F':'F#','G':'G#','A':'A#' };
   const MIN_WHITE_PX=64, TOTAL_WHITE=WHITE.length;
 
+  /* 吉他音名計算 */
   const TUNING_MIDI = [40,45,50,55,59,64];
   const NOTE_NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
 
+  /* 快速查詢 */
   async function getStatusFast(code, email, signal){
     try{
       const url = WEBHOOK + '?action=status&code=' + encodeURIComponent(code) + '&email=' + encodeURIComponent(email);
@@ -306,6 +317,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     }catch(_){ return { ok:false }; }
   }
 
+  /* 啟用音訊 */
   async function unlockAudio(){
     try{
       const Ctx=window.webkitAudioContext||window.AudioContext;
@@ -319,6 +331,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     }catch(e){ setStatus('啟用失敗：'+e.message); }
   }
 
+  /* 切換音色 */
   function loadSampler(inst='piano'){
     sampler?.dispose?.(); sampler=null; samplerReady=false;
     let urls=PIANO_URLS, base=PIANO_BASE, label='🎹 ';
@@ -327,8 +340,10 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     sampler=new Tone.Sampler({ urls, release:1, baseUrl:base, onload:()=>{ samplerReady=true; setStatus(label+'已載入 ✅'); } }).toDestination();
   }
 
+  /* 三音顯示 */
   function refreshNotesDisplay(){ const parts=[selectedNotes[0]||'—', selectedNotes[1]||'—', selectedNotes[2]||'—']; $('#lastNote').value = parts.join(' , '); }
 
+  /* 播音 */
   function trigger(note){
     if(hardLocked) return;
     if(!samplerReady){ setStatus('音色載入中…'); return; }
@@ -338,6 +353,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     refreshNotesDisplay(); validateLockBtn();
   }
 
+  /* 鎖定鍵可用性 */
   function validateLockBtn(){
     const nameOk = ($('#displayName').value||'').trim().length>0;
     const codeOk = ($('#code').value||'').trim().length>0;
@@ -346,6 +362,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     $('#lockBtn').disabled = !(nameOk && codeOk && emailOk && notesOk);
   }
 
+  /* 事件綁定（表單） */
   $('#instrument').addEventListener('change', ()=>{
     if(hardLocked) return;
     currentInstrument=$('#instrument').value;
@@ -357,22 +374,20 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   $('#code').addEventListener('input', validateLockBtn);
   $('#email').addEventListener('input', validateLockBtn);
 
+  /* 重設 */
   $('#resetBtn').addEventListener('click', ()=>{
     if(hardLocked) return;
     if(selectedNotes.length>0){ selectedNotes.pop(); selectedInsts.pop(); refreshNotesDisplay(); validateLockBtn(); }
   });
 
-  /* 小浮層互動 */
+  /* 說明按鈕 → 小浮層（橫向/直向都會精準指向按鈕） */
   const hintBtn = $('#hintBtn');
   const hintPop = $('#hintPopover');
 
   function positionHint(){
-    const isPortrait = window.matchMedia('(orientation: portrait)').matches;
-    if(!isPortrait){
-      // 橫向：CSS 已固定 right:0、箭頭 right:24px，無需 JS 計算
-      return;
-    }
-    const wrap = hintBtn.parentElement;
+    const wrap = hintBtn.parentElement;           // .actions-inline
+    // 先顯示以取得寬度
+    const wasOpen = hintPop.classList.contains('show');
     hintPop.style.visibility = 'hidden';
     hintPop.classList.add('show');
 
@@ -380,16 +395,17 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     const popW = hintPop.offsetWidth;
     const wrapW = wrap.clientWidth;
 
+    // 浮層置中且不超出容器
     let popLeft = Math.max(0, Math.min(wrapW - popW, btnCenter - popW/2));
     hintPop.style.left = popLeft + 'px';
     hintPop.style.right = 'auto';
 
+    // 箭頭水平位置（在浮層內）
     const arrowX = Math.round(btnCenter - popLeft);
     document.documentElement.style.setProperty('--arrow-x', arrowX + 'px');
 
-    if(hintBtn.getAttribute('aria-expanded')!=='true'){
-      hintPop.classList.remove('show');
-    }
+    // 若原本是關閉狀態，還原
+    if(!wasOpen) hintPop.classList.remove('show');
     hintPop.style.visibility = '';
   }
 
@@ -404,23 +420,16 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     if(showing) positionHint();
     e.stopPropagation();
   });
-
   document.addEventListener('click', (e)=>{
     if(!hintPop.classList.contains('show')) return;
     const within = hintPop.contains(e.target) || hintBtn.contains(e.target);
     if(!within) closeHint();
   });
   window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeHint(); });
-
   window.addEventListener('resize', positionHint);
   window.addEventListener('orientationchange', positionHint);
 
-  /* 送出 */
-  $('#guideOk').addEventListener('click', ()=>{ $('#guideOverlay').classList.add('hidden'); $('#unlockOverlay').classList.remove('hidden'); });
-  $('#cancelUnlock').addEventListener('click', ()=>{ $('#unlockOverlay').classList.add('hidden'); });
-  $('#confirmUnlock').addEventListener('click', unlockAudio, {once:true});
-  window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ $('#guideOverlay').classList.add('hidden'); $('#unlockOverlay').classList.add('hidden'); }});
-
+  /* 送出（鎖定） */
   $('#lockBtn').addEventListener('click', async ()=>{
     if(hardLocked) return;
     const name=($('#displayName').value||'').trim();
@@ -478,6 +487,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     }
   });
 
+  /* 成功後凍結畫面 */
   function enterHardLock(){
     hardLocked=true;
     $('#displayName').disabled=true; $('#code').disabled=true; $('#email').disabled=true; $('#instrument').disabled=true;
@@ -485,6 +495,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     $('#lockScreen').style.display='block';
   }
 
+  /* 鋼琴繪製（保持原樣） */
   function renderPiano(){
     const kb=$('#keyboard'); kb.innerHTML=''; kb.className='';
     sizePiano();
@@ -507,6 +518,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     });
   }
 
+  /* 鋼琴尺寸 */
   function sizePiano(){
     const wrap=document.querySelector('.kb-wrap'); const kb=document.querySelector('#keyboard');
     const wrapW=wrap.clientWidth; const sep=parseInt(getComputedStyle(kb).getPropertyValue('--sep')||'2',10);
@@ -514,6 +526,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     kb.style.width=(wrapW>=minW?wrapW-1:minW)+'px'; kb.style.height='var(--kb-h)';
   }
 
+  /* 吉他繪製（保持原樣） */
   function renderGuitar(){
     const kb=$('#keyboard'); kb.innerHTML=''; kb.className='fretboard'; kb.style.height='var(--kb-h)';
     const head=document.createElement('div'); head.className='head'; kb.appendChild(head);
@@ -560,13 +573,15 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     }
   }
 
+  /* 視窗尺寸 */
   window.addEventListener('resize', ()=>{ if(currentInstrument==='piano') sizePiano(); });
   window.addEventListener('orientationchange', ()=>{ if(currentInstrument==='piano') sizePiano(); });
 
+  /* 初始化 */
   window.addEventListener('DOMContentLoaded', ()=>{
     renderPiano(); setStatus('等待啟用聲音…'); validateLockBtn();
     $('#guideOverlay').classList.remove('hidden');
-    positionHint(); // 直向一進來就先算一次
+    positionHint(); // 一進來先算一次，保證橫向/直向都準
   });
   </script>
 </body>
