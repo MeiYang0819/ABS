@@ -208,10 +208,18 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
       </div>
       <div class="pair">
         <label for="email">電子郵件：</label>
-        <!-- ① 加 list="email-domains" -->
-        <input id="email" placeholder="hey fill in your@email" inputmode="email" list="email-domains" />
-        <!-- ② email 輸入後面加 datalist -->
-        <datalist id="email-domains"></datalist>
+        <input id="email" placeholder="hey fill in your@email" inputmode="email" />
+        <!-- ✅ 常見網域選單（只有在輸入含 @ 時才會啟用） -->
+        <datalist id="emailDomains">
+          <option value="gmail.com"></option>
+          <option value="yahoo.com.tw"></option>
+          <option value="yahoo.com"></option>
+          <option value="outlook.com"></option>
+          <option value="icloud.com"></option>
+          <option value="hotmail.com"></option>
+          <option value="msn.com"></option>
+          <option value="live.com"></option>
+        </datalist>
       </div>
       <div class="pair">
         <label for="code">取得代號：</label>
@@ -303,11 +311,11 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     const [local,domain] = s.split('@');
     if(/^[0-9]+$/.test(local)) return false;
     if(/[._%+-]$/.test(local)) return false;
-    const labels = domain.split('.');
+    const labels = (domain||'').split('.');
     if(labels.some(l=>!l || l.length>63 || /^-/.test(l) || /-$/.test(l))) return false;
-    const tld = labels[labels.length-1];
+    const tld = labels[labels.length-1]||'';
     if(!/^[A-Za-z]{2,24}$/.test(tld)) return false;
-    const d = domain.toLowerCase();
+    const d = (domain||'').toLowerCase();
     for(const bad of DISPOSABLE_DOMAINS){ if(d===bad || d.endsWith('.'+bad)) return false; }
     return true;
   }
@@ -407,7 +415,13 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   });
   $('#displayName').addEventListener('input', validateLockBtn);
   $('#code').addEventListener('input', validateLockBtn);
-  $('#email').addEventListener('input', validateLockBtn);
+  $('#email').addEventListener('input', ()=>{
+    // ✅ 只有當輸入含 @ 時才啟用常見網域清單，避免干擾
+    const v = $('#email').value;
+    if(v.includes('@')) $('#email').setAttribute('list','emailDomains');
+    else $('#email').removeAttribute('list');
+    validateLockBtn();
+  });
 
   /* === 重設 === */
   $('#resetBtn').addEventListener('click', ()=>{
@@ -423,9 +437,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     // 讓箭頭指向按鈕中央（直向/橫向都對）
     const popRect = hintPop.getBoundingClientRect();
     const btnRect = hintBtn.getBoundingClientRect();
-    // 算出按鈕中心相對於 popover 左邊的 X
     const x = (btnRect.left + btnRect.width/2) - popRect.left;
-    // 限制在框內
     const clamped = Math.max(16, Math.min(popRect.width-16, x));
     hintPop.style.setProperty('--arrow-x', clamped + 'px');
   }
@@ -480,8 +492,13 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
       try{
         const pre = await getStatusFast(code, email);
         if(pre.ok){
-          if(pre.status==='used'){ setStatus('📝 已填寫過囉，想要更換音階請洽ㄟ咪🙏'); return; }
-          if(pre.status==='inflight'){ setStatus('🕒 資料處理中，請勿重複送出噢⛔'); return; }
+          if(pre.status==='used'){
+            // ✅ 不 return，讓後端精準判斷（duplicate+deadline_passed / duplicate+code_not_found）
+            setStatus('📝 已填寫過，正在確認是否已過期或代號問題…');
+          }else if(pre.status==='inflight'){
+            setStatus('🕒 資料處理中，請勿重複送出⛔');
+            return; // inflight 仍然中止，避免重送
+          }
         }
       }catch(_e){}
     }
@@ -621,34 +638,6 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     renderPiano(); setStatus('等待啟用聲音…'); validateLockBtn();
     $('#guideOverlay').classList.remove('hidden');
   });
-
-  /* ③ Email 常見網域建議（打到 @ 後可選）—— 只新增這段 */
-  const COMMON_DOMAINS = [
-    'gmail.com','yahoo.com','hotmail.com','outlook.com','icloud.com',
-    'msn.com','live.com','yahoo.com.tw','hotmail.com.tw'
-  ];
-  (function setupEmailDomainDatalist(){
-    const el = document.getElementById('email');
-    const dl = document.getElementById('email-domains');
-    if(!el || !dl) return;
-
-    el.addEventListener('input', () => {
-      const v = (el.value || '').trim();
-      const at = v.indexOf('@');
-      if (at > 0) {
-        const local = v.slice(0, at);
-        const typed = v.slice(at + 1).toLowerCase();
-        const candidates = COMMON_DOMAINS
-          .filter(d => d.startsWith(typed))
-          .slice(0, 8);
-        dl.innerHTML = candidates
-          .map(d => `<option value="${local}@${d}"></option>`)
-          .join('');
-      } else {
-        dl.innerHTML = '';
-      }
-    });
-  })();
   </script>
 </body>
 </html>
