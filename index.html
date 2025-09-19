@@ -208,7 +208,10 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
       </div>
       <div class="pair">
         <label for="email">電子郵件：</label>
-        <input id="email" placeholder="hey fill in your@email" inputmode="email" />
+        <!-- ① 加 list="email-domains" -->
+        <input id="email" placeholder="hey fill in your@email" inputmode="email" list="email-domains" />
+        <!-- ② email 輸入後面加 datalist -->
+        <datalist id="email-domains"></datalist>
       </div>
       <div class="pair">
         <label for="code">取得代號：</label>
@@ -618,10 +621,34 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     renderPiano(); setStatus('等待啟用聲音…'); validateLockBtn();
     $('#guideOverlay').classList.remove('hidden');
   });
+
+  /* ③ Email 常見網域建議（打到 @ 後可選）—— 只新增這段 */
+  const COMMON_DOMAINS = [
+    'gmail.com','yahoo.com','hotmail.com','outlook.com','icloud.com',
+    'msn.com','live.com','yahoo.com.tw','hotmail.com.tw'
+  ];
+  (function setupEmailDomainDatalist(){
+    const el = document.getElementById('email');
+    const dl = document.getElementById('email-domains');
+    if(!el || !dl) return;
+
+    el.addEventListener('input', () => {
+      const v = (el.value || '').trim();
+      const at = v.indexOf('@');
+      if (at > 0) {
+        const local = v.slice(0, at);
+        const typed = v.slice(at + 1).toLowerCase();
+        const candidates = COMMON_DOMAINS
+          .filter(d => d.startsWith(typed))
+          .slice(0, 8);
+        dl.innerHTML = candidates
+          .map(d => `<option value="${local}@${d}"></option>`)
+          .join('');
+      } else {
+        dl.innerHTML = '';
+      }
+    });
+  })();
   </script>
 </body>
 </html>
-
-
-
-
