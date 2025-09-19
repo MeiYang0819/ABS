@@ -296,7 +296,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   </div>
 
   <div id="lockScreen" aria-hidden="true"></div>
-  <footer>© Copyright 2025 MY‘s System Version:b1.0.230</footer>
+  <footer>© Copyright 2025 MY‘s System Version:b1.0.255</footer>
 
   <!-- === 音源庫（不動即可）=== -->
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
@@ -434,8 +434,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     probeAsset(testUrl, 5000 /* ✅ 可調整：探測逾時 */).then(ok=>{
       if(!ok){
         setStatus(
-          '⚠️ 無法讀取音色檔，請檢查路徑/大小寫/CORS：\n' + testUrl +
-          '\n（目錄需與此頁同層；檔名表要跟實檔一致：如 D#4→Ds4.mp3）'
+          '⚠️ 無法讀取音色檔\n'//請檢查路徑/大小寫/CORS：\n' + testUrl （目錄需與此頁同層；檔名表要跟實檔一致：如 D#4→Ds4.mp3）
         );
       }
     });
@@ -461,11 +460,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     setTimeout(()=>{
       if(!samplerReady){
         setStatus(
-          '⏱️ 載入超時，可能原因：\n' +
-          '• 檔案路徑不對 / 大小寫不符（主機區分大小寫）\n' +
-          '• 目錄位置不同（目前 baseUrl：'+ base +'）\n' +
-          '• 不同網域造成 CORS 擋住\n' +
-          '• 檔名表與實際檔名不一致（例：D#4 → Ds4.mp3）'
+          '⏱️ 載入超時\n' // 可能原因檔案路徑不對 / 大小寫不符（主機區分大小寫 目錄位置不同（目前 baseUrl：'+ base +'）不同網域造成 CORS 擋住 檔名表與實際檔名不一致（例：D#4 → Ds4.mp3）
         );
       }
     }, WATCH_MS);
@@ -629,7 +624,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
           else if(err==='duplicate') msg='📝 已填寫過囉，想要更換音階請洽ㄟ咪🙏';
           else if(err==='email_required') msg='⚠️ Email缺少或格式不正確，跪求真正的mail🙇‍♂️';
           else if(err==='email_domain_invalid') msg='🌐 Email網域無法收信，請確認拼字或更換📮';
-          else if(err==='deadline_passed') msg='📣 已過填寫截止日，但仍可在此玩耍👣';
+          else if(err==='deadline_passed') msg='📣 已過填寫截止日，但還可在這玩耍唷👣';
           else if(err==='code_not_found') msg='🔎 找尋不到代號，請洽新人🤵🏻‍♂️👰🏻‍♀️';
           else if(err==='busy') msg='⚠️ 系統忙碌，稍後再試🌀';
           setStatus(msg);
