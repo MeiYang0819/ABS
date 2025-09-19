@@ -8,16 +8,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 /* === 站內配色與欄寬（最常改）=== */
+/* ✅ 可調整：主配色、欄寬、陰影、間距 */
 :root{
-  --brand:#D4BFAA;
-  --title:#A68A7C;
-  --neutral:#E4E4E4;
-  --soft:#F5F1EC;
-  --accent:#BFA5A0; /* 提亮色（暖玫瑰灰） */
-  --rim:#E4E4E4;
-  --ink:#0f172a;
+  --brand:#D4BFAA;     /* ✅ 可調整：頁面背景主色 */
+  --title:#A68A7C;     /* ✅ 可調整：標題字色 */
+  --neutral:#E4E4E4;   /* ✅ 可調整：面板底色/邊框色 */
+  --soft:#F5F1EC;      /* ✅ 可調整：狀態列/鍵盤底色 */
+  --accent:#BFA5A0;    /* ✅ 可調整：重點文字顏色 */
+  --rim:#E4E4E4;       /* ✅ 可調整：輸入框邊框色 */
+  --ink:#0f172a;       /* ✅ 可調整：內文字色 */
 
-  /* 欄位寬度（桌機） */
+  /* ✅ 可調整：各欄位寬度（桌機） */
   --w-displayName: 96px;
   --w-email: 261px;
   --w-code: 96px;
@@ -25,53 +26,59 @@
   --w-lastNote: 125px;
   --w-lastNote-m: 160px;
 
-  --label-w:88px;
-  --gap:10px;
-  --kb-h:280px;
-  --sep:2px;
+  /* ✅ 可調整：排版間距 */
+  --label-w:88px;   /* 標籤寬 */
+  --gap:10px;       /* 欄間距 */
+  --kb-h:280px;     /* 樂器高度 */
+  --sep:2px;        /* 白鍵分隔線寬 */
 
+  /* 🧩 進階可調：整體描邊/高光（改了會影響全站視覺） */
   --stroke:rgba(0,0,0,.18);
   --glow:rgba(255,255,255,.65);
 
-  /* 你可自行修改👇 */
+  /* ✅ 可調整：提示按鈕與備註字級 */
   --w-hintbtn: 160px; /* 說明按鈕寬度 */
   --hint-fz: 12px;    /* 備註字體大小 */
   --hint-maxw: 520px; /* 備註最大寬度 */
 }
 
 /* === 全站字體與粗細（常改）=== */
+/* 🧩 進階可調：若想關閉整站粗體/描邊，改這裡 */
 *{ box-sizing:border-box; font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif !important; -webkit-text-stroke:.35px var(--stroke); text-shadow:0 1px 0 var(--glow); }
 html,body{ margin:0; color:var(--ink); background:var(--brand); font-weight:700; }
-/* 只有「操作說明」彈窗維持原樣（不粗體、不描邊） */
+/* 🔒 請勿更動流程：操作說明維持原樣（不粗體） */
 #guideOverlay .dialog, #guideOverlay .dialog *{ font-weight:500 !important; -webkit-text-stroke:0 !important; text-shadow:none !important; }
 
 /* === 版面容器（次常改）=== */
+/* ✅ 可調整：外框、圓角、陰影 */
 .bg-notes{ position:fixed; inset:0; width:100%; height:100%; object-fit:cover; opacity:.60; mix-blend-mode:multiply; filter:contrast(1.1); pointer-events:none; z-index:0; }
 .panel{ position:relative; z-index:1; max-width:1060px; margin:22px auto; background:var(--neutral); border:1px solid var(--neutral); border-radius:16px; padding:18px 18px 26px; box-shadow:0 10px 26px rgba(0,0,0,.10); backdrop-filter:blur(8px) saturate(115%); }
 
 /* === 標題（次常改）=== */
+/* ✅ 可調整：字級、陰影、描邊 */
 h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; letter-spacing:1px; color:var(--title); -webkit-text-stroke:.6px rgba(0,0,0,.12); text-shadow:0 3px 4px rgba(255,255,255,.75); }
 
 /* === 表單列（常改）=== */
+/* ✅ 可調整：欄位高度、圓角、陰影 */
 .row{ display:flex; gap:var(--gap); align-items:center; flex-wrap:wrap; margin-top:10px; }
 .row label{ width:var(--label-w); opacity:.92; white-space:nowrap; font-weight:700; -webkit-text-stroke:0; text-shadow:none; }
 .row input,.row select,.row button{
   height:38px; font-size:14px; background:#fff; padding:8px 10px; border:1px solid var(--rim); border-radius:10px;
   -webkit-text-stroke:.25px rgba(0,0,0,.12); text-shadow:0 1px 0 rgba(255,255,255,.5);
 }
-/* 微立體陰影（input/select） */
+/* ✅ 可調整：微立體陰影 */
 .row input,.row select{ box-shadow: 0 2px 0 rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.04); }
 
 /* 欄位寬度（常改）*/
-#displayName{ width:var(--w-displayName); }
-#email{ width:var(--w-email); }
-#code{ width:var(--w-code); }
-#instrument{ width:var(--w-instrument); }
-#lastNote{ width:var(--w-lastNote); text-align:center; letter-spacing:.3px; }
+#displayName{ width:var(--w-displayName); }  /* ✅ 可調整 */
+#email{ width:var(--w-email); }              /* ✅ 可調整 */
+#code{ width:var(--w-code); }                /* ✅ 可調整 */
+#instrument{ width:var(--w-instrument); }    /* ✅ 可調整 */
+#lastNote{ width:var(--w-lastNote); text-align:center; letter-spacing:.3px; } /* ✅ 可調整 */
 #lastNote::placeholder{ text-align:center; }
 
 /* 「音符紀錄」與上方「電子郵件」左緣對齊（桌機） */
-@media (min-width: 861px){ .align-to-email{ margin-left: calc(var(--w-displayName) - var(--w-instrument)); } }
+@media (min-width: 861px){ .align-to-email{ margin-left: calc(var(--w-displayName) - var(--w-instrument)); } } /* ✅ 可調整 */
 
 /* === 按鈕（常改）=== */
 .row select option{text-align:center}
@@ -80,16 +87,18 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
   transition: transform .08s ease, box-shadow .08s ease, filter .08s ease;
   box-shadow: 0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06);
 }
-.btn-compact{ width:60px !important; } /* 供「重設/鎖定」使用 */
+.btn-compact{ width:60px !important; } /* ✅ 可調整：縮版按鈕寬度 */
 
 /* NEW: 說明按鈕（請點我）可自訂寬度，維持同高度 */
-#hintBtn{ width: var(--w-hintbtn) !important; }
+#hintBtn{ width: var(--w-hintbtn) !important; } /* ✅ 可調整 */
 
 /* 互動狀態 */
+/* ✅ 可調整：互動視覺（改陰影/縮放） */
 .row button:disabled{ opacity:.55; cursor:not-allowed; }
 .row button:active, .row button.pressed{ transform: translateY(1px) scale(.99); box-shadow: 0 1px 0 rgba(0,0,0,.18), 0 1px 4px rgba(0,0,0,.06); filter: brightness(.98); }
 
 /* === 狀態列（常改）=== */
+/* ✅ 可調整：狀態列外觀 */
 #status{
   background: var(--soft); border:1px solid var(--neutral); border-radius:12px; padding:10px; margin-top:10px; font-size:14px;
   white-space:pre-wrap; text-align:center; color: var(--accent) !important; font-weight:700;
@@ -102,9 +111,10 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 }
 
 /* === NEW: 備註小浮層（與鎖定同排，按鈕點擊後顯示） === */
-.actions-inline{ display:flex; gap:var(--gap); position:relative; } /* 不改既有排版，只加定位 */
+/* ✅ 可調整：浮層寬、陰影、位置 */
+.actions-inline{ display:flex; gap:var(--gap); position:relative; }
 .hint-popover{
-  position:absolute; right:0; top:44px; /* 按鈕下方 */
+  position:absolute; right:0; top:44px;
   z-index:50;
   max-width: var(--hint-maxw); min-width: 260px;
   padding:10px 12px;
@@ -112,11 +122,10 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
   background:#fff; border:1px solid var(--accent); border-radius:12px;
   box-shadow:0 8px 24px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.06);
   display:none; white-space:normal;
-  /* 箭頭水平位置（JS 會塞 px 值），預設 24px 偏右 */
-  --arrow-x: calc(100% - 24px);
+  --arrow-x: calc(100% - 24px); /* 🧩 進階可調：箭頭預設位置 */
 }
 .hint-popover.show{ display:block; }
-/* 小箭頭（跟著 --arrow-x 對準按鈕）*/
+/* ✅ 可調整：箭頭樣式 */
 .hint-popover::before{
   content:""; position:absolute; left:var(--arrow-x); top:-8px;
   transform:translateX(-50%);
@@ -129,10 +138,12 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 }
 
 /* === 鍵盤容器（次常改）=== */
+/* ✅ 可調整：邊框/圓角 */
 .kb-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; background:var(--soft); border:1px solid var(--rim); border-radius:14px; margin-top:14px; }
 #keyboard{ position:relative; height:var(--kb-h); user-select:none; -webkit-user-select:none; touch-action: pan-x pan-y; }
 
 /* === 鋼琴樣式（幾乎不改）=== */
+/* 🔒 請勿更動流程：細緻光影比例，改了音感覺易失衡 */
 .white{ position:absolute; bottom:0; height:100%; background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5); border-radius:0 0 12px 12px; box-shadow:inset 0 -12px 16px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.9), 0 1px 0 rgba(0,0,0,.04); }
 .white::after{ content:""; position:absolute; top:0; bottom:0; right:0; width:var(--sep); background:linear-gradient(transparent,#cfd3dc 50%,transparent); }
 .white:first-child::before{ content:""; position:absolute; top:0; bottom:0; left:0; width:var(--sep); background:linear-gradient(transparent,#cfd3dc 50%,transparent); }
@@ -141,6 +152,7 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 .black.active{ filter:brightness(1.22); }
 
 /* === 吉他樣式（幾乎不改）=== */
+/* 🔒 請勿更動流程：光影/結構和點擊區已調校 */
 .fretboard{ position:relative; display:grid; grid-template-columns: repeat(13, 1fr); width:100%; height:var(--kb-h); background:linear-gradient(180deg,#6b4f2e 0%, #5b4429 50%, #533c24 100%); border-radius:12px; box-shadow:inset 0 10px 20px rgba(0,0,0,.25), inset 0 -8px 16px rgba(0,0,0,.2); }
 .head{ position:absolute; left:0; top:0; bottom:0; width:86px; z-index:2; background:linear-gradient(180deg, rgba(0,0,0,.12), transparent 40%),linear-gradient(180deg,#7a5534 0%, #6b4f2e 55%, #5a3f24 100%); box-shadow: inset -8px 0 16px rgba(0,0,0,.18); border-radius:12px 0 0 12px; pointer-events:none; }
 .nut{ position:absolute; left:86px; top:0; bottom:0; width:8px; z-index:3; background:linear-gradient(180deg,#e5e1d6,#c9c5ba); box-shadow: inset -1px 0 0 rgba(0,0,0,.35), inset 1px 0 0 rgba(255,255,255,.6); border-right:2px solid rgba(120,120,120,.5); pointer-events:none; }
@@ -163,6 +175,7 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 .head-line[data-s="5"]{ --sw:4px; }
 
 /* 觸控區與震動動畫（幾乎不改） */
+/* 🔒 請勿更動流程：點擊/動畫節奏 */
 .hit-row{ position:absolute; left:0; right:0; height:28px; transform:translateY(-50%); background:transparent; cursor:pointer; z-index:4; }
 @media (pointer:coarse){ .hit-row{ height:34px; } }
 .string.vibrate{ animation: vibrCurve 360ms ease-out, shine 360ms ease-out; }
@@ -170,6 +183,7 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 @keyframes shine{ 0%{ background-position:-160px 0; opacity:.95 } 100%{ background-position:160px 0; opacity:.96 } }
 
 /* === Overlay（兩個彈跳視窗樣式，偶爾會改）=== */
+/* ✅ 可調整：遮罩透明度、圓角、陰影 */
 .overlay{ position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; background:rgba(17,24,39,.35); backdrop-filter:blur(3px); pointer-events:auto; }
 .overlay.hidden{ display:none; }
 .dialog{ min-width:300px; max-width:92vw; background:var(--soft); border:1px solid var(--neutral); border-radius:14px; padding:18px; box-shadow:0 18px 44px rgba(0,0,0,.18); text-align:center; pointer-events:auto; }
@@ -184,6 +198,7 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
 
 /* === 手機直向（只調整直向，不動其他）=== */
+/* ✅ 可調整：直向排版比例 */
 @media (orientation:portrait){
   .row-line2, .row-line3{ width:100%; gap:12px; }
   .pair{ display:flex; align-items:center; gap:var(--gap); width:100%; }
@@ -196,6 +211,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
 
 <body>
   <!-- === 背景圖（次常改）=== -->
+  <!-- ✅ 可調整：背景圖檔案/版本 -->
   <img class="bg-notes" src="./assets/notes.png?v=4" alt="">
   <div class="panel">
     <h2>🎼互動音符🎼</h2>
@@ -209,7 +225,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
       <div class="pair">
         <label for="email">電子郵件：</label>
         <input id="email" placeholder="hey fill in your@email" inputmode="email" />
-        <!-- ✅ 常見網域選單（輸入含 @ 時才會出現；選項會自動補完整 email） -->
+        <!-- ✅ 可調整（JS 會動態塞選項）：常見網域選單 -->
         <datalist id="emailDomains"></datalist>
       </div>
       <div class="pair">
@@ -236,9 +252,9 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
       <div class="actions-inline">
         <button id="resetBtn" type="button" class="btn-compact">重設</button>
         <button id="lockBtn" type="button" class="btn-compact" disabled>鎖定</button>
-        <!-- NEW：與鎖定同排的說明觸發按鈕（可自訂寬度） -->
+        <!-- NEW：與鎖定同排的說明觸發按鈕 -->
         <button id="hintBtn" type="button" class="btn-compact" aria-expanded="false" aria-controls="hintPopover" title="點我查看備註">先點我查看好咪🥺</button>
-        <!-- NEW：備註小浮層（固定兩行，箭頭會自動指向按鈕） -->
+        <!-- NEW：備註小浮層 -->
         <div id="hintPopover" class="hint-popover" role="note" aria-live="polite">
           按「鎖定」後請稍候，本人有缺陷導致速度較慢🥲<br>
           確認送出成功，下方「狀態列」會立即通知您溜🎉
@@ -286,21 +302,27 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
   <script>
   /* === 常用參數（最常改）=== */
-  const WEBHOOK = "https://script.google.com/macros/s/AKfycbxufnD5m5ozcZK2H2A4yryV548MGUddxTEznDFJB9w9bbD-ZDgD5bmBNxmwlSPXHHgj/exec";
-  const TIMEOUT_MS = 10000;
-  const PRECHECK = true;
-  const $ = s => document.querySelector(s);
+  const WEBHOOK = "https://script.google.com/macros/s/AKfycbxufnD5m5ozcZK2H2A4yryV548MGUddxTEznDFJB9w9bbD-ZDgD5bmBNxmwlSPXHHgj/exec"; // ✅ 可調整：你的 Apps Script 執行網址
+  const TIMEOUT_MS = 10000;     // ✅ 可調整：POST 逾時（毫秒）
+  const PRECHECK = true;        // ✅ 可調整：送出前是否先撞 /status
+  const $ = s => document.querySelector(s); // 🔒 請勿更動流程：便捷選擇器
 
-  /* ✅ 常見 Email 網域（用於 datalist 動態補全） */
+  /* ✅ 可調整：常見 Email 網域（會用來產生 datalist 補全） */
   const COMMON_DOMAINS = [
     'gmail.com','yahoo.com.tw','yahoo.com','outlook.com','icloud.com',
     'hotmail.com','msn.com','live.com'
   ];
 
   /* === 一次性信箱黑名單 === */
-  const DISPOSABLE_DOMAINS = new Set(['mailinator.com','guerrillamail.com','sharklasers.com','10minutemail.com','tempmail.com','tempmail.dev','temp-mail.org','moakt.com','yopmail.com','throwawaymail.com','trashmail.com','maildrop.cc','dispostable.com','mail-temp.com']);
+  /* ✅ 可調整：想放寬可刪/減；想更嚴可新增 */
+  const DISPOSABLE_DOMAINS = new Set([
+    'mailinator.com','guerrillamail.com','sharklasers.com','10minutemail.com',
+    'tempmail.com','tempmail.dev','temp-mail.org','moakt.com','yopmail.com',
+    'throwawaymail.com','trashmail.com','maildrop.cc','dispostable.com','mail-temp.com'
+  ]);
 
   /* === Email 檢核 === */
+  /* 🔒 請勿更動流程：這段和後端對應，影響鎖定鍵可用性 */
   function validEmail(v){
     const s=(v||'').trim();
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s)) return false;
@@ -318,6 +340,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   }
 
   /* === 狀態列 === */
+  /* 🧩 進階可調：要改判斷關鍵字/樣式，可改這裡與上方 CSS */
   const setStatus = m => {
     const el = $('#status'); el.textContent = m; el.classList.remove('ok','busy','err');
     if(/已載入/.test(m)) el.classList.add('ok');
@@ -326,27 +349,32 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   };
 
   /* === 全域變數 === */
+  /* 🔒 請勿更動流程：音源/鎖定/選音邏輯 */
   let audioCtx=null, sampler=null, samplerReady=false, unlocked=false, hardLocked=false;
   let currentInstrument='piano';
   let selectedNotes = [];
   let selectedInsts = [];
 
   /* === 音色路徑 === */
+  /* ✅ 可調整：如音色檔存放路徑不同，可改 baseUrl 或檔名表 */
   const PIANO_BASE = new URL('./piano/', location.href).href;
   const GUITAR_BASE = new URL('./guitar/', location.href).href;
   const PIANO_URLS = {'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3','C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3','C4':'C4.mp3','D#4':'Ds4.mp3','F#4':'Fs4.mp3','A4':'A4.mp3','C5':'C5.mp3'};
   const GUITAR_URLS = {'E2':'E2.wav','A2':'A2.wav','D3':'D3.wav','G3':'G3.wav','B3':'B3.wav','E4':'E4.wav'};
 
   /* === 鋼琴音階 === */
+  /* 🔒 請勿更動流程：鍵位計算依賴這些設定 */
   const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
   const BLACK_AFTER={ 'C':'C#','D':'D#','F':'F#','G':'G#','A':'A#' };
   const MIN_WHITE_PX=64, TOTAL_WHITE=WHITE.length;
 
   /* === 吉他音名計算 === */
+  /* 🔒 請勿更動流程：音高轉換依賴這些設定 */
   const TUNING_MIDI = [40,45,50,55,59,64];
   const NOTE_NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
 
   /* === 快速查詢 === */
+  /* 🔒 請勿更動流程：與後端 /status 對應 */
   async function getStatusFast(code, email, signal){
     try{
       const url = WEBHOOK + '?action=status&code=' + encodeURIComponent(code) + '&email=' + encodeURIComponent(email);
@@ -358,6 +386,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   }
 
   /* === 啟用音訊 === */
+  /* 🔒 請勿更動流程：行動裝置互動限制需要用戶手勢解鎖 */
   async function unlockAudio(){
     try{
       const Ctx=window.webkitAudioContext||window.AudioContext;
@@ -372,6 +401,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   }
 
   /* === 切換音色 === */
+  /* 🔒 請勿更動流程：音源載入與狀態聯動 */
   function loadSampler(inst='piano'){
     sampler?.dispose?.(); sampler=null; samplerReady=false;
     let urls=PIANO_URLS, base=PIANO_BASE, label='🎹 ';
@@ -381,9 +411,11 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   }
 
   /* === 三音顯示 === */
+  /* 🔒 請勿更動流程 */
   function refreshNotesDisplay(){ const parts=[selectedNotes[0]||'—', selectedNotes[1]||'—', selectedNotes[2]||'—']; $('#lastNote').value = parts.join(' , '); }
 
   /* === 播音 === */
+  /* 🔒 請勿更動流程 */
   function trigger(note){
     if(hardLocked) return;
     if(!samplerReady){ setStatus('音色載入中…'); return; }
@@ -394,6 +426,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   }
 
   /* === 鎖定鍵可用性 === */
+  /* 🔒 請勿更動流程：這裡與 validEmail 互鎖 */
   function validateLockBtn(){
     const nameOk = ($('#displayName').value||'').trim().length>0;
     const codeOk = ($('#code').value||'').trim().length>0;
@@ -403,6 +436,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   }
 
   /* === 事件綁定（表單） === */
+  /* 🔒 請勿更動流程 */
   $('#instrument').addEventListener('change', ()=>{
     if(hardLocked) return;
     currentInstrument=$('#instrument').value;
@@ -414,6 +448,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   $('#code').addEventListener('input', validateLockBtn);
 
   /* ✅ Email 輸入：含 @ 時動態建立「完整 email」候選清單；否則移除 list */
+  /* ✅ 可調整：如要固定顯示所有網域，可把 startsWith 的濾掉 */
   const emailInput = $('#email');
   const emailList  = $('#emailDomains');
   $('#email').addEventListener('input', ()=>{
@@ -435,17 +470,18 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   });
 
   /* === 重設 === */
+  /* 🔒 請勿更動流程 */
   $('#resetBtn').addEventListener('click', ()=>{
     if(hardLocked) return;
     if(selectedNotes.length>0){ selectedNotes.pop(); selectedInsts.pop(); refreshNotesDisplay(); validateLockBtn(); }
   });
 
   /* === 說明按鈕 → 小浮層 === */
+  /* 🧩 進階可調：若想固定顯示/改位置，可改 positionArrow 與 CSS 變數 */
   const hintBtn = $('#hintBtn');
   const hintPop = $('#hintPopover');
 
   function positionArrow(){
-    // 讓箭頭指向按鈕中央（直向/橫向都對）
     const popRect = hintPop.getBoundingClientRect();
     const btnRect = hintBtn.getBoundingClientRect();
     const x = (btnRect.left + btnRect.width/2) - popRect.left;
@@ -459,19 +495,17 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     if(showing){ positionArrow(); }
     e.stopPropagation();
   });
-  // 點外面關閉
   document.addEventListener('click', (e)=>{
     if(!hintPop.classList.contains('show')) return;
     const within = hintPop.contains(e.target) || hintBtn.contains(e.target);
     if(!within) closeHint();
   });
-  // 視窗/方向改變時，若顯示中就重算箭頭
   window.addEventListener('resize', ()=>{ if(hintPop.classList.contains('show')) positionArrow(); });
   window.addEventListener('orientationchange', ()=>{ setTimeout(()=>{ if(hintPop.classList.contains('show')) positionArrow(); }, 250); });
-  // ESC 關閉
   window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeHint(); });
 
   /* === 兩個彈跳視窗（事件委派＋touchend 支援，iOS 可點）=== */
+  /* 🔒 請勿更動流程 */
   function hide(el){ el.classList.add('hidden'); }
   function show(el){ el.classList.remove('hidden'); }
   ['click','touchend'].forEach(evt=>{
@@ -492,6 +526,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   });
 
   /* === 送出（鎖定） === */
+  /* 🔒 請勿更動流程：與後端錯誤碼對應；訊息內容可微調 */
   $('#lockBtn').addEventListener('click', async ()=>{
     if(hardLocked) return;
     const name=($('#displayName').value||'').trim();
@@ -508,7 +543,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
             setStatus('📝 已填寫過，正在確認是否已過期或代號問題…');
           }else if(pre.status==='inflight'){
             setStatus('🕒 資料處理中，請勿重複送出⛔');
-            return; // inflight 仍然中止，避免重送
+            return;
           }
         }
       }catch(_e){}
@@ -555,6 +590,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   });
 
   /* === 成功後凍結畫面 === */
+  /* 🔒 請勿更動流程 */
   function enterHardLock(){
     hardLocked=true;
     $('#displayName').disabled=true; $('#code').disabled=true; $('#email').disabled=true; $('#instrument').disabled=true;
@@ -563,6 +599,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   }
 
   /* === 鋼琴繪製（移除鍵帽標籤）=== */
+  /* 🔒 請勿更動流程 */
   function renderPiano(){
     const kb=$('#keyboard'); kb.innerHTML=''; kb.className='';
     sizePiano();
@@ -586,6 +623,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   }
 
   /* === 鋼琴尺寸 === */
+  /* 🔒 請勿更動流程 */
   function sizePiano(){
     const wrap=document.querySelector('.kb-wrap'); const kb=document.querySelector('#keyboard');
     const wrapW=wrap.clientWidth; const sep=parseInt(getComputedStyle(kb).getPropertyValue('--sep')||'2',10);
@@ -594,6 +632,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   }
 
   /* === 吉他繪製 === */
+  /* 🔒 請勿更動流程 */
   function renderGuitar(){
     const kb=$('#keyboard'); kb.innerHTML=''; kb.className='fretboard'; kb.style.height='var(--kb-h)';
     const head=document.createElement('div'); head.className='head'; kb.appendChild(head);
@@ -641,10 +680,12 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   }
 
   /* === 視窗尺寸 === */
+  /* 🔒 請勿更動流程 */
   window.addEventListener('resize', ()=>{ if(currentInstrument==='piano') sizePiano(); });
   window.addEventListener('orientationchange', ()=>{ if(currentInstrument==='piano') sizePiano(); });
 
   /* === 初始化 === */
+  /* 🔒 請勿更動流程 */
   window.addEventListener('DOMContentLoaded', ()=>{
     renderPiano(); setStatus('等待啟用聲音…'); validateLockBtn();
     $('#guideOverlay').classList.remove('hidden');
