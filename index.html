@@ -302,7 +302,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
   <script>
   /* === 常用參數（最常改）=== */
-  const WEBHOOK = "https://script.google.com/macros/s/AKfycbx7TigJirUIOFGXu5hHN4ZKRKGmaRKwo1_nn4fd9xt3mdF1ezdZcq1M9ktO0QIdAhZU/exec"; // ✅ 可調整：你的 Apps Script 執行網址
+  const WEBHOOK = "https://script.google.com/macros/s/AKfycbwbeEaamnuBsWc6mzdDsRd7uDDXymbeSzCvxtiw5c6WBcFsEjaysfR6THk3WTZLfFT5/exec"; // ✅ 可調整：你的 Apps Script 執行網址
   const TIMEOUT_MS = 10000;     // ✅ 可調整：POST 逾時（毫秒）
   const PRECHECK = true;        // ✅ 可調整：送出前是否先撞 /status
   const $ = s => document.querySelector(s); // 🔒 請勿更動流程：便捷選擇器
@@ -400,14 +400,75 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
     }catch(e){ setStatus('啟用失敗：'+e.message); }
   }
 
+  // === 音色檔存在性探測（進階偵錯） ================================
+  // ✅ 可調整：timeoutMs（探測逾時毫秒）
+  // 回傳 true/false，不拋錯；只用來提醒是否 404 / CORS。
+  async function probeAsset(url, timeoutMs=6000){ // ✅ 可調整
+    try{
+      const ctl = new AbortController();
+      const t = setTimeout(()=>ctl.abort(), timeoutMs);
+      // 先 HEAD；若主機不支援 HEAD 再退回 GET
+      let r = await fetch(url, { method:'HEAD', cache:'no-store', signal:ctl.signal });
+      if(!r.ok || Number(r.headers.get('content-length'))===0){
+        r = await fetch(url, { method:'GET', cache:'no-store', signal:ctl.signal });
+      }
+      clearTimeout(t);
+      return r.ok;
+    }catch(_){ return false; }
+  }
+
   /* === 切換音色 === */
-  /* 🔒 請勿更動流程：音源載入與狀態聯動 */
+  /* 🔒 請勿更動流程：音源載入與狀態聯動（加入逾時保底＋檔案探測） */
   function loadSampler(inst='piano'){
     sampler?.dispose?.(); sampler=null; samplerReady=false;
+
+    // ✅ 可調整：暱稱圖示與庫來源
     let urls=PIANO_URLS, base=PIANO_BASE, label='🎹 ';
     if(inst==='guitar'){ urls=GUITAR_URLS; base=GUITAR_BASE; label='🎸 '; }
+
     setStatus(label+'載入中…');
-    sampler=new Tone.Sampler({ urls, release:1, baseUrl:base, onload:()=>{ samplerReady=true; setStatus(label+'已載入 ✅'); } }).toDestination();
+
+    // ① 探測其中一個檔案是否存在（避免永遠卡住）
+    const firstKey = Object.keys(urls)[0];
+    const testUrl  = base + urls[firstKey];
+    probeAsset(testUrl, 5000 /* ✅ 可調整：探測逾時 */).then(ok=>{
+      if(!ok){
+        setStatus(
+          '⚠️ 無法讀取音色檔，請檢查路徑/大小寫/CORS：\n' + testUrl +
+          '\n（目錄需與此頁同層；檔名表要跟實檔一致：如 D#4→Ds4.mp3）'
+        );
+      }
+    });
+
+    // ② 建立 Sampler（正常會觸發 onload）
+    try{
+      sampler=new Tone.Sampler({
+        urls,
+        release:1,                 // ✅ 可調整：釋放尾音
+        baseUrl:base,
+        onload:()=>{               // 載入成功
+          samplerReady=true;
+          setStatus(label+'已載入 ✅');
+        }
+      }).toDestination();
+    }catch(e){
+      setStatus('❌ 音色初始化失敗：'+e.message);
+      return;
+    }
+
+    // ③ 看門狗：超過 N 秒仍未 ready，顯示可操作的排錯提示
+    const WATCH_MS=9000;           // ✅ 可調整：載入逾時判定毫秒
+    setTimeout(()=>{
+      if(!samplerReady){
+        setStatus(
+          '⏱️ 載入超時，可能原因：\n' +
+          '• 檔案路徑不對 / 大小寫不符（主機區分大小寫）\n' +
+          '• 目錄位置不同（目前 baseUrl：'+ base +'）\n' +
+          '• 不同網域造成 CORS 擋住\n' +
+          '• 檔名表與實際檔名不一致（例：D#4 → Ds4.mp3）'
+        );
+      }
+    }, WATCH_MS);
   }
 
   /* === 三音顯示 === */
@@ -693,5 +754,3 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   </script>
 </body>
 </html>
-
-
