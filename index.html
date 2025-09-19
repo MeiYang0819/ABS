@@ -209,17 +209,8 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
       <div class="pair">
         <label for="email">電子郵件：</label>
         <input id="email" placeholder="hey fill in your@email" inputmode="email" />
-        <!-- ✅ 常見網域選單（只有在輸入含 @ 時才會啟用） -->
-        <datalist id="emailDomains">
-          <option value="gmail.com"></option>
-          <option value="yahoo.com.tw"></option>
-          <option value="yahoo.com"></option>
-          <option value="outlook.com"></option>
-          <option value="icloud.com"></option>
-          <option value="hotmail.com"></option>
-          <option value="msn.com"></option>
-          <option value="live.com"></option>
-        </datalist>
+        <!-- ✅ 常見網域選單（輸入含 @ 時才會出現；選項會自動補完整 email） -->
+        <datalist id="emailDomains"></datalist>
       </div>
       <div class="pair">
         <label for="code">取得代號：</label>
@@ -299,6 +290,12 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   const TIMEOUT_MS = 10000;
   const PRECHECK = true;
   const $ = s => document.querySelector(s);
+
+  /* ✅ 常見 Email 網域（用於 datalist 動態補全） */
+  const COMMON_DOMAINS = [
+    'gmail.com','yahoo.com.tw','yahoo.com','outlook.com','icloud.com',
+    'hotmail.com','msn.com','live.com'
+  ];
 
   /* === 一次性信箱黑名單 === */
   const DISPOSABLE_DOMAINS = new Set(['mailinator.com','guerrillamail.com','sharklasers.com','10minutemail.com','tempmail.com','tempmail.dev','temp-mail.org','moakt.com','yopmail.com','throwawaymail.com','trashmail.com','maildrop.cc','dispostable.com','mail-temp.com']);
@@ -415,11 +412,25 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   });
   $('#displayName').addEventListener('input', validateLockBtn);
   $('#code').addEventListener('input', validateLockBtn);
+
+  /* ✅ Email 輸入：含 @ 時動態建立「完整 email」候選清單；否則移除 list */
+  const emailInput = $('#email');
+  const emailList  = $('#emailDomains');
   $('#email').addEventListener('input', ()=>{
-    // ✅ 只有當輸入含 @ 時才啟用常見網域清單，避免干擾
-    const v = $('#email').value;
-    if(v.includes('@')) $('#email').setAttribute('list','emailDomains');
-    else $('#email').removeAttribute('list');
+    const v = emailInput.value;
+    if(v.includes('@')){
+      const [local,frag=''] = v.split('@');
+      const lowerFrag = frag.toLowerCase();
+      const options = (local ? COMMON_DOMAINS : [])
+        .filter(d => d.startsWith(lowerFrag))
+        .map(d => `<option value="${local}@${d}"></option>`)
+        .join('');
+      emailList.innerHTML = options || (local ? COMMON_DOMAINS.map(d=>`<option value="${local}@${d}"></option>`).join('') : '');
+      emailInput.setAttribute('list','emailDomains');
+    }else{
+      emailInput.removeAttribute('list');
+      emailList.innerHTML = '';
+    }
     validateLockBtn();
   });
 
