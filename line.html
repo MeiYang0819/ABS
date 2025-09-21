@@ -179,7 +179,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
       </div>
       <div class="pair">
         <label for="code">取得代號：</label>
-        <input id="code" placeholder="會自動帶入/或請輸入" />
+        <input id="code" placeholder="自動帶入" />
       </div>
     </div>
 
@@ -668,9 +668,9 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
         codeInput.value = j.code;
         codeInput.readOnly = true;
         codeInput.setAttribute('aria-readonly','true');
-        setStatus('已找到代號並帶入 ✔');
+        setStatus('✔ 已找到代號並已帶入🎉');
       }else{
-        setStatus('找不到代號，請手動輸入代號或聯繫新人');
+        setStatus('🔎 找不到代號，請手動輸入代號或聯繫新人🤵🏻‍♂️👰🏻‍♀️');
       }
     }catch(e){
       setStatus('LIFF 初始化失敗：' + e.message);
