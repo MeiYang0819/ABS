@@ -193,7 +193,7 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 .dialog button{ width:120px; height:38px; border-radius:10px; border:1px solid var(--rim); background:#fff; cursor:pointer; font-weight:700; }
 .dialog button.primary{ background:#fff; }
 
-#lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:transparent; }
+#lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:透明; }
 
 footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
 
@@ -297,6 +297,74 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
 
   <div id="lockScreen" aria-hidden="true"></div>
   <footer>© Copyright 2025 MY‘s System Version:b1.0.227</footer>
+
+  <!-- ✅【新增】載入 LINE LIFF SDK（只加不改） -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <!-- ✅【新增】初始化 LIFF、帶入暱稱到姓名欄（只加不改） -->
+  <script>
+  (function(){
+    const LIFF_ID = "2008149060-ZGVdAvGo";  // 你的 LIFF ID
+    window.LINE_PROFILE = null;
+
+    function safeFillName(){
+      try{
+        var el = document.getElementById('displayName');
+        if(el && !el.value && window.LINE_PROFILE && window.LINE_PROFILE.name){
+          el.value = window.LINE_PROFILE.name;
+          if(typeof validateLockBtn === 'function'){ try{ validateLockBtn(); }catch(_e){} }
+        }
+      }catch(_){}
+    }
+
+    async function initLiff(){
+      try{
+        await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser: true });
+        if(!liff.isLoggedIn()){ liff.login(); return; }
+        await liff.ready;
+        const p = await liff.getProfile();
+        window.LINE_PROFILE = {
+          name:  p.displayName || "",
+          photo: p.pictureUrl  || "",
+          userId:p.userId      || ""
+        };
+        if(document.readyState === 'complete' || document.readyState === 'interactive') safeFillName();
+        else window.addEventListener('DOMContentLoaded', safeFillName);
+      }catch(e){
+        console.warn('LIFF init/profile error:', e);
+      }
+    }
+
+    if(typeof liff !== 'undefined'){ initLiff(); }
+  })();
+  </script>
+
+  <!-- ✅【新增】fetch 注入器：送往 WEBHOOK 的 POST 自動加上 lineName/linePhoto/lineUserId（只加不改） -->
+  <script>
+  (function(){
+    const _fetch = window.fetch;
+    window.fetch = function(input, init){
+      try{
+        const url = (typeof input === 'string') ? input : (input && input.url);
+        // 僅處理你的 GAS WEBHOOK，且為 POST JSON 字串
+        if(url && typeof url === 'string' && url.indexOf('AKfycbw1kVMcmGax87RZ4WM_EgxlPQYQfewYQEGc0IG0nx7yJp_iirgR7f5Hbwb_i6JIHznP/exec') > -1){
+          if(init && String(init.method||'').toUpperCase() === 'POST' && init.body && typeof init.body === 'string'){
+            try{
+              const obj = JSON.parse(init.body);
+              if(obj && typeof obj === 'object' && window.LINE_PROFILE){
+                obj.lineName   = window.LINE_PROFILE.name  || "";
+                obj.linePhoto  = window.LINE_PROFILE.photo || "";
+                obj.lineUserId = window.LINE_PROFILE.userId|| "";
+                init = Object.assign({}, init, { body: JSON.stringify(obj) });
+              }
+            }catch(_e){}
+          }
+        }
+      }catch(_e){}
+      return _fetch.apply(this, arguments);
+    };
+  })();
+  </script>
 
   <!-- === 音源庫（不動即可）=== -->
   <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
