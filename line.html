@@ -87,7 +87,7 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
   transition: transform .08s ease, box-shadow .08s ease, filter .08s ease;
   box-shadow: 0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06);
 }
-.btn-compact{ width:60px !important; } /* ✅ 可調整：縮版按鈕寬度 */
+.btn-compact{ width:60px !重要; } /* ✅ 可調整：縮版按鈕寬度 */
 
 /* NEW: 說明按鈕（請點我）可自訂寬度，維持同高度 */
 #hintBtn{ width: var(--w-hintbtn) !important; } /* ✅ 可調整 */
@@ -277,7 +277,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   <script>
   /***** 你只要改這兩個常數 *****/
   const LIFF_ID = '2008149060-ZGVdAvGo'; // ← 你的 LIFF ID（你已提供）
-  const WEBHOOK = 'https://script.google.com/macros/s/AKfycbwvcxVwoHAWd3zRavJ9QD_JlUkdbvWDugDeq3IVYI_DoorCqeObGzkTPh4Mp_AZ3wDR/exec';
+  const WEBHOOK = 'https://script.google.com/macros/s/AKfycbzqCTLX-LYfOXeGIwJ21BRwjkHIvIXXNNrp2AzenZjP4xrJ7qc6fv-4UjrUMvUbKzqd/exec';
 
   const TIMEOUT_MS = 10000;     // ✅ 可調整：POST 逾時（毫秒）
   const PRECHECK = true;        // ✅ 可調整：送出前是否先撞 /status
@@ -330,6 +330,14 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
   let currentInstrument='piano';
   let selectedNotes = [];
   let selectedInsts = [];
+
+  /* === 新增（只新增）：LIFF Profile 暫存與讀網址參數 === */
+  let liffDisplayName = '';
+  let liffPictureUrl  = '';
+  function getQueryParam(name){
+    const m = new URL(location.href).searchParams.get(name);
+    return m ? decodeURIComponent(m) : '';
+  }
 
   /* === 音色路徑 === */
   /* ✅ 可調整：如音色檔存放路徑不同，可改 baseUrl 或檔名表 */
@@ -569,7 +577,10 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
       note:selectedNotes.join(','),
       velocity:1,
       sessionId:'demo',
-      email
+      email,
+      /* === 新增（只新增）：把 LINE 名稱與頭像也送給後端寫進 profiles === */
+      lineDisplayName: liffDisplayName,
+      linePictureUrl:  liffPictureUrl
     };
 
     const controller=new AbortController();
@@ -705,35 +716,48 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
       await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser: true });
       if(!liff.isLoggedIn()) liff.login();
 
-      const prof = await liff.getProfile(); // {displayName, pictureUrl, userId}
+      /* 新增：網址 ?code= 帶入並鎖定 */
+      const urlCode = getQueryParam('code');
+      if(urlCode){
+        const codeInput = $('#code');
+        codeInput.value = urlCode;
+        codeInput.readOnly = true;
+        codeInput.setAttribute('aria-readonly','true');
+        setStatus('已從網址帶入代號 ✔');
+      }
 
-      // 只把 LINE 的名稱/頭像記到 profiles（畫面不自動帶入姓名）
+      const prof = await liff.getProfile(); // {displayName, pictureUrl, userId}
+      /* 新增：暫存 LINE 名稱/頭像，並寫入 profiles（code 先空字串也可） */
+      liffDisplayName = prof?.displayName || '';
+      liffPictureUrl  = prof?.pictureUrl  || '';
       try{
         await fetch(WEBHOOK, {
           method:'POST',
           headers:{'Content-Type':'application/json'},
           body: JSON.stringify({
-            action:'profile',              // （後端會忽略；此行純保留記錄，無傷）
-            code:'',                       // 此時未知
-            displayName: prof.displayName || '',
-            pictureUrl: prof.pictureUrl || ''
+            action:'profile',
+            code: urlCode || '',
+            displayName: liffDisplayName,
+            pictureUrl:  liffPictureUrl
           })
         });
       }catch(_){}
 
-      // 依 LINE 顯示名稱查 guests 代號
-      setStatus('查詢代號中…');
-      const u = WEBHOOK + '?action=lookup&name=' + encodeURIComponent(prof.displayName||'');
-      const r = await fetch(u, {method:'GET', cache:'no-store'});
-      const j = await r.json();
-      if(j.ok && j.code){
-        const codeInput = $('#code');
-        codeInput.value = j.code;
-        codeInput.readOnly = true;          // 鎖定不給改
-        codeInput.setAttribute('aria-readonly','true');
-        setStatus('已找到代號並帶入 ✔');
-      }else{
-        setStatus('🔎 找不到代號，請手動輸入代號或聯繫新人🤵🏻‍♂️👰🏻‍♀️');
+      /* 若網址沒有 code，才用 LINE 名稱去 guests 查代號 */
+      if(!urlCode){
+        setStatus('查詢代號中…');
+        const u = WEBHOOK + '?action=lookup&name=' + encodeURIComponent(liffDisplayName||'');
+        const r = await fetch(u, {method:'GET', cache:'no-store'});
+        const j = await r.json();
+        if(j.ok && j.code){
+          const codeInput = $('#code');
+          codeInput.value = j.code;
+          codeInput.readOnly = true;          // 鎖定不給改
+          codeInput.setAttribute('aria-readonly','true');
+          setStatus('已找到代號並帶入 ✔');
+        }else{
+          setStatus('🔎 找不到代號，請動動指頭輸入代號或聯繫新人🤵🏻‍♂️👰🏻‍♀️');
+        }
       }
     }catch(e){
       setStatus('LIFF 初始化失敗：'+ e.message);
