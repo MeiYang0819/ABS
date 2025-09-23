@@ -315,7 +315,7 @@
     <script>
       /***** 你只要改這兩個常數 *****/
       const LIFF_ID = '2008149060-ZGVdAvGo'; // ← 你的 LIFF ID
-      const WEBHOOK = 'https://script.google.com/macros/s/AKfycbxQH770Xm1NnGKURYIhjjhk-c4G_RwgWxaLt00WK6n5NW_5PUKefBECHoS9eIZWXdDr/exec';
+      const WEBHOOK = 'https://script.google.com/macros/s/AKfycbySiUwxLVxAhbo3m9OFT6fE5B3ikyJ4vDUAirOzrMiuFCDCrP_Ld2d3L-wukEZqHypT/exec';
 
       const TIMEOUT_MS = 10000;
       const PRECHECK = true;
@@ -334,7 +334,7 @@
       function validEmail(v){
         const s=(v||'').trim();
         if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s)) return false;
-        if(/\.\./.test(s)) return false;
+        if(/\./.test(s)) return false;
         const [local,domain] = s.split('@');
         if(/^[0-9]+$/.test(local)) return false;
         if(/[._%+-]$/.test(local)) return false;
