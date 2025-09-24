@@ -220,8 +220,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
 <!-- 操作說明 -->
 <div id="guideOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
   <div class="dialog">
-    <h3 id="guideTitle">📍操作說明📍</h3>
-    <p>🔻本頁會自動讀取你的 LINE 暱稱</p><p>↓</p>
+    <h3 id="guideTitle">📍操作說明📍</h3>   
     <p>🔻可選擇鋼琴或吉他中的三個音階</p><p>↓</p>
     <p>🔻三個音階確認後，一定要按鎖定</p><p>↓</p>
     <p>🔻鎖定完成後，會有通知是否成功</p><p>↓</p>
@@ -254,7 +253,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
 /* ====================== 前端設定（請填） ====================== */
 /* ✅ 可更改：LIFF ID 與後端網址 */
 const LIFF_ID = '2008149060-ZGVdAvGo';  // ← 你的 LIFF ID
-const WEBHOOK = 'https://script.google.com/macros/s/AKfycbyI4Jli4sht6P7vlb1Kk0OLN5FixNzqbE08h_ibixKVbhXn757DI6WhB4J_J3gBKmZ2/exec'; // ← 改成你目前部署的 GAS 網址
+const WEBHOOK = 'https://script.google.com/macros/s/AKfycbzvXiWasrzjUyEhkuAmSCDqMKlIz8F66wpa73zsYg-tlxcWKR5lag3aXH7n5fBcTPca/exec'; // ← 改成你目前部署的 GAS 網址
 
 /* ===== 提醒（僅註解，幫你記得要去 GAS 也更新） =====
    // ✅ 主本/副本 試算表 ID（兩本結構相同）
@@ -505,7 +504,7 @@ $('#lockBtn').addEventListener('click', async ()=>{
       enterHardLock();
     }else{
       const err = String(j.error||'');
-      if(err==='duplicate') setStatus('已填寫過了，想要更換音階請洽ㄟ咪🙏');
+      if(err==='duplicate') setStatus('已填寫過了，想要更換音階請洽管理員呢🙏');
       else if(err==='deadline_passed') setStatus('已過截止日，但還可在這玩耍唷👣');
       else if(err==='busy') setStatus('⚠️ 系統忙碌或鎖等待，稍後再試🌀');
       else setStatus('⚠️ 送出失敗或網路異常，再試一次🌀');
