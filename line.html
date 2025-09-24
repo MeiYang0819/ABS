@@ -1,3 +1,6 @@
+# index.html（修正版，可直接整檔覆蓋）
+
+```html
 <!doctype html>
 <html lang="zh-Hant">
 <meta charset="utf-8" />
@@ -249,7 +252,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
 <script>
 /* ====================== 前端設定 ====================== */
 const LIFF_ID = '2008149060-ZGVdAvGo';
-const WEBHOOK = 'https://script.google.com/macros/s/AKfycbypbUW197BQ0eyMDOzkrSy_Pex0r4yaK4puGzo2dZ1qZ_atXlxHPIIei9-yxWZpq93M/exec';
+const WEBHOOK = 'https://script.google.com/macros/s/AKfycbyRiz4RvpfjayMzMzrNjNcJupw4sar1YWwZgqeXPdeeH1ebyf-bImqJyA_rBwTYxFo/exec';
 
 /* ✅ 可更改：逾時 */
 const TIMEOUT_MS = 25000;
@@ -471,7 +474,7 @@ $('#lockBtn').addEventListener('click', async ()=>{
   try{
     const r=await fetch(WEBHOOK,{
       method:'POST',
-      headers:{'Content-Type':'text/plain'},,
+      headers:{'Content-Type':'text/plain'},
       body:JSON.stringify(payload),
       signal:controller.signal
     });
@@ -558,7 +561,7 @@ async function init(){
     if(liff.ready){ await liff.ready; }
 
     let prof = null, idt = null;
-    try{ prof = await liff.getProfile(); }catch(_){}
+    try{ prof = await liff.getProfile(); }catch(_){}}
     try{ idt  = liff.getDecodedIDToken(); }catch(_){}
 
     lineId      = (prof && prof.userId) || (idt && idt.sub) || '';
