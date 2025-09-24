@@ -252,7 +252,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
 <script>
 /* ====================== 前端設定 ====================== */
 const LIFF_ID = '2008149060-ZGVdAvGo';
-const WEBHOOK = 'https://script.google.com/macros/s/AKfycbyRiz4RvpfjayMzMzrNjNcJupw4sar1YWwZgqeXPdeeH1ebyf-bImqJyA_rBwTYxFo/exec';
+const WEBHOOK = 'https://script.google.com/macros/s/AKfycbwP8PG9J055eIBcobOfKqHqwgfSJyUSiquyzJ8z4WZsmV6-R5E-uAV0Wh7x-7mb3_P2/exec';
 
 /* ✅ 可更改：逾時 */
 const TIMEOUT_MS = 25000;
@@ -520,22 +520,33 @@ function enterHardLock(){
 }
 
 /* ====================== 對話框流程 ====================== */
-['click','touchend'].forEach(evt=>{
-  document.addEventListener(evt,(e)=>{
-    const t=e.target;
-    if(t.id==='guideOk'){
-      document.getElementById('guideOverlay').classList.add('hidden');
-      document.getElementById('unlockOverlay').classList.remove('hidden');
-      e.preventDefault();
-    }else if(t.id==='cancelUnlock'){
-      document.getElementById('unlockOverlay').classList.add('hidden');
-      e.preventDefault();
-    }else if(t.id==='confirmUnlock'){
-      unlockAudio();
-      document.getElementById('unlockOverlay').classList.add('hidden');
-      e.preventDefault();
-    }
-  }, {passive:true});
+// 改為直接綁定按鈕事件，避免部分裝置上事件代理 + passive 導致無法點擊
+const guideOkBtn = document.getElementById('guideOk');
+const cancelUnlockBtn = document.getElementById('cancelUnlock');
+const confirmUnlockBtn = document.getElementById('confirmUnlock');
+
+if (guideOkBtn) {
+  guideOkBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('guideOverlay').classList.add('hidden');
+    document.getElementById('unlockOverlay').classList.remove('hidden');
+  }, { passive: false });
+}
+
+if (cancelUnlockBtn) {
+  cancelUnlockBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('unlockOverlay').classList.add('hidden');
+  }, { passive: false });
+}
+
+if (confirmUnlockBtn) {
+  confirmUnlockBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    await unlockAudio();
+    document.getElementById('unlockOverlay').classList.add('hidden');
+  }, { passive: false });
+}
 });
 
 /* ========= 小工具：去掉暱稱前面的冒號 ========= */
