@@ -167,8 +167,7 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 .dialog h3{ margin:0 0 8px; font-size:18px; color:#6b5e52; }
 .dialog .actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
 .dialog button{ width:120px; height:38px; border-radius:10px; border:1px solid var(--rim); background:#fff; cursor:pointer; font-weight:700;
-                /* 🔼 放大彈窗按鈕字：了解／取消／確定 */
-                font-size:16px; }
+                /* 放大彈窗按鈕字：了解／取消／確定 */ font-size:16px; }
 .dialog button.primary{ background:#fff; }
 
 #lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:transparent; }
@@ -255,7 +254,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
 /* ====================== 前端設定（請填） ====================== */
 /* ✅ 可更改：LIFF ID 與後端網址 */
 const LIFF_ID = '2008149060-ZGVdAvGo';  // ← 你的 LIFF ID
-const WEBHOOK = 'https://script.google.com/macros/s/AKfycbzc6-P1DjCZcDgmQjdHb64e89RX1cDT8roDaUTnCc7W-kbvJmJrk8Wb76007QMlvoH7/exec'; // ← 你的 GAS 網址
+const WEBHOOK = 'https://script.google.com/macros/s/AKfycbzY8xWQdBu79mvbcrS3tQbbx7O9yKIDAXnS18O-Xb2nalhV2rogWyh48DoWbLF76es6/exec'; // ← 你的 GAS 網址
 
 /* ===== 提醒（僅註解，幫你記得要去 GAS 也更新） =====
    // ✅ 主本/副本 試算表 ID（兩本結構相同）
@@ -480,6 +479,19 @@ $('#lockBtn').addEventListener('click', async ()=>{
   if(hardLocked) return;
   if(selectedNotes.length!==3){ alert('請彈滿 3 個音再鎖定'); return; }
 
+  /* --- 先快速 ping 一下 GAS 是否可達 --- */
+  try {
+    const ping = await fetch(WEBHOOK + '?action=ping', { method:'GET' });
+    const t = await ping.text().catch(()=> '');
+    if (String(t).trim().toLowerCase() !== 'ok') {
+      setStatus('⚠️ 後端未回應正常（ping='+t+'），請檢查 GAS 部署與權限');
+      return;
+    }
+  } catch (_) {
+    setStatus('⚠️ 無法連到後端（ping 失敗），請檢查 GAS URL/權限/網路');
+    return;
+  }
+
   setStatus('⏳ 送出中…');
   const payload = {
     action: 'submitNotes',                    // ★ 後端對齊
@@ -521,10 +533,12 @@ $('#lockBtn').addEventListener('click', async ()=>{
       if(err==='duplicate') setStatus('已填寫過了，想要更換音階請洽管理員呢🙏');
       else if(err==='deadline_passed') setStatus('已過截止日，但還可在這玩耍唷👣');
       else if(err==='busy') setStatus('⚠️ 系統忙碌或鎖等待，稍後再試🌀');
-      else setStatus('⚠️ 送出失敗或網路異常，再試一次🌀');
+      else {
+        const ctDebug = (r.headers.get('content-type')||'');
+        setStatus(`⚠️ 送出失敗（HTTP ${r.status}）\ncontent-type=${ctDebug}\n請檢查 GAS 部署與權限`);
+      }
     }
   }catch(e){
-    // 🔽 更精確區分逾時 vs. 其它錯誤
     if (e && (e.name === 'AbortError' || /abort/i.test(String(e)))) {
       setStatus('⚠️ 送出逾時，請再按一次鎖定（若仍逾時，請關閉重開或稍後再試）');
     } else {
