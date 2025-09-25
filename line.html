@@ -166,7 +166,9 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
          box-shadow:0 18px 44px rgba(0,0,0,.18); text-align:center; pointer-events:auto; }
 .dialog h3{ margin:0 0 8px; font-size:18px; color:#6b5e52; }
 .dialog .actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
-.dialog button{ width:120px; height:38px; border-radius:10px; border:1px solid var(--rim); background:#fff; cursor:pointer; font-weight:700; }
+.dialog button{ width:120px; height:38px; border-radius:10px; border:1px solid var(--rim); background:#fff; cursor:pointer; font-weight:700;
+                /* 🔼 放大彈窗按鈕字：了解／取消／確定 */
+                font-size:16px; }
 .dialog button.primary{ background:#fff; }
 
 #lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:transparent; }
@@ -253,7 +255,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
 /* ====================== 前端設定（請填） ====================== */
 /* ✅ 可更改：LIFF ID 與後端網址 */
 const LIFF_ID = '2008149060-ZGVdAvGo';  // ← 你的 LIFF ID
-const WEBHOOK = 'https://script.google.com/macros/s/AKfycbxPMbBpgXqkeQgZrEw-cQdPZhNtajv6pBIGipJJt2h7Jr6bED6l8mcwJSkL0Iw3Wpo3/exec'; // ← 你的 GAS 網址
+const WEBHOOK = 'https://script.google.com/macros/s/AKfycbzc6-P1DjCZcDgmQjdHb64e89RX1cDT8roDaUTnCc7W-kbvJmJrk8Wb76007QMlvoH7/exec'; // ← 你的 GAS 網址
 
 /* ===== 提醒（僅註解，幫你記得要去 GAS 也更新） =====
    // ✅ 主本/副本 試算表 ID（兩本結構相同）
@@ -263,8 +265,8 @@ const WEBHOOK = 'https://script.google.com/macros/s/AKfycbxPMbBpgXqkeQgZrEw-cQdP
    // const LIFF_URL = 'https://meiyang0819.github.io/SSS/line.html';
 ============================================================== */
 
-/* ✅ 可更改：逾時毫秒（提高到 25 秒，降低假性逾時） */
-const TIMEOUT_MS = 25000;
+/* ✅ 可更改：逾時毫秒（提高到 40 秒，降低假性逾時） */
+const TIMEOUT_MS = 40000;
 
 /* （預留）一段話：會一併送到後端 logs G 欄（目前不顯示輸入框，之後你要用再接UI） */
 let extraMessage = ''; // ✅ 可更改：之後若做輸入框，改寫這個變數即可一併送出
@@ -484,7 +486,7 @@ $('#lockBtn').addEventListener('click', async ()=>{
     lineId, displayName, pictureUrl,          // ★ logs B,C,D
     instrumentsCSV: selectedInsts.join(','),  // ★ logs E
     notesCSV:       selectedNotes.join(','),  // ★ logs F
-    extraMessage                             // ★ 預留：logs G
+    extraMessage                              // ★ 預留：logs G
   };
 
   const controller=new AbortController();
@@ -522,7 +524,12 @@ $('#lockBtn').addEventListener('click', async ()=>{
       else setStatus('⚠️ 送出失敗或網路異常，再試一次🌀');
     }
   }catch(e){
-    setStatus('⚠️ 送出逾時或網路異常，請重新再試');
+    // 🔽 更精確區分逾時 vs. 其它錯誤
+    if (e && (e.name === 'AbortError' || /abort/i.test(String(e)))) {
+      setStatus('⚠️ 送出逾時，請再按一次鎖定（若仍逾時，請關閉重開或稍後再試）');
+    } else {
+      setStatus('⚠️ 網路異常或連線中斷，請確認網路後再試一次');
+    }
   }
 });
 
