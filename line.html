@@ -83,9 +83,6 @@ h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; let
 .string{ --sw:2px; position:absolute; left:94px; right:0; height:0; z-index:3; border-top: var(--sw) solid transparent; transform-origin:center; filter:drop-shadow(0 1px 0 rgba(0,0,0,.18)); background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.45) 50%, rgba(255,255,255,0) 100%); background-size:160px 1px; background-repeat:no-repeat; background-position:-160px 0; }
 .string::before{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5); height: var(--sw); background: repeating-linear-gradient(90deg, #caa56b 0 2.4px, #906a3d 2.4px 3.1px), repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 2.4px, rgba(0,0,0,.10) 2.4px 3.1px), linear-gradient(180deg, rgba(255,255,255,.70), rgba(255,255,255,.15) 55%, rgba(0,0,0,.18) 100%); border-radius:999px; opacity:.98; pointer-events:none; }
 .string::after{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5 + 0.2px); height: calc(var(--sw) * .25); background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0)); pointer-events:none; border-radius:999px; opacity:.9; }
-.head-line{ --sw:2px; position:absolute; left:0; width:86px; height:0; z-index:2; border-top: var(--sw) solid transparent; filter:drop-shadow(0 1px 0 rgba(0,0,0,.06)); pointer-events:none; }
-.head-line::before{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5); height: var(--sw); background: repeating-linear-gradient(90deg, #caa56b 0 2.4px, #906a3d 2.4px 3.1px), repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 2.4px, rgba(0,0,0,.10) 2.4px 3.1px), linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0)); border-radius:999px; opacity:.98; }
-.head-line::after{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5 + 0.2px); height: calc(var(--sw) * .25); background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0)); border-radius:999px; opacity:.9; }
 
 .overlay{ position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; background:rgba(17,24,39,.35); backdrop-filter:blur(3px); pointer-events:auto; }
 .overlay.hidden{ display:none; }
@@ -178,7 +175,7 @@ footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52;
 <script>
 /* ====================== 前端設定 ====================== */
 const LIFF_ID = '2008149060-ZGVdAvGo';
-const WEBHOOK = 'https://script.google.com/macros/s/AKfycbyNvGnqPtjzyLgrx0f7V6SbxnFWq18JGkbBGmXKNiD2z9HeWS9P78ZZ7WSCITytyTfq/exec';
+const WEBHOOK = 'https://script.google.com/macros/s/AKfycbxpkT1a1rj4zddQ4inXknH-LMTz7eShoOucCCcQRhva3efKSEXpPCw-9c2wUduKgeDZ/exec';
 
 const TIMEOUT_MS = 40000;
 let extraMessage = '';
@@ -286,14 +283,9 @@ function renderGuitar(){
   for(let s=0;s<6;s++){
     const y=(s+1)*(100/7);
     const str=document.createElement('div'); str.className='string'; str.dataset.s=String(s); str.style.top = `${y}%`; kb.appendChild(str);
-    const hline=document.createElement('div'); hline.className='head-line'; hline.dataset.s=String(s); hline.style.top = `${y}%`; kb.appendChild(hline);
   }
   for(let f=1; f<=13; f++){
     const col=document.createElement('div'); col.className='fret-col';
-    for(let s=0; s<6; s++){
-      const y=(s+1)*(100/7);
-      const hit=document.createElement('div'); hit.className='hit-row'; hit.style.top = `${y}%`; col.appendChild(hit);
-    }
     if([4,6,8,10].includes(f)){
       const dot=document.createElement('div');
       dot.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#dbc6a4;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.35);pointer-events:none;';
@@ -308,10 +300,10 @@ function renderGuitar(){
       if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; }
       const rect = col.getBoundingClientRect();
       const y = ev.clientY - rect.top;
-      const slot = rect.height/7;
-      let idx = Math.round(y/slot - 1);
-      idx = Math.max(0, Math.min(5, idx));
+      const idx = Math.max(0, Math.min(5, Math.round(y/(rect.height/7) - 1)));
       if(f<=12){
+        const TUNING_MIDI = [40,45,50,55,59,64];
+        const NOTE_NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
         const midi = TUNING_MIDI[5-idx] + f;
         const note = NOTE_NAMES[midi % 12] + (Math.floor(midi/12) - 1);
         trigger(note);
@@ -357,8 +349,8 @@ $('#lockBtn').addEventListener('click', async ()=>{
   const payload = {
     action: 'submitNotes',
     lineId, displayName, pictureUrl,
-    instrumentsCSV: selectedInsts.join(','), // 後端寫入 F
-    notesCSV:       selectedNotes.join(','), // 後端寫入 G
+    instrumentsCSV: selectedInsts.join(','), // 寫入 F
+    notesCSV:       selectedNotes.join(','), // 寫入 G
     extraMessage
   };
 
