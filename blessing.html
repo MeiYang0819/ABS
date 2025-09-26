@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>心裡的話</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body {
+      margin: 0; font-family: Arial, sans-serif;
+      background: #F5F1EC; color: #333;
+      display: flex; flex-direction: column; height: 100vh;
+    }
+    header {
+      padding: 10px; text-align: left; font-weight: bold;
+      background: #A68A7C; color: #fff;
+    }
+    main {
+      flex: 0 0 auto; display: flex; flex-direction: column;
+      align-items: center; padding: 15px;
+    }
+    .paper {
+      width: 90%; height: 200px; background: #fff;
+      border: 2px dashed #aaa; border-radius: 8px;
+      padding: 10px; box-sizing: border-box;
+    }
+    textarea {
+      width: 100%; height: 100%; border: none; outline: none;
+      resize: none; font-size: 16px;
+    }
+    .signature {
+      margin-top: 15px; width: 90%;
+    }
+    #sigCanvas {
+      width: 100%; height: 100px; border: 1px solid #ccc; border-radius: 6px;
+    }
+    .footer {
+      padding: 10px; text-align: center;
+    }
+    button {
+      background: #A68A7C; color: #fff; border: none; padding: 12px 24px;
+      font-size: 16px; border-radius: 6px; cursor: pointer;
+    }
+    /* 卡片清單 */
+    #cards {
+      flex: 1 1 auto; overflow-y: auto;
+      display: flex; flex-wrap: wrap; gap: 10px; padding: 10px;
+      justify-content: flex-start;
+    }
+    .card {
+      width: 45%; min-height: 80px;
+      background: #fff; border: 1px solid #ccc;
+      border-radius: 8px; padding: 10px;
+      cursor: pointer; box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    }
+    .card strong { display:block; margin-bottom:6px; }
+    /* Modal */
+    .modal {
+      display: none; position: fixed; z-index: 1000;
+      left: 0; top: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); justify-content: center; align-items: center;
+    }
+    .modal-content {
+      background: #fff; padding: 20px; border-radius: 8px;
+      max-width: 90%; max-height: 80%; overflow-y: auto;
+      text-align: left;
+    }
+    .modal-content img {
+      max-width: 100%; margin-top: 10px;
+      border: 1px solid #ccc; border-radius: 6px;
+    }
+    .close-btn {
+      float: right; font-size: 20px; font-weight: bold;
+      cursor: pointer; color: #333;
+    }
+  </style>
+</head>
+<body>
+  <header id="header">心裡的話</header>
+
+  <main>
+    <div class="paper">
+      <textarea id="message" placeholder="寫下你想對新人說的話..."></textarea>
+    </div>
+    <div class="signature">
+      <p>簽名（手寫）</p>
+      <canvas id="sigCanvas"></canvas>
+      <button type="button" onclick="clearCanvas()">清除手寫</button>
+    </div>
+  </main>
+
+  <div class="footer">
+    <button onclick="submitBlessing()">送出祝福</button>
+  </div>
+
+  <section id="cards"></section>
+
+  <!-- Modal 彈窗 -->
+  <div id="blessingModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+      <h3 id="modalAuthor"></h3>
+      <p id="modalMessage"></p>
+      <img id="modalSignature" alt="簽名">
+    </div>
+  </div>
+
+  <script>
+    const LIFF_ID = "2008149060-ZGVdAvGo"; // 你的 LIFF ID
+    const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbw88lqpJZuv8mU1n36cVsVA1b9hzV-rwV55yBhkDhMMU6yYr-vEGfV_iIQvy2CHeA5Q/exec";
+
+    let userId = "";
+
+    // 初始化 LIFF
+    async function initLiff(){
+      await liff.init({ liffId: LIFF_ID });
+      if(!liff.isLoggedIn()){ liff.login(); return; }
+
+      const profile = await liff.getProfile();
+      userId = profile.userId;
+      document.getElementById("header").innerText = "心裡的話 - " + profile.displayName;
+
+      // 載入祝福清單
+      loadBlessings();
+    }
+
+    // 簽名畫布
+    const canvas = document.getElementById("sigCanvas");
+    const ctx = canvas.getContext("2d");
+    let drawing = false;
+
+    canvas.addEventListener("mousedown", e=>{ drawing = true; ctx.beginPath(); ctx.moveTo(e.offsetX,e.offsetY); });
+    canvas.addEventListener("mousemove", e=>{ if(drawing){ ctx.lineTo(e.offsetX,e.offsetY); ctx.stroke(); } });
+    canvas.addEventListener("mouseup", ()=> drawing=false );
+    canvas.addEventListener("mouseleave", ()=> drawing=false );
+
+    function clearCanvas(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+    }
+    function getCanvasDataUrl(){
+      return canvas.toDataURL("image/png");
+    }
+
+    // 送出祝福
+    async function submitBlessing(){
+      const message = document.getElementById("message").value.trim();
+      const sigCanvasData = getCanvasDataUrl();
+
+      if(!message){ alert("請輸入祝福內容"); return; }
+
+      const payload = {
+        action: "createBlessing",
+        lineId: userId,
+        authorName: "", // 只用簽名圖，不要打字
+        message: message,
+        signatureFileUrl: sigCanvasData
+      };
+
+      const res = await fetch(WEBHOOK_URL, {
+        method:"POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+      if(result.ok){
+        alert("送出成功 ✅ 編號: " + result.id);
+        clearCanvas();
+        document.getElementById("message").value="";
+        loadBlessings();
+      }else{
+        alert("送出失敗 ❌ " + result.error);
+      }
+    }
+
+    // 載入清單
+    async function loadBlessings(side='all'){
+      const res = await fetch(WEBHOOK_URL, {
+        method:"POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({action:"listBlessings", side})
+      });
+      const data = await res.json();
+      if(data.ok){
+        renderCards(data.items);
+      }
+    }
+
+    // 渲染卡片
+    function renderCards(items){
+      const container = document.getElementById("cards");
+      container.innerHTML = "";
+      items.forEach(b=>{
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `<strong>${b.authorName||'無名'}</strong><br>${b.message.substring(0,20)}...`;
+        div.onclick = ()=> showBlessing(b.id);
+        container.appendChild(div);
+      });
+    }
+
+    // 顯示詳細 (modal)
+    async function showBlessing(id){
+      const res = await fetch(WEBHOOK_URL, {
+        method:"POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({action:"getBlessing", id})
+      });
+      const data = await res.json();
+      if(data.ok){
+        const b = data.item;
+        document.getElementById("modalAuthor").innerText = b.authorName || "無名";
+        document.getElementById("modalMessage").innerText = b.message;
+        document.getElementById("modalSignature").src = b.signatureFileUrl || "";
+        document.getElementById("blessingModal").style.display="flex";
+      }
+    }
+
+    function closeModal(){
+      document.getElementById("blessingModal").style.display="none";
+    }
+
+    initLiff();
+  </script>
+</body>
+</html>
