@@ -2,224 +2,496 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>心裡的話</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>送上祝福</title>
+
+  <!-- ✅ LIFF SDK（必要，請在下方 CONFIG 填入你的 LIFF_ID） -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <!-- ✅ Google Fonts：標題 Sacramento、正文字 Patrick Hand（兩款都載） -->
+  <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Sacramento:wght@400;700&display=swap" rel="stylesheet">
+
   <style>
-    body {
-      margin: 0; font-family: Arial, sans-serif;
-      background: #F5F1EC; color: #333;
-      display: flex; flex-direction: column; height: 100vh;
+    /* ===========================
+       ✅ 全站配色／尺寸（可調）
+       =========================== */
+    :root{
+      /* —— 主題色系（你常會改） —— */
+      --bg-color:        #F5F1EC;  /* ✅ 背景色 */
+      --paper-bg:        #FFFFFF;  /* ✅ 白紙底色 */
+      --border-color:    #A68A7C;  /* ✅ 邊框色 */
+      --accent-color:    #A68A7C;  /* ✅ 強調色（按鈕/標題） */
+      --text-color:      #333333;  /* ✅ 主要文字顏色 */
+
+      /* —— 卡片/白紙外觀（你也會改） —— */
+      --paper-border-w:  2px;      /* ✅ 白紙虛線的線寬 */
+      --paper-border-r:  10px;     /* ✅ 白紙圓角 */
+      --paper-shadow:    0 8px 24px rgba(0,0,0,.06); /* ✅ 白紙陰影 */
+
+      /* —— 小框外觀（新人名/簽名框） —— */
+      --chip-border-w:   1px;      /* ✅ 小框邊框寬 */
+      --chip-border-r:   8px;      /* ✅ 小框圓角 */
+      --chip-shadow:     0 4px 14px rgba(0,0,0,.05); /* ✅ 小框陰影 */
+
+      /* —— 排版與字級 —— */
+      --title-fz:        40px;     /* ✅ 標題字級（Sacramento 字體） */
+      --paper-min-h:     220px;    /* ✅ 祝福白紙最小高度 */
+      --paper-max-w:     900px;    /* ✅ 內容最大寬度 */
+      --body-fz:         20px;     /* ✅ 內文字級（Patrick Hand 字體） */
+
+      /* —— 內文字數限制（同時在 JS 也有對應） —— */
+      --max-letters-hint: "最多 600 字"; /* ✅ 視覺提示（僅顯示） */
+
+      /* —— 按鈕外觀 —— */
+      --btn-radius:      10px;     /* ✅ 按鈕圓角 */
+      --btn-shadow:      0 6px 16px rgba(0,0,0,.08); /* ✅ 按鈕陰影 */
+
+      /* —— 虛線／淡化輔助線（白紙底的線條感） —— */
+      --paper-dash:      6px;      /* ✅ 虛線長度（視覺） */
+      --paper-gap:       5px;      /* ✅ 虛線空隙 */
+      --paper-dash-col:  rgba(166,138,124,.35); /* ✅ 虛線顏色 */
+
+      /* —— 右下角簽名框尺寸 —— */
+      --sign-w:          160px;    /* ✅ 簽名框寬 */
+      --sign-h:          88px;     /* ✅ 簽名框高 */
     }
-    header {
-      padding: 10px; text-align: left; font-weight: bold;
-      background: #A68A7C; color: #fff;
+
+    /* ===========================
+       ✅ 全站基本樣式
+       =========================== */
+    html,body{
+      margin:0;
+      padding:0;
+      background:var(--bg-color);
+      color:var(--text-color);
+      font-family:'Patrick Hand', cursive; /* ✅ 全站正文字體 */
+      font-size:var(--body-fz);
+      line-height:1.55;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
     }
-    main {
-      flex: 0 0 auto; display: flex; flex-direction: column;
-      align-items: center; padding: 15px;
+
+    /* —— 頁首標題 —— */
+    header{
+      position:relative;
+      text-align:center;
+      padding:22px 16px 10px;
+      color:var(--accent-color);
+      text-shadow:0 2px 0 rgba(255,255,255,.65);
+      font-family:'Sacramento', cursive;   /* ✅ 標題字體 */
+      font-weight:700;                     /* ✅ 粗體 */
+      font-size:var(--title-fz);           /* ✅ 標題字級（可調） */
+      letter-spacing:1px;
     }
-    .paper {
-      width: 90%; height: 200px; background: #fff;
-      border: 2px dashed #aaa; border-radius: 8px;
-      padding: 10px; box-sizing: border-box;
+
+    /* —— 左上角：自動帶入「新人名字」的小框 —— */
+    .couple-chip{
+      position:fixed;          /* ✅ 固定在畫面左上角 */
+      top:10px; left:10px;
+      background:var(--paper-bg);
+      border:var(--chip-border-w) solid var(--border-color);
+      border-radius:var(--chip-border-r);
+      padding:6px 10px;
+      box-shadow:var(--chip-shadow);
+      z-index:10;
+      user-select:none;
+      -webkit-user-select:none;
+      font-size:0.9em;
+      white-space:nowrap;
     }
-    textarea {
-      width: 100%; height: 100%; border: none; outline: none;
-      resize: none; font-size: 16px;
+
+    /* —— 主要內容容器 —— */
+    main{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      padding:12px 14px 24px;
+      gap:12px;
     }
-    .signature {
-      margin-top: 15px; width: 90%;
+
+    /* —— 白紙（祝福內容） —— */
+    .paper{
+      width:min(94vw, var(--paper-max-w));
+      min-height:var(--paper-min-h);
+      background:var(--paper-bg);
+      border:var(--paper-border-w) dashed var(--border-color);
+      border-radius:var(--paper-border-r);
+      box-shadow:var(--paper-shadow);
+      position:relative;
+      padding:16px 16px 70px; /* 底部預留空間給右下角簽名 */
     }
-    #sigCanvas {
-      width: 100%; height: 100px; border: 1px solid #ccc; border-radius: 6px;
+
+    /* —— 白紙內：淡淡的水平虛線背景（漂亮的書寫引導線） —— */
+    .paper::before{
+      content:"";
+      position:absolute; inset:0;
+      border-radius:calc(var(--paper-border-r) - 1px);
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0 18px,
+          var(--paper-dash-col) 18px calc(18px + 1px)
+        );
+      pointer-events:none;
+      opacity:.35;
     }
-    .footer {
-      padding: 10px; text-align: center;
+
+    /* —— 祝福內文輸入 —— */
+    textarea#message{
+      position:relative;
+      z-index:1; /* 蓋在引導線上層 */
+      width:100%;
+      min-height:calc(var(--paper-min-h) - 20px);
+      border:none; outline:none; resize:vertical;
+      background:transparent;
+      font-family:'Patrick Hand', cursive; /* ✅ 內文字體 */
+      font-size:1em;                       /* 跟 body 同步 */
     }
-    button {
-      background: #A68A7C; color: #fff; border: none; padding: 12px 24px;
-      font-size: 16px; border-radius: 6px; cursor: pointer;
+    textarea#message::placeholder{ color:#9b928c; }
+
+    /* —— 右下角：簽名小框（手寫） —— */
+    .sign-box{
+      position:absolute;
+      right:12px; bottom:12px;
+      width:var(--sign-w); height:var(--sign-h);
+      background:var(--paper-bg);
+      border:var(--chip-border-w) solid var(--border-color);
+      border-radius:var(--chip-border-r);
+      box-shadow:var(--chip-shadow);
+      display:flex; align-items:center; justify-content:center;
+      overflow:hidden;
     }
-    /* 卡片清單 */
-    #cards {
-      flex: 1 1 auto; overflow-y: auto;
-      display: flex; flex-wrap: wrap; gap: 10px; padding: 10px;
-      justify-content: flex-start;
+    canvas#sigCanvas{
+      width:100%; height:100%;
+      display:block;
+      touch-action:none; /* ✅ 避免觸控捲動畫面影響簽名 */
     }
-    .card {
-      width: 45%; min-height: 80px;
-      background: #fff; border: 1px solid #ccc;
-      border-radius: 8px; padding: 10px;
-      cursor: pointer; box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+
+    /* —— 底部按鈕列 —— */
+    .actions{
+      display:flex; gap:10px;
+      align-items:center; justify-content:center;
+      padding:6px 12px 18px;
     }
-    .card strong { display:block; margin-bottom:6px; }
-    /* Modal */
-    .modal {
-      display: none; position: fixed; z-index: 1000;
-      left: 0; top: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5); justify-content: center; align-items: center;
+    button.btn{
+      background:var(--accent-color);
+      color:#fff; border:none;
+      padding:12px 22px; border-radius:var(--btn-radius);
+      font-family:'Patrick Hand', cursive;
+      font-size:1rem; cursor:pointer;
+      box-shadow:var(--btn-shadow);
+      transition:transform .06s ease, filter .12s ease;
+      letter-spacing:.5px;
     }
-    .modal-content {
-      background: #fff; padding: 20px; border-radius: 8px;
-      max-width: 90%; max-height: 80%; overflow-y: auto;
-      text-align: left;
+    button.btn:active{ transform:translateY(1px) scale(.99); filter:brightness(.98); }
+
+    /* —— 輕量通知條（送出狀態） —— */
+    .toast{
+      text-align:center; color:var(--accent-color);
+      font-size:.95rem; padding:4px 8px 10px;
+      min-height:20px;
     }
-    .modal-content img {
-      max-width: 100%; margin-top: 10px;
-      border: 1px solid #ccc; border-radius: 6px;
-    }
-    .close-btn {
-      float: right; font-size: 20px; font-weight: bold;
-      cursor: pointer; color: #333;
+
+    /* —— 示意：上方提示（最多字數） —— */
+    .limit-hint{
+      color:#8b7f76; font-size:.9rem;
+      user-select:none; -webkit-user-select:none;
     }
   </style>
 </head>
 <body>
-  <header id="header">心裡的話</header>
 
-  <main>
-    <div class="paper">
-      <textarea id="message" placeholder="寫下你想對新人說的話..."></textarea>
-    </div>
-    <div class="signature">
-      <p>簽名（手寫）</p>
-      <canvas id="sigCanvas"></canvas>
-      <button type="button" onclick="clearCanvas()">清除手寫</button>
-    </div>
-  </main>
+  <!-- ✅ 標題（Sacramento 粗體、置中） -->
+  <header id="pageTitle">誠摯祝福</header>
 
-  <div class="footer">
-    <button onclick="submitBlessing()">送出祝福</button>
+  <!-- ✅ 左上角：自動帶入「新人名字」 -->
+  <div class="couple-chip">
+    新人：<span id="coupleName">載入中…</span>
   </div>
 
-  <section id="cards"></section>
+  <!-- ✅ 主要內容 -->
+  <main>
+    <!-- 可視化提示：最多字數（純顯示，可關閉於 CONFIG.showMaxHint） -->
+    <div class="limit-hint" id="limitHint" style="display:none;">（<span id="lettersHint"></span>）</div>
 
-  <!-- Modal 彈窗 -->
-  <div id="blessingModal" class="modal">
-    <div class="modal-content">
-      <span class="close-btn" onclick="closeModal()">&times;</span>
-      <h3 id="modalAuthor"></h3>
-      <p id="modalMessage"></p>
-      <img id="modalSignature" alt="簽名">
-    </div>
+    <!-- ✅ 白紙（祝福內文 + 右下角簽名） -->
+    <section class="paper" aria-label="祝福內容">
+      <textarea id="message" placeholder="在這裡寫下你想對新人說的話…" maxlength="600"></textarea>
+
+      <!-- ✅ 右下角手寫簽名（可於 CONFIG.enableSignature 控制是否顯示） -->
+      <div class="sign-box" id="signBox">
+        <canvas id="sigCanvas"></canvas>
+      </div>
+    </section>
+
+    <!-- ✅ 狀態提示條 -->
+    <div class="toast" id="toast"></div>
+  </main>
+
+  <!-- ✅ 底部操作按鈕 -->
+  <div class="actions">
+    <button class="btn" id="clearSigBtn">清除簽名</button>
+    <button class="btn" id="submitBtn">送出祝福</button>
   </div>
 
   <script>
-    const LIFF_ID = "2008149060-m5pDXW6a"; // 你的 LIFF ID
-    const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbw88lqpJZuv8mU1n36cVsVA1b9hzV-rwV55yBhkDhMMU6yYr-vEGfV_iIQvy2CHeA5Q/exec";
+    /* =========================================================
+       ✅ 可調設定：統一集中在這裡（改這區就好）
+       ========================================================= */
+    const CONFIG = {
+      /* —— 必填：連線設定 —— */
+      LIFF_ID:      "2008149060-m5pDXW6a",  // ✅ 你的 LIFF ID
+      WEBHOOK_URL:  "https://meiyang0819.github.io/SSS/blessing.html", // ✅ 你的 GAS Web App URL
 
-    let userId = "";
+      /* —— 互動文字/標題 —— */
+      TITLE_TEXT:         "誠摯祝福",     // ✅ 標題文字（會套用到 header）
+      MESSAGE_PLACEHOLDER:"在這裡寫下你想對新人說的話…", // ✅ 內文 placeholder
 
-    // 初始化 LIFF
+      /* —— 功能開關 —— */
+      enableSignature:    true,   // ✅ 是否啟用手寫簽名（false=隱藏簽名框，也不會上傳）
+      requireSignature:   false,  // ✅ 是否強制必填簽名（true=沒簽名就不給送）
+      showMaxHint:        true,   // ✅ 是否顯示「最多幾字」提示
+
+      /* —— 文字長度限制 —— */
+      maxMessageLength:   600,    // ✅ 祝福內文最大字數（同步改 textarea.maxLength）
+
+      /* —— 送出節流/逾時 —— */
+      submitTimeoutMs:    40000,  // ✅ 送出逾時毫秒
+    };
+
+    /* =========================================================
+       ✅ 全域狀態：使用者/畫布
+       ========================================================= */
+    let gLineId = "";          // 從 LIFF 取得的使用者 ID
+    let gIsDrawing = false;    // 簽名中否
+    let gSigCtx = null;        // Canvas 2D Context
+    let gSigHasStroke = false; // 是否真的有畫（用於 requireSignature）
+
+    /* =========================================================
+       ✅ 初始化：字體/LIFF/畫布
+       ========================================================= */
+    (function boot(){
+      // 1) 標題與 placeholder、上限提示同步 CONFIG
+      document.getElementById('pageTitle').textContent = CONFIG.TITLE_TEXT;
+      document.getElementById('message').placeholder   = CONFIG.MESSAGE_PLACEHOLDER;
+      document.getElementById('message').maxLength     = CONFIG.maxMessageLength;
+
+      // 視覺提示
+      if(CONFIG.showMaxHint){
+        document.getElementById('limitHint').style.display='block';
+        document.getElementById('lettersHint').textContent = getComputedStyle(document.documentElement)
+          .getPropertyValue('--max-letters-hint').replace(/(^\s*["']|["']\s*$)/g,'') || `最多 ${CONFIG.maxMessageLength} 字`;
+      }
+
+      // 2) 設定簽名區顯示與否
+      if(!CONFIG.enableSignature){
+        document.getElementById('signBox').style.display='none';
+        document.getElementById('clearSigBtn').style.display='none';
+      }
+
+      // 3) 綁定按鈕
+      document.getElementById('clearSigBtn').addEventListener('click', clearSignature);
+      document.getElementById('submitBtn').addEventListener('click', submitBlessing);
+
+      // 4) 初始化 LIFF → 取得 lineId → 取「新人名字」
+      initLiff().catch(err=>setToast('LIFF 初始化失敗：' + err.message));
+
+      // 5) 初始化簽名畫布（行動裝置/高 DPI）
+      initSignatureCanvas();
+      window.addEventListener('resize', debounce(initSignatureCanvas, 150), {passive:true});
+      window.addEventListener('orientationchange', ()=>setTimeout(initSignatureCanvas,250), {passive:true});
+    })();
+
+    /* =========================================================
+       ✅ LIFF 初始化：拿到使用者 lineId，抓新人名字
+       ========================================================= */
     async function initLiff(){
-      await liff.init({ liffId: LIFF_ID });
-      if(!liff.isLoggedIn()){ liff.login(); return; }
+      await liff.init({ liffId: CONFIG.LIFF_ID, withLoginOnExternalBrowser: true });
+      if(!liff.isLoggedIn()){ liff.login({ scope:['openid','profile'] }); return; }
+      if(liff.ready){ await liff.ready; }
 
-      const profile = await liff.getProfile();
-      userId = profile.userId;
-      document.getElementById("header").innerText = "心裡的話 - " + profile.displayName;
+      // 兩種途徑：getProfile / ID Token（保險）
+      let prof=null, idt=null;
+      try{ prof = await liff.getProfile(); }catch(_){}
+      try{ idt  = liff.getDecodedIDToken(); }catch(_){}
 
-      // 載入祝福清單
-      loadBlessings();
+      gLineId = (prof && prof.userId) || (idt && idt.sub) || "";
+      if(!gLineId){ setToast('⚠️ 請於 LINE App 內開啟此頁重試'); return; }
+
+      // 叫後端拿「新人名字」（你要在 GAS 實作 action=getCoupleName）
+      await fetchCoupleName(gLineId);
     }
 
-    // 簽名畫布
-    const canvas = document.getElementById("sigCanvas");
-    const ctx = canvas.getContext("2d");
-    let drawing = false;
-
-    canvas.addEventListener("mousedown", e=>{ drawing = true; ctx.beginPath(); ctx.moveTo(e.offsetX,e.offsetY); });
-    canvas.addEventListener("mousemove", e=>{ if(drawing){ ctx.lineTo(e.offsetX,e.offsetY); ctx.stroke(); } });
-    canvas.addEventListener("mouseup", ()=> drawing=false );
-    canvas.addEventListener("mouseleave", ()=> drawing=false );
-
-    function clearCanvas(){
-      ctx.clearRect(0,0,canvas.width,canvas.height);
+    /* =========================================================
+       ✅ 後端：取得「新人名字」
+       後端請回：{ ok:true, name:"新郎-小明" } / { ok:false, error:"..." }
+       ========================================================= */
+    async function fetchCoupleName(lineId){
+      try{
+        const r = await fetch(CONFIG.WEBHOOK_URL, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ action:'getCoupleName', lineId })
+        });
+        const j = await r.json();
+        if(j && j.ok && j.name){
+          document.getElementById('coupleName').textContent = j.name;
+        }else{
+          document.getElementById('coupleName').textContent = '（未綁定）';
+        }
+      }catch(_){
+        document.getElementById('coupleName').textContent = '（連線失敗）';
+      }
     }
-    function getCanvasDataUrl(){
-      return canvas.toDataURL("image/png");
-    }
 
-    // 送出祝福
-    async function submitBlessing(){
-      const message = document.getElementById("message").value.trim();
-      const sigCanvasData = getCanvasDataUrl();
+    /* =========================================================
+       ✅ 簽名：初始化（處理高 DPI 與滑鼠/觸控）
+       ========================================================= */
+    function initSignatureCanvas(){
+      const box   = document.getElementById('signBox');
+      const cvs   = document.getElementById('sigCanvas');
+      const ratio = Math.max(1, window.devicePixelRatio || 1); // 高 DPI 放大
+      const w     = box.clientWidth;
+      const h     = box.clientHeight;
 
-      if(!message){ alert("請輸入祝福內容"); return; }
+      // 設定畫布實際像素，避免模糊
+      cvs.width  = Math.floor(w * ratio);
+      cvs.height = Math.floor(h * ratio);
+      cvs.style.width  = w + 'px';
+      cvs.style.height = h + 'px';
 
-      const payload = {
-        action: "createBlessing",
-        lineId: userId,
-        authorName: "", // 只用簽名圖，不要打字
-        message: message,
-        signatureFileUrl: sigCanvasData
+      gSigCtx = cvs.getContext('2d');
+      gSigCtx.scale(ratio, ratio);
+      gSigCtx.lineWidth   = 2;                      // ✅ 簽名字粗（可改）
+      gSigCtx.lineCap     = 'round';
+      gSigCtx.lineJoin    = 'round';
+      gSigCtx.strokeStyle = '#2c2c2c';
+
+      // 清空狀態
+      gSigHasStroke = false;
+      gIsDrawing    = false;
+      gSigCtx.clearRect(0,0,w,h);
+
+      // 綁定滑鼠
+      cvs.onmousedown = (e)=>{ gIsDrawing=true; gSigCtx.beginPath(); gSigCtx.moveTo(e.offsetX,e.offsetY); };
+      cvs.onmousemove = (e)=>{ if(gIsDrawing){ gSigCtx.lineTo(e.offsetX,e.offsetY); gSigCtx.stroke(); gSigHasStroke=true; } };
+      cvs.onmouseup   = ()=>{ gIsDrawing=false; };
+      cvs.onmouseleave= ()=>{ gIsDrawing=false; };
+
+      // 綁定觸控（行動）
+      cvs.ontouchstart = (e)=>{
+        const p = getTouchPos(cvs, e);
+        gIsDrawing=true; gSigCtx.beginPath(); gSigCtx.moveTo(p.x,p.y);
+        e.preventDefault();
       };
+      cvs.ontouchmove = (e)=>{
+        if(!gIsDrawing) return;
+        const p = getTouchPos(cvs, e);
+        gSigCtx.lineTo(p.x,p.y); gSigCtx.stroke(); gSigHasStroke=true;
+        e.preventDefault();
+      };
+      cvs.ontouchend = ()=>{ gIsDrawing=false; };
+      cvs.ontouchcancel = ()=>{ gIsDrawing=false; };
+    }
 
-      const res = await fetch(WEBHOOK_URL, {
-        method:"POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify(payload)
-      });
-      const result = await res.json();
-      if(result.ok){
-        alert("送出成功 ✅ 編號: " + result.id);
-        clearCanvas();
-        document.getElementById("message").value="";
-        loadBlessings();
-      }else{
-        alert("送出失敗 ❌ " + result.error);
+    // 觸控座標轉換（相對於 canvas）
+    function getTouchPos(canvas, evt){
+      const rect = canvas.getBoundingClientRect();
+      const t = (evt.touches && evt.touches[0]) || (evt.changedTouches && evt.changedTouches[0]);
+      return { x: t.clientX - rect.left, y: t.clientY - rect.top };
+    }
+
+    // 清除簽名
+    function clearSignature(){
+      if(!CONFIG.enableSignature) return;
+      const box = document.getElementById('signBox');
+      gSigCtx.clearRect(0,0, box.clientWidth, box.clientHeight);
+      gSigHasStroke = false;
+      setToast('已清除簽名');
+    }
+
+    /* =========================================================
+       ✅ 送出祝福：呼叫 GAS createBlessing
+       後端請回：{ ok:true, id:"唯一編號" } / { ok:false, error:"..." }
+       ========================================================= */
+    async function submitBlessing(){
+      try{
+        // 基本檢查
+        if(!gLineId){ setToast('⚠️ 無法取得 LINE 使用者 ID'); return; }
+
+        const msg = (document.getElementById('message').value || '').trim();
+        if(!msg){ setToast('請先寫下一段祝福內容唷'); return; }
+        if(msg.length > CONFIG.maxMessageLength){
+          setToast(`知道有好多話想說，但還是稍微精簡一下 ﻿ಠ_ಠ`);
+          return;
+        }
+
+        // 簽名檢查與取圖
+        let signDataURL = '';
+        if(CONFIG.enableSignature){
+          if(CONFIG.requireSignature && !gSigHasStroke){
+            setToast('✍️ 請於右下角簽上大名');
+            return;
+          }
+          signDataURL = getSignatureDataURL(); // 可能是空白（沒簽）
+        }
+
+        setToast('送出中…請稍候');
+
+        // 逾時控制（避免永遠 pending）
+        const controller = new AbortController();
+        const timer = setTimeout(()=>controller.abort(), CONFIG.submitTimeoutMs);
+
+        // 組 payload（後端你已做 createBlessing）
+        const payload = {
+          action: 'createBlessing',  // ✅ GAS 端入口
+          lineId: gLineId,           // ✅ logs B 欄
+          // authorName 可不傳：我們用手寫簽名；若想傳 displayName 可於 LIFF 另抓
+          authorName: '',
+          message: msg,
+          signatureFileUrl: signDataURL // ✅ 簽名圖（Base64 DataURL）或空字串
+        };
+
+        const r = await fetch(CONFIG.WEBHOOK_URL, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        });
+
+        clearTimeout(timer);
+
+        const j = await r.json().catch(()=>null);
+        if(j && j.ok){
+          setToast(`✅ 編號：${j.id}送出成功`);
+          // 清空畫面
+          document.getElementById('message').value = '';
+          if(CONFIG.enableSignature) clearSignature();
+        }else{
+          setToast('❌ 送出失敗：' + (j && j.error ? j.error : '未知錯誤'));
+        }
+      }catch(e){
+        if(/AbortError/i.test(String(e))) setToast('⚠️ 逾時，請再試一次');
+        else setToast('⚠️ 送出異常：'+ e.message);
       }
     }
 
-    // 載入清單
-    async function loadBlessings(side='all'){
-      const res = await fetch(WEBHOOK_URL, {
-        method:"POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({action:"listBlessings", side})
-      });
-      const data = await res.json();
-      if(data.ok){
-        renderCards(data.items);
-      }
+    // 取得簽名 DataURL（若沒有畫，會是空白白底 PNG 的 DataURL → 這裡統一回空字串以省空間）
+    function getSignatureDataURL(){
+      const box = document.getElementById('signBox');
+      if(!gSigHasStroke) return ''; // 沒畫就直接傳空
+      try{
+        return document.getElementById('sigCanvas').toDataURL('image/png');
+      }catch(_){ return ''; }
     }
 
-    // 渲染卡片
-    function renderCards(items){
-      const container = document.getElementById("cards");
-      container.innerHTML = "";
-      items.forEach(b=>{
-        const div = document.createElement("div");
-        div.className = "card";
-        div.innerHTML = `<strong>${b.authorName||'無名'}</strong><br>${b.message.substring(0,20)}...`;
-        div.onclick = ()=> showBlessing(b.id);
-        container.appendChild(div);
-      });
+    /* =========================================================
+       ✅ 小工具：提示/節流
+       ========================================================= */
+    function setToast(msg){ document.getElementById('toast').textContent = String(msg||''); }
+    function debounce(fn, delay){
+      let t=null; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn.apply(this,args), delay); };
     }
-
-    // 顯示詳細 (modal)
-    async function showBlessing(id){
-      const res = await fetch(WEBHOOK_URL, {
-        method:"POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({action:"getBlessing", id})
-      });
-      const data = await res.json();
-      if(data.ok){
-        const b = data.item;
-        document.getElementById("modalAuthor").innerText = b.authorName || "無名";
-        document.getElementById("modalMessage").innerText = b.message;
-        document.getElementById("modalSignature").src = b.signatureFileUrl || "";
-        document.getElementById("blessingModal").style.display="flex";
-      }
-    }
-
-    function closeModal(){
-      document.getElementById("blessingModal").style.display="none";
-    }
-
-    initLiff();
   </script>
 </body>
 </html>
