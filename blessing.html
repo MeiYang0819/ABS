@@ -2,84 +2,74 @@
 <html lang="zh-Hant">
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>送上祝福（測試版・左側固定導覽欄）</title>
+<title>送上祝福</title>
 
-<!-- 字體 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand:wght@400&family=Sacramento:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
 :root{
-  /* 版面尺寸 */
-  --rail-w: 240px;               /* 固定左側導覽欄寬度 */
-  --gap-edge: 22px;              /* 導覽欄與藍色面板的間距 */
-  --panel-maxw: 1060px;          /* 藍色面板最大寬 */
-  --card-maxw: 900px;            /* 黃卡最大寬 */
-
-  /* 顏色／陰影（維持你原本語系） */
-  --brand-bg:#c9daf8;            /* 全頁底色（外層藍） */
-  --title:#A68A7C;               /* 標題字色 */
+  --brand-bg:#c9daf8;
+  --title:#A68A7C;
   --ink:#0f172a; --accent:#A68A7C; --rim:#E4E4E4; --soft:#F5F1EC;
-  --panel-grad-from:#b7d2f6;     /* 藍面板漸層 */
+
+  --panel-grad-from:#b7d2f6;
   --panel-grad-to:#cfe1fb;
-  --paper-grad-from:rgba(255,242,204,.98);  /* 黃卡漸層 */
+  --panel-bg-image:url('./assets/wedding.png'); /* 你的圖 */
+
+  --paper-grad-from:rgba(255,242,204,.98);
   --paper-grad-to:rgba(255,242,204,.92);
+
+  --panel-maxw:1020px; --card-maxw:900px;
   --radius-xl:16px; --radius-md:12px;
   --shadow-1:0 10px 26px rgba(0,0,0,.10);
   --shadow-2:0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06);
 
-  /* 文字／尺寸 */
+  --content-pad:22px; --editor-zoom:1rem;
   --toolbar-gap:8px; --status-fz:14px; --h2-size:2.8rem;
   --stroke:rgba(0,0,0,.18); --glow:rgba(255,255,255,.65);
-  --content-pad:22px;
-  --footer-gap:48px;
-  --btn-w:220px; --btn-h:50px;
 
-  /* 背景圖層強度 */
-  --bg-photo-opacity:.42;        /* 最大背景圖片透明度 */
-  --bg-tint: rgba(0,0,0,.10);    /* 額外加深色罩 */
+  --btn-w:240px;
+  --btn-h:52px;
+
+  --footer-gap:48px;
 }
 
-/* 基本＆固定版面 */
+/* === 安全版：整頁允許滾動，避免一片藍 === */
 *{ box-sizing:border-box; }
 html,body{
-  height:100%; margin:0; overflow:hidden;
+  min-height:100vh; margin:0; overflow:auto;   /* ← 不再 hidden */
   color:var(--ink); background:var(--brand-bg);
   font-family:"Patrick Hand","Noto Sans TC",system-ui,-apple-system,sans-serif;
   -webkit-text-stroke:.35px var(--stroke); text-shadow:0 1px 0 var(--glow);
 }
 
-/* ======= 最外層：固定左導覽欄 + 背景 ======= */
-.bg-photo{ position:fixed; inset:0; z-index:0; width:100%; height:100%; object-fit:cover; opacity:var(--bg-photo-opacity); pointer-events:none; }
-.bg-tint{  position:fixed; inset:0; z-index:0; background:var(--bg-tint); pointer-events:none; }
+/* 更深的整頁背景 */
+.bg-photo{
+  position:fixed; inset:0; z-index:0; width:100%; height:100%;
+  object-fit:cover;
+  opacity:.45;
+  filter:contrast(1.06) saturate(1.06) brightness(.92);
+  mix-blend-mode:multiply;
+  pointer-events:none;
+}
 
-/* 固定左導覽欄（放在最大背景上，不屬於藍面板） */
-.left-rail{
-  position:fixed; z-index:2; top:0; bottom:0; left:0; width:var(--rail-w); padding:16px var(--gap-edge);
-  display:flex; flex-direction:column; gap:12px;
-}
-.rail-card{
-  background:#fff; border:1px solid var(--rim); border-radius:12px; padding:12px; box-shadow:var(--shadow-2);
-}
-.rail-title{ margin:4px 0 10px; font-weight:700; text-align:center; -webkit-text-stroke:0; text-shadow:none; color:#6b5e52; }
-.rail-btns{ display:grid; gap:8px; }
-.rail-btn{
-  height:36px; border:1px solid var(--rim); border-radius:10px; background:#fff; cursor:pointer; font-weight:700; box-shadow:var(--shadow-2);
-}
-.rail-btn.active{ outline:2px solid #bfa5a0; }
-
-/* ======= 中段：藍面板（維持你原本風格） ======= */
+/* 藍色主板：用 min-height，不用 calc(100vh-…) */
 .panel{
   position:relative; z-index:1;
-  /* 讓面板整塊往右，騰出左導覽欄空間 */
-  margin:26px calc(var(--gap-edge)) 0 calc(var(--rail-w) + var(--gap-edge));
-  /* 固定高度避免頁尾被蓋；底部留空給 footer */
-  height:calc(100vh - (70px + var(--footer-gap)));
   max-width:var(--panel-maxw);
-  background:linear-gradient(135deg, var(--panel-grad-from), var(--panel-grad-to));
-  border:1px solid var(--rim); border-radius:var(--radius-xl); box-shadow:var(--shadow-1);
-  display:flex; flex-direction:column; overflow:hidden;
+  width:100%;
+  min-height:720px;               /* ← 保證有內容高度 */
+  margin:26px auto;
+  background:
+    linear-gradient(135deg, var(--panel-grad-from), var(--panel-grad-to)),
+    var(--panel-bg-image);
+  background-size:auto, cover;
+  background-position:left top, center;
+  border:1px solid var(--rim); border-radius:var(--radius-xl);
+  box-shadow:var(--shadow-1);
+  display:flex; flex-direction:column;
 }
 
 /* 標題列 */
@@ -90,29 +80,263 @@ h2{
   -webkit-text-stroke:.6px rgba(0,0,0,.12); text-shadow:0 3px 4px rgba(255,255,255,.75);
 }
 
-/* 工具列＋狀態列（與黃卡齊寬） */
+/* 工具列（顏色已移到卡片左下） */
 .bar{ padding:6px 22px 8px; }
-.bar-inner{ max-width:var(--card-maxw); margin:0 auto; display:flex; align-items:center; gap:12px; }
+.bar-inner{
+  max-width:var(--card-maxw);
+  margin:0 auto;
+  display:flex; align-items:center; gap:12px;
+}
 .toolbar{ display:flex; gap:var(--toolbar-gap); filter:drop-shadow(0 2px 0 rgba(0,0,0,.08)); }
-.tool-btn,.tool-select{
+.tool-btn{
   min-width:64px; height:36px; padding:0 12px; background:#fff; border:1px solid var(--rim); border-radius:var(--radius-md);
   font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:var(--shadow-2);
 }
-.tool-select{ min-width:auto; padding:0 10px; }
 .tool-btn:active{ transform:translateY(1px) scale(.99); }
+
 #status{
-  flex:1 1 auto; min-width:320px;
+  flex:1 1 auto;
   background:var(--soft); border:1px solid #E4E4E4; border-radius:12px; padding:10px;
-  font-size:var(--status-fz); text-align:center; color:var(--accent)!important; font-weight:700;
+  font-size:var(--status-fz); white-space:pre-wrap; text-align:center; color:var(--accent)!important; font-weight:700;
   -webkit-text-stroke:.35px rgba(0,0,0,.10); text-shadow:0 1px 0 rgba(255,255,255,.85),0 3px 6px rgba(0,0,0,.04);
+  min-width:340px;
 }
 
-/* 舞台 */
-.stage{ flex:1 1 auto; padding:14px 22px 0; display:flex; justify-content:center; align-items:flex-start; overflow:hidden; }
-
-/* 黃卡（維持你的原樣：黃色漸層、紙感、可加虛線） */
+/* 內頁 */
+.stage{ padding:14px 22px 0; display:flex; justify-content:center; align-items:flex-start; }
 .card{
-  position:relative; width:100%; max-width:var(--card-maxw); margin:0 auto;
+  position:relative; width:100%; max-width:var(--card-maxw);
   background:linear-gradient(180deg, var(--paper-grad-from), var(--paper-grad-to));
-  border:1px solid rgba(0,0,0,.05); border-radius:var(--radius-xl); box-shadow:0 10px 26px rgba(0,0,0,.08);
- 
+  border:1px solid rgba(0,0,0,.05);
+  border-radius:var(--radius-xl); box-shadow:0 10px 26px rgba(0,0,0,.08);
+  padding:var(--content-pad);
+  padding-bottom:calc(var(--content-pad) + 52px); /* 右下簽名 + 左下顏色 預留 */
+}
+
+/* 編輯器 */
+.editor{
+  min-height:300px; max-height:50vh; overflow:auto;
+  line-height:1.8; outline:none; background:transparent; border-radius:var(--radius-md); padding:10px 12px;
+  font-size:var(--editor-zoom);
+}
+.editor[data-empty]{ opacity:.22; }
+
+.fs-up-1{font-size:1.15em;} .fs-up-2{font-size:1.30em;} .fs-up-3{font-size:1.50em;}
+.fs-down-1{font-size:.92em;} .fs-down-2{font-size:.84em;} .fs-down-3{font-size:.76em;}
+
+/* 徽章固定在卡片邊界，不跟著內文滾動 */
+.badge{
+  position:absolute; z-index:4;
+  color:var(--ink);
+  padding:11px 18px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.06); font-weight:700;
+  display:flex; align-items:center; gap:8px; font-size:1.06rem;
+}
+.badge-top-left{
+  left:-8px; top:-12px; border:none;
+  background:linear-gradient(180deg, var(--paper-grad-from), var(--paper-grad-to));
+}
+.badge-bottom-right{
+  right:-8px; bottom:-12px; border:1px solid rgba(0,0,0,.08); cursor:pointer;
+  background:linear-gradient(180deg, var(--paper-grad-from), var(--paper-grad-to));
+}
+.badge-bottom-right img{ display:none; width:64px; height:36px; object-fit:contain; background:#fff; border-radius:6px; border:1px dashed rgba(0,0,0,.08); }
+.badge-bottom-right.has-img img{ display:block; }
+.badge-bottom-right .hint{ opacity:.18; transition:opacity .2s; }
+.badge-bottom-right:hover .hint{ opacity:.45; }
+
+/* 左下：顏色選單（縮短） */
+.card-tools{
+  position:absolute; left:14px; bottom:10px; z-index:3;
+  display:flex; align-items:center; gap:8px;
+}
+#colorPick{
+  height:32px; min-width:84px; padding:0 8px;
+  background:#fff; border:1px solid var(--rim); border-radius:10px; box-shadow:var(--shadow-2);
+  font-weight:700;
+}
+
+/* 送出 */
+.footer-actions{ display:flex; justify-content:center; align-items:center; padding:18px 0 20px; }
+.primary{
+  min-width:var(--btn-w); height:var(--btn-h); padding:0 22px; background:#fff; border:1px solid var(--rim);
+  border-radius:var(--radius-md); font-weight:700; cursor:pointer; box-shadow:var(--shadow-2);
+}
+.primary:active{ transform:translateY(1px) scale(.99); }
+
+/* 簽名 Modal */
+.overlay{ position:fixed; inset:0; z-index:9999; display:none; align-items:center; justify-content:center; background:rgba(17,24,39,.35); backdrop-filter:blur(3px); }
+.overlay.show{ display:flex; }
+.dialog{ width:min(92vw,520px); background:var(--soft); border:1px solid var(--rim); border-radius:14px; padding:16px; box-shadow:0 18px 44px rgba(0,0,0,.18); }
+.dialog h3{ margin:0 0 10px; font-size:18px; color:#6b5e52; text-align:center; -webkit-text-stroke:0; text-shadow:none; }
+#pad{ width:100%; height:260px; background:#fff; border:1px solid #ddd; border-radius:12px; touch-action:none; }
+.dlg-actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
+.dlg-actions button{ width:120px; height:38px; border-radius:10px; border:1px solid var(--rim); background:#fff; cursor:pointer; font-weight:700; }
+
+/* 版尾 */
+footer{
+  margin: var(--footer-gap) 0;
+  text-align:center; color:#6b5e52; font-size:12px; opacity:.9;
+}
+</style>
+
+<body>
+  <img class="bg-photo" src="./assets/wedding.png" alt="">
+
+  <div class="panel" id="panel">
+    <div class="titlebar">
+      <h2>送上祝福</h2>
+      <div class="bar">
+        <div class="bar-inner">
+          <div class="toolbar" role="toolbar" aria-label="文字工具">
+            <button class="tool-btn" id="btnBold"      type="button" title="粗體">粗體</button>
+            <button class="tool-btn" id="btnItalic"    type="button" title="斜體">斜體</button>
+            <button class="tool-btn" id="btnUnderline" type="button" title="底線">底線</button>
+            <button class="tool-btn" id="btnBigger"    type="button" title="放大">放大</button>
+            <button class="tool-btn" id="btnSmaller"   type="button" title="縮小">縮小</button>
+          </div>
+          <p id="status">已就緒</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="card" id="card">
+        <div class="badge badge-top-left" id="chipBride"><span id="brideLabel">新人：—</span></div>
+        <div class="badge badge-bottom-right" id="chipSign">
+          <span class="hint">點我簽名</span>
+          <img id="signThumb" alt="signature preview" />
+        </div>
+
+        <div id="editor" class="editor" contenteditable="true" aria-label="祝福內容">
+          在此寫下你對新人的祝福…（可選字後按上方的粗體／斜體／底線／顏色／放大／縮小）💝
+        </div>
+
+        <div class="card-tools">
+          <select id="colorPick" title="字體顏色">
+            <option value="" selected>顏色</option>
+            <option value="#0f172a">墨色</option>
+            <option value="#a21caf">紫</option>
+            <option value="#dc2626">紅</option>
+            <option value="#2563eb">藍</option>
+            <option value="#059669">綠</option>
+            <option value="#d97706">橘</option>
+            <option value="#6b7280">灰</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-actions">
+      <button id="btnSubmit" class="primary" type="button">送出祝福</button>
+    </div>
+  </div>
+
+  <footer>© Copyright 2025 MY‘s System</footer>
+
+  <!-- 簽名 Modal -->
+  <div id="sigOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="sigTitle">
+    <div class="dialog">
+      <h3 id="sigTitle">請於下方簽名</h3>
+      <canvas id="pad"></canvas>
+      <div class="dlg-actions">
+        <button id="sigClear"  type="button">清除</button>
+        <button id="sigCancel" type="button">取消</button>
+        <button id="sigOK"     type="button">確定</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+const LIFF_ID='2008149060-m5pDXW6a';
+const WEBHOOK='https://meiyang0819.github.io/SSS/blessing.html';
+const TIMEOUT_MS=20000;
+
+/* 狀態列 */
+function setStatus(m){
+  const el=document.getElementById('status');
+  el.textContent=m; el.classList.remove('ok','busy','err');
+}
+
+/* LIFF（可有可無，沒載到也會顯示畫面） */
+let lineId='',displayName='',pictureUrl='';
+async function initLIFF(){
+  if(typeof liff==='undefined'){ setStatus('（未載入 LIFF SDK，可先測樣式）'); return; }
+  try{
+    setStatus('初始化 LIFF…');
+    await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser:true });
+    if(!liff.isLoggedIn()){ liff.login({ scope:['openid','profile'] }); return; }
+    if(liff.ready) await liff.ready;
+    let prof=null, idt=null;
+    try{ prof=await liff.getProfile(); }catch(_){}
+    try{ idt=liff.getDecodedIDToken(); }catch(_){}
+    lineId=(prof&&prof.userId)||(idt&&idt.sub)||'';
+    displayName=(prof&&prof.displayName)||(idt&&(idt.name||idt.nickname))||'';
+    pictureUrl=(prof&&prof.pictureUrl)||'';
+    setStatus('已就緒');
+  }catch(e){ setStatus('LIFF 初始化失敗：'+e.message); }
+}
+
+/* 編輯工具列與 placeholder */
+const editor=document.getElementById('editor');
+function btnExec(cmd){ if(editor.hasAttribute('data-empty')) return; document.execCommand(cmd,false,null); editor.focus(); }
+['btnBold','btnItalic','btnUnderline'].forEach(id=>document.getElementById(id).addEventListener('click',()=>btnExec(id==='btnBold'?'bold':id==='btnItalic'?'italic':'underline')));
+document.getElementById('colorPick').addEventListener('change',e=>{ const v=e.target.value; if(!editor.hasAttribute('data-empty') && v){ document.execCommand('foreColor',false,v);} e.target.blur(); });
+function wrapSelectionWithClass(cls){
+  if(editor.hasAttribute('data-empty')) return false;
+  const sel=window.getSelection(); if(!sel.rangeCount) return false;
+  const r=sel.getRangeAt(0); if(r.collapsed) return false;
+  const span=document.createElement('span'); span.className=cls;
+  try{ r.surroundContents(span); }catch(_){ const f=r.extractContents(); span.appendChild(f); r.insertNode(span); }
+  const s2=window.getSelection(); s2.removeAllRanges(); const nr=document.createRange(); nr.setStartAfter(span); nr.collapse(true); s2.addRange(nr);
+  editor.focus(); return true;
+}
+let globalScale=1; function setGlobalScale(sc){ globalScale=Math.max(0.7,Math.min(1.7,sc)); editor.style.setProperty('--editor-zoom',globalScale+'rem'); }
+document.getElementById('btnBigger').addEventListener('click',()=>{ if(!wrapSelectionWithClass('fs-up-1')) setGlobalScale(globalScale+0.06); });
+document.getElementById('btnSmaller').addEventListener('click',()=>{ if(!wrapSelectionWithClass('fs-down-1')) setGlobalScale(globalScale-0.06); });
+
+const PLACEHOLDER='在此寫下你對新人的祝福…（可選字後按上方的粗體／斜體／底線／顏色／放大／縮小）💝';
+function showPlaceholder(){ editor.setAttribute('data-empty',''); editor.innerHTML=PLACEHOLDER; }
+editor.addEventListener('focus',()=>{ if(editor.hasAttribute('data-empty')){ editor.innerHTML=''; editor.removeAttribute('data-empty'); }});
+editor.addEventListener('blur',()=>{ if(!editor.textContent.trim()) showPlaceholder(); });
+
+/* 簽名（略） */
+const sigOverlay=document.getElementById('sigOverlay');
+const pad=document.getElementById('pad'); const ctx=pad.getContext('2d');
+let drawing=false,lastX=0,lastY=0,signatureDataURL='';
+function fitCanvas(){ const dpr=Math.max(1,window.devicePixelRatio||1),w=pad.clientWidth,h=pad.clientHeight; pad.width=w*dpr; pad.height=h*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); ctx.lineCap='round'; ctx.lineJoin='round'; ctx.lineWidth=3; ctx.strokeStyle='#111'; ctx.clearRect(0,0,w,h); }
+function openSign(){ sigOverlay.classList.add('show'); setTimeout(fitCanvas,40); }
+function closeSign(){ sigOverlay.classList.remove('show'); }
+function pos(e){ const r=pad.getBoundingClientRect(); return {x:(e.touches?e.touches[0].clientX:e.clientX)-r.left, y:(e.touches?e.touches[0].clientY:e.clientY)-r.top}; }
+function start(e){ drawing=true; const p=pos(e); lastX=p.x; lastY=p.y; e.preventDefault(); }
+function move(e){ if(!drawing) return; const p=pos(e); ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke(); lastX=p.x; lastY=p.y; e.preventDefault(); }
+function end(){ drawing=false; }
+pad.addEventListener('mousedown',start); pad.addEventListener('mousemove',move); pad.addEventListener('mouseup',end); pad.addEventListener('mouseleave',end);
+pad.addEventListener('touchstart',start,{passive:false}); pad.addEventListener('touchmove',move,{passive:false}); pad.addEventListener('touchend',end);
+document.getElementById('chipSign').addEventListener('click',openSign);
+document.getElementById('sigClear').addEventListener('click',fitCanvas);
+document.getElementById('sigCancel').addEventListener('click',closeSign);
+document.getElementById('sigOK').addEventListener('click',()=>{ signatureDataURL=pad.toDataURL('image/png'); const chip=document.getElementById('chipSign'); const img=document.getElementById('signThumb'); img.src=signatureDataURL; chip.classList.add('has-img'); closeSign(); });
+
+/* 送出（成功後進入精簡模式：可拿掉 enterCompactMode()） */
+document.getElementById('btnSubmit').addEventListener('click', async ()=>{
+  if(editor.hasAttribute('data-empty') || !editor.textContent.trim()){ alert('請寫下祝福內容唷～'); return; }
+  setStatus('⏳ 送出中…');
+  enterCompactMode(); setStatus('✅ 祝福已送出成功！'); // 先示意；真實 API 可接回你原本的 fetch
+});
+
+function enterCompactMode(){
+  // 這版因為頁面已可滾動，只縮卡片高度即可
+  document.getElementById('panel').classList.add('compact');
+  editor.setAttribute('contenteditable','false');
+}
+
+/* 啟動 */
+window.addEventListener('DOMContentLoaded', ()=>{
+  setStatus('已就緒');
+  showPlaceholder();
+  if(window.liff) initLIFF();
+});
+</script>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</body>
+</html>
