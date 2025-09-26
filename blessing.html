@@ -16,11 +16,11 @@
   --title:#A68A7C;                    /* 標題字色 */
   --ink:#0f172a; --accent:#A68A7C; --rim:#E4E4E4; --soft:#F5F1EC;
 
-  /* ✅ 面板（整個送上祝福區塊）藍色漸層 */
+  /* 整塊面板：藍色漸層 */
   --panel-grad-from:#b7d2f6;
   --panel-grad-to:#cfe1fb;
 
-  /* ✅ 內頁卡片（內文）黃色漸層 */
+  /* 內頁卡片：黃色漸層 */
   --paper-grad-from:rgba(255,242,204,.98);
   --paper-grad-to:rgba(255,242,204,.92);
 
@@ -32,7 +32,7 @@
   --toolbar-gap:8px; --status-fz:14px; --h2-size:2.8rem;
   --stroke:rgba(0,0,0,.18); --glow:rgba(255,255,255,.65);
 
-  --footer-gap:48px;                  /* 版尾離底距離 */
+  --footer-gap:48px;                  /* 版尾離底距離（可調） */
 }
 
 /* 固定版面、不捲動 */
@@ -54,7 +54,8 @@ html,body{
 .panel{
   position:relative; z-index:1;
   max-width:var(--panel-maxw);
-  height:calc(100vh - 70px);
+  /* 把頁尾空間算進去，避免擋住 footer */
+  height:calc(100vh - (70px + var(--footer-gap)));
   margin:26px auto;
   background:linear-gradient(135deg, var(--panel-grad-from), var(--panel-grad-to));
   border:1px solid var(--rim); border-radius:var(--radius-xl);
@@ -62,7 +63,7 @@ html,body{
   display:flex; flex-direction:column; overflow:hidden;
 }
 
-/* 標題列置於藍色漸層上（透明），維持同色區塊感 */
+/* 標題列置於藍色漸層上（透明） */
 .titlebar{ background:transparent; padding:10px 16px 6px; flex:0 0 auto; }
 h2{
   margin:0 0 6px; text-align:center; font-family:"Sacramento",cursive;
@@ -70,7 +71,7 @@ h2{
   -webkit-text-stroke:.6px rgba(0,0,0,.12); text-shadow:0 3px 4px rgba(255,255,255,.75);
 }
 
-/* 工具列左、狀態列右（不改你原本 OK 的樣式） */
+/* 工具列左、狀態列右（保持你 OK 的樣式） */
 .bar{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:6px 0 8px; }
 .toolbar{ display:flex; gap:var(--toolbar-gap); filter:drop-shadow(0 2px 0 rgba(0,0,0,.08)); }
 .tool-btn,.tool-select{
@@ -107,7 +108,7 @@ h2{
   background-image:linear-gradient(to bottom, rgba(0,0,0,var(--content-line-alpha)) var(--content-line), transparent 0);
   background-size:100% 38px;
 }
-/* placeholder 超淡（按工具鍵也保持淡；直到開始輸入） */
+/* placeholder 超淡（按工具鍵也保持淡，直到輸入） */
 .editor[data-empty]{ opacity:.22; }
 
 /* 放大/縮小類別 */
@@ -116,7 +117,7 @@ h2{
 
 /* 新人 / 簽名徽章 */
 .badge{
-  position:absolute; background:transparent;   /* 與卡片漸層自然融合 */
+  position:absolute; background:transparent;
   color:var(--ink);
   padding:10px 14px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.06); font-weight:700;
   display:flex; align-items:center; gap:8px;
@@ -125,7 +126,6 @@ h2{
 .badge-bottom-right{ right:-8px; bottom:-12px; border:1px solid rgba(0,0,0,.08); cursor:pointer; background:linear-gradient(180deg, var(--paper-grad-from), var(--paper-grad-to)); }
 .badge-bottom-right img{ display:none; width:64px; height:36px; object-fit:contain; background:#fff; border-radius:6px; border:1px dashed rgba(0,0,0,.08); }
 .badge-bottom-right.has-img img{ display:block; }
-/* 「點我簽名」更淡 */
 .badge-bottom-right .hint{ opacity:.18; transition:opacity .2s; }
 .badge-bottom-right:hover .hint{ opacity:.45; }
 
@@ -146,15 +146,16 @@ h2{
 .dlg-actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
 .dlg-actions button{ width:120px; height:38px; border-radius:10px; border:1px solid var(--rim); background:#fff; cursor:pointer; font-weight:700; }
 
-/* 版尾：抬高與底部間距 */
+/* 版尾：抬高與置頂層 */
 footer{
   position:fixed; left:0; right:0; bottom:var(--footer-gap);
   text-align:center; color:#6b5e52; font-size:12px; opacity:.9; pointer-events:none;
+  z-index:5; /* 確保不被面板覆蓋 */
 }
 </style>
 
 <body>
-  <!-- 固定背景照片（確認檔案：./assets/wishing.png） -->
+  <!-- 固定背景照片 -->
   <img class="bg-photo" src="./assets/wishing.png" alt="">
 
   <div class="panel">
@@ -258,10 +259,10 @@ async function initLIFF(){
   }catch(e){ setStatus('LIFF 初始化失敗：'+e.message); }
 }
 
-/* 編輯工具列（保持原功能；placeholder 時略過樣式） */
+/* 編輯工具列（placeholder 時不套樣式） */
 const editor=document.getElementById('editor');
 function btnExec(cmd){
-  if(editor.hasAttribute('data-empty')) return;  // 還在提示狀態時，不改樣式
+  if(editor.hasAttribute('data-empty')) return;
   document.execCommand(cmd,false,null); editor.focus();
 }
 document.getElementById('btnBold').addEventListener('click',()=>btnExec('bold'));
@@ -290,7 +291,7 @@ function stepSmaller(){ if(!wrapSelectionWithClass('fs-down-1')) setGlobalScale(
 document.getElementById('btnBigger').addEventListener('click',stepBigger);
 document.getElementById('btnSmaller').addEventListener('click',stepSmaller);
 
-/* placeholder：只有「使用者真的輸入」才清除 */
+/* placeholder：只有使用者真的輸入才清除 */
 const PLACEHOLDER='在此寫下你對新人的祝福…（可選字後按上方的粗體／斜體／底線／顏色／放大／縮小）💝';
 function showPlaceholder(){ editor.setAttribute('data-empty',''); editor.innerHTML=PLACEHOLDER; }
 editor.addEventListener('input',()=>{ if(editor.hasAttribute('data-empty')){ editor.innerHTML=editor.textContent; editor.removeAttribute('data-empty'); }});
