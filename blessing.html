@@ -4,7 +4,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>送上祝福</title>
 
-<!-- 字體 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand:wght@400&family=Sacramento:wght@400;700&display=swap" rel="stylesheet">
@@ -14,35 +13,34 @@
   --brand-bg:#c9daf8;
   --title:#A68A7C;
   --ink:#0f172a; --accent:#A68A7C; --rim:#E4E4E4; --soft:#F5F1EC;
-
-  --panel-grad-from:#a8c8f2;
-  --panel-grad-to:#bcd6f8;
-
-  --panel-maxw:1200px; --card-maxw:1000px;
+  --panel-grad-from:#b7d2f6;
+  --panel-grad-to:#cfe1fb;
+  --panel-bg-image:none;
+  --paper-grad-from:rgba(255,242,204,.98);
+  --paper-grad-to:rgba(255,242,204,.92);
+  --panel-maxw:1400px; --card-maxw:900px;
   --radius-xl:16px; --radius-md:12px;
   --shadow-1:0 10px 26px rgba(0,0,0,.10);
   --shadow-2:0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06);
-
-  --footer-gap:48px;
+  --content-pad:22px; --editor-zoom:1rem;
+  --toolbar-gap:8px; --status-fz:14px; --h2-size:2.8rem;
+  --stroke:rgba(0,0,0,.18); --glow:rgba(255,255,255,.65);
+  --footer-gap:24px;
   --btn-w:220px; --btn-h:50px;
 }
-
 *{ box-sizing:border-box; }
-html,body{
-  height:100%; margin:0; overflow:hidden;
-  color:var(--ink); background:var(--brand-bg);
+html,body{ height:100%; margin:0; overflow:hidden; color:var(--ink); background:var(--brand-bg);
   font-family:"Patrick Hand","Noto Sans TC",system-ui,-apple-system,sans-serif;
 }
-
 .bg-photo{
   position:fixed; inset:0; z-index:0; width:100%; height:100%;
-  object-fit:cover; opacity:.45; pointer-events:none;
-  filter:brightness(0.65);
+  object-fit:cover; opacity:.25; filter:brightness(0.7);
+  pointer-events:none;
 }
-
 .panel{
   position:relative; z-index:1;
   max-width:var(--panel-maxw);
+  width:90%;
   height:calc(100vh - (70px + var(--footer-gap)));
   margin:26px auto;
   background:linear-gradient(135deg, var(--panel-grad-from), var(--panel-grad-to));
@@ -50,246 +48,138 @@ html,body{
   box-shadow:var(--shadow-1);
   display:flex; flex-direction:column; overflow:hidden;
 }
-
 .titlebar{ padding:10px 16px 6px; flex:0 0 auto; }
 h2{ margin:0 0 6px; text-align:center; font-family:"Sacramento",cursive;
-  font-weight:700; font-size:2.8rem; color:var(--title);
+  font-weight:700; font-size:var(--h2-size); color:var(--title);
 }
-
-.stage{
-  flex:1 1 auto; padding:14px 22px;
-  display:grid; grid-template-columns: 1fr 2fr 1fr;
-  gap:16px; overflow:hidden;
+.bar{ padding:6px 22px 8px; }
+.bar-inner{ max-width:var(--card-maxw); margin:0 auto; display:flex; align-items:center; gap:12px; }
+.toolbar{ display:flex; gap:var(--toolbar-gap); }
+.flex-spacer{ flex:0 0 8px; }
+.tool-btn,.tool-select{ min-width:64px; height:36px; padding:0 12px; background:#fff; border:1px solid var(--rim);
+  border-radius:var(--radius-md); font-weight:700; display:flex; align-items:center; justify-content:center;
 }
-
-/* 左側篩選器 */
-.filter-panel{
-  background:#fff8dc;
-  border:1px solid rgba(0,0,0,.08);
-  border-radius:var(--radius-md);
-  padding:12px; box-shadow:var(--shadow-2);
+#status{ flex:1 1 auto; background:var(--soft); border:1px solid #E4E4E4; border-radius:12px; padding:10px;
+  font-size:var(--status-fz); white-space:pre-wrap; text-align:center; color:var(--accent); font-weight:700;
+  min-width:320px;
 }
-.filter-panel h3{ margin:0 0 10px; font-size:16px; text-align:center; }
-.filter-panel button{
-  display:block; width:100%; margin:6px 0; padding:8px;
-  border:1px solid var(--rim); border-radius:8px;
-  background:#fff; cursor:pointer; font-weight:bold;
+.stage{ flex:1 1 auto; display:flex; padding:14px; gap:14px; }
+.left-panel, .center-panel, .side-panel{
+  background:linear-gradient(180deg, var(--paper-grad-from), var(--paper-grad-to));
+  border:1px solid rgba(0,0,0,.05); border-radius:var(--radius-xl); padding:var(--content-pad);
+  box-shadow:0 10px 26px rgba(0,0,0,.08); overflow:auto;
 }
-
-/* 中間祝福牆 */
-.wall{
-  background:#fff8dc;
-  border:1px solid rgba(0,0,0,.08);
-  border-radius:var(--radius-md);
-  padding:16px; overflow:auto;
-  display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr));
-  gap:16px;
-}
-.card{
+.left-panel{ flex:1; max-width:200px; }
+.center-panel{ flex:2; display:flex; flex-wrap:wrap; gap:14px; align-content:flex-start; }
+.side-panel{ flex:1; max-width:250px; display:flex; flex-direction:column; align-items:flex-start; gap:12px; }
+.blessing-card{
+  width:220px; height:160px;
+  background:#fff; border:1px solid #ddd; border-radius:10px; padding:10px;
+  box-shadow:0 4px 10px rgba(0,0,0,.1);
+  display:flex; flex-direction:column; justify-content:space-between;
   position:relative;
-  background:#fffef4;
-  border:2px solid #e0c080;
-  border-radius:10px;
-  box-shadow:0 4px 10px rgba(0,0,0,.15);
-  padding:10px;
-  display:flex; flex-direction:column;
-  height:180px; cursor:pointer;
 }
-.card::before{
-  content:"";
-  position:absolute; top:-18px; left:50%;
-  width:6px; height:22px; background:#b91c1c;
-  transform:translateX(-50%); border-radius:3px;
+.blessing-card::before{
+  content:""; position:absolute; top:-8px; left:50%; transform:translateX(-50%);
+  width:16px; height:16px; background:red; border-radius:50%;
 }
-.card::after{
-  content:"⬤";
-  position:absolute; top:-28px; left:50%;
-  transform:translateX(-50%);
-  font-size:16px; color:#991b1b;
+.blessing-author{ font-weight:bold; text-align:center; }
+.blessing-content{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center; }
+.blessing-date{ font-size:12px; text-align:center; color:#555; }
+#chipSign{ width:100%; text-align:center; padding:8px; border:1px solid #ddd; border-radius:8px; background:#fff; cursor:pointer; }
+#chipSign img{ max-width:100%; max-height:60px; display:none; margin:auto; }
+#chipSign.has-img span{ display:none; }
+#chipSign.has-img img{ display:block; }
+.footer-actions{ flex:0 0 auto; display:flex; justify-content:center; align-items:center; padding:14px 0 16px; }
+.primary{ min-width:var(--btn-w); height:var(--btn-h); background:#fff; border:1px solid var(--rim);
+  border-radius:var(--radius-md); font-weight:700; cursor:pointer;
 }
-.card .author{ font-weight:bold; margin-bottom:4px; color:#7b4a12; }
-.card .content{
-  flex:1; overflow:hidden;
-  display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical;
-  font-size:14px; line-height:1.5;
+footer{ position:fixed; left:0; right:0; bottom:var(--footer-gap); text-align:center;
+  color:#6b5e52; font-size:12px; opacity:.9; pointer-events:none; z-index:5;
 }
-.card .date{ font-size:12px; text-align:right; color:#666; }
-.card .sign{ text-align:center; margin-top:6px; }
-.card .sign img{ max-width:60px; max-height:30px; border:1px solid #e0c080; background:#fffef4; }
-
-/* Modal 放大 */
-.modal{
-  position:fixed; inset:0; background:rgba(0,0,0,.5);
-  display:none; justify-content:center; align-items:center; z-index:999;
-}
-.modal.show{ display:flex; }
-.modal .card-big{
-  background:#fffef4; border:2px solid #e0c080;
-  border-radius:12px; padding:20px; max-width:520px; width:90%;
-}
-.card-big .author{ font-weight:bold; font-size:20px; margin-bottom:10px; color:#7b4a12; }
-.card-big .content{ font-size:16px; line-height:1.6; margin-bottom:12px; white-space:pre-wrap; }
-.card-big .date{ font-size:13px; text-align:right; color:#555; }
-.card-big .sign{text-align:center;margin:12px 0;}
-.card-big .sign img{max-width:120px;max-height:60px;border:1px solid #e0c080;background:#fffef4;}
-.card-big .actions{text-align:center;margin-top:12px;}
-.card-big .actions button{
-  padding:6px 14px; border-radius:6px; border:1px solid #aaa;
-  background:#fff; cursor:pointer;
-}
-
-/* 右側背板 */
-.side-panel{
-  background:#fff8dc;
-  border:1px solid rgba(0,0,0,.08);
-  border-radius:var(--radius-md);
-  padding:16px; box-shadow:var(--shadow-2);
-  display:flex; flex-direction:column; align-items:center; gap:12px;
-}
-.side-panel .bride{ font-size:18px; font-weight:bold; color:#6b5e52; }
-.side-panel .sign-box{
-  width:140px; height:70px;
-  border:1px solid #e0c080; border-radius:8px;
-  background:#fffef4;
-  display:flex; align-items:center; justify-content:center;
-}
-.side-panel .sign-box img{ max-width:100%; max-height:100%; }
-
-/* 送出祝福 */
-.footer-actions{ flex:0 0 auto; display:flex; justify-content:center; padding:14px 0 16px; }
-.primary{
-  min-width:var(--btn-w); height:var(--btn-h);
-  border:1px solid var(--rim); border-radius:var(--radius-md);
-  background:#fff; font-weight:700; cursor:pointer;
-}
+.overlay{ position:fixed; inset:0; z-index:9999; display:none; align-items:center; justify-content:center; background:rgba(17,24,39,.35); backdrop-filter:blur(3px); }
+.overlay.show{ display:flex; }
+.dialog{ width:min(92vw,520px); background:var(--soft); border:1px solid var(--rim); border-radius:14px; padding:16px; }
+.dialog h3{ margin:0 0 10px; font-size:18px; text-align:center; }
+#pad{ width:100%; height:260px; background:#fff; border:1px solid #ddd; border-radius:12px; touch-action:none; }
+.dlg-actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
 </style>
 
 <body>
-  <img class="bg-photo" src="./assets/wishing.png" alt="">
-
-  <div class="panel">
-    <div class="titlebar">
-      <h2>送上祝福</h2>
-      <!-- 保留工具列 / 狀態列 -->
-      <div class="bar">
-        <div class="bar-inner">
-          <div class="toolbar">
-            <!-- 工具列按鈕原封不動 -->
-          </div>
-          <p id="status">已就緒</p>
+<img class="bg-photo" src="./assets/wishing.png" alt="">
+<div class="panel">
+  <div class="titlebar">
+    <h2>送上祝福</h2>
+    <div class="bar">
+      <div class="bar-inner">
+        <div class="toolbar">
+          <button class="tool-btn" id="btnBold">粗體</button>
+          <button class="tool-btn" id="btnItalic">斜體</button>
+          <button class="tool-btn" id="btnUnderline">底線</button>
+          <select id="colorPick" class="tool-select">
+            <option value="" selected>顏色</option>
+            <option value="#0f172a">墨色</option><option value="#dc2626">紅</option>
+          </select>
         </div>
+        <div class="flex-spacer"></div>
+        <p id="status">已就緒</p>
       </div>
-    </div>
-
-    <div class="stage">
-      <!-- 左側 篩選器 -->
-      <div class="filter-panel">
-        <h3>篩選</h3>
-        <button data-role="all">全部</button>
-        <button data-role="male">男方</button>
-        <button data-role="female">女方</button>
-      </div>
-
-      <!-- 中間 祝福牆 -->
-      <div class="wall" id="wall"></div>
-
-      <!-- 右側 背板 -->
-      <div class="side-panel">
-        <div class="bride" id="brideLabel">新人：—</div>
-        <div class="sign-box"><img id="signThumb" alt=""></div>
-      </div>
-    </div>
-
-    <div class="footer-actions">
-      <button id="btnSubmit" class="primary">送出祝福</button>
     </div>
   </div>
 
-  <footer>© Copyright 2025 MY‘s System</footer>
-
-  <!-- Modal -->
-  <div class="modal" id="modal">
-    <div class="card-big">
-      <div class="author" id="mAuthor"></div>
-      <div class="content" id="mContent"></div>
-      <div class="date" id="mDate"></div>
-      <div class="sign" id="mSign"></div>
-      <div class="actions" id="mActions"></div>
+  <div class="stage">
+    <div class="left-panel">
+      <h3>篩選</h3>
+      <button>全部</button>
+      <button>男方</button>
+      <button>女方</button>
+    </div>
+    <div class="center-panel" id="blessingWall">
+      <!-- blessings will appear here -->
+    </div>
+    <div class="side-panel">
+      <div id="brideLabel">新人：—</div>
+      <div id="chipSign"><span>點我簽名</span><img id="signThumb"/></div>
     </div>
   </div>
+
+  <div class="footer-actions">
+    <button id="btnSubmit" class="primary">送出祝福</button>
+  </div>
+</div>
+
+<footer>© Copyright 2025 MY‘s System</footer>
+
+<!-- Modal for blessing view -->
+<div id="viewOverlay" class="overlay">
+  <div class="dialog">
+    <h3>祝福內容</h3>
+    <div id="viewContent"></div>
+    <div class="dlg-actions"><button onclick="closeView()">關閉</button></div>
+  </div>
+</div>
 
 <script>
-const wall=document.getElementById('wall');
-const modal=document.getElementById('modal');
-const mAuthor=document.getElementById('mAuthor');
-const mContent=document.getElementById('mContent');
-const mDate=document.getElementById('mDate');
-const mSign=document.getElementById('mSign');
-const mActions=document.getElementById('mActions');
-
-const currentUser="小明"; // 假設登入者
+const blessingWall=document.getElementById('blessingWall');
 const blessings=[];
-
-// 新增祝福到牆
-function addBlessing({author,content,date,editable,signURL}){
-  blessings.push({author,content,date,editable,signURL});
-  renderWall();
+function addBlessing(author,text,date){
+  const card=document.createElement('div');
+  card.className='blessing-card';
+  card.innerHTML=`<div class="blessing-author">${author}</div>
+  <div class="blessing-content">${text}</div>
+  <div class="blessing-date">${date}</div>`;
+  card.addEventListener('click',()=>openView(author,text,date));
+  blessingWall.appendChild(card);
 }
-
-// 渲染牆
-function renderWall(){
-  wall.innerHTML="";
-  blessings.forEach((b,i)=>{
-    const card=document.createElement('div');
-    card.className='card';
-    card.innerHTML=`
-      <div class="author">${b.author}</div>
-      <div class="content">${b.content}</div>
-      <div class="date">${b.date}</div>
-      <div class="sign">${b.signURL?`<img src="${b.signURL}">`:""}</div>
-    `;
-    card.addEventListener('click',()=>{
-      mAuthor.textContent=b.author;
-      mContent.textContent=b.content;
-      mDate.textContent=b.date;
-      mSign.innerHTML=b.signURL?`<img src="${b.signURL}">`:"";
-      mActions.innerHTML="";
-      if(b.editable){ 
-        const btn=document.createElement("button");
-        btn.textContent="編輯 ✏️";
-        btn.onclick=()=>editBlessing(i);
-        mActions.appendChild(btn);
-      }
-      modal.classList.add('show');
-    });
-    wall.appendChild(card);
-  });
+function openView(author,text,date){
+  document.getElementById('viewContent').innerHTML=`<p><b>${author}</b></p><p>${text}</p><p>${date}</p>`;
+  document.getElementById('viewOverlay').classList.add('show');
 }
+function closeView(){ document.getElementById('viewOverlay').classList.remove('show'); }
 
-// 編輯祝福
-function editBlessing(idx){
-  const newText=prompt("修改祝福：",blessings[idx].content);
-  if(newText){
-    blessings[idx].content=newText;
-    renderWall();
-    modal.classList.remove('show');
-  }
-}
-
-// 點擊 modal 關閉
-modal.addEventListener('click',e=>{ if(e.target===modal) modal.classList.remove('show'); });
-
-// 假資料
-addBlessing({author:"小明",content:"恭喜百年好合，永遠幸福！💝",date:"2025-09-27",editable:true,signURL:"./assets/sign1.png"});
-addBlessing({author:"小美",content:"祝你們白頭偕老，早生貴子！🎉",date:"2025-09-26",editable:false,signURL:""});
-
-// 送出 → 自動新增
 document.getElementById('btnSubmit').addEventListener('click',()=>{
-  const content=prompt("請輸入祝福內容：");
-  if(!content) return;
-  const date=new Date().toISOString().slice(0,10);
-  const signURL=document.getElementById('signThumb').src||"";
-  addBlessing({author:currentUser,content,date,editable:true,signURL});
+  const now=new Date().toISOString().split('T')[0];
+  addBlessing('小明','恭喜百年好合！💝',now);
 });
 </script>
 </body>
