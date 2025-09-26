@@ -24,15 +24,20 @@
   --paper-grad-from:rgba(255,242,204,.98);
   --paper-grad-to:rgba(255,242,204,.92);
 
-  --panel-maxw:1020px; --radius-xl:16px; --radius-md:12px;
+  --panel-maxw:1020px; --card-maxw:900px;
+  --radius-xl:16px; --radius-md:12px;
   --shadow-1:0 10px 26px rgba(0,0,0,.10);
   --shadow-2:0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06);
 
-  --content-pad:22px; --content-line:2px; --content-line-alpha:.10; --editor-zoom:1rem;
+  --content-pad:22px; --editor-zoom:1rem;
   --toolbar-gap:8px; --status-fz:14px; --h2-size:2.8rem;
   --stroke:rgba(0,0,0,.18); --glow:rgba(255,255,255,.65);
 
   --footer-gap:48px;                  /* 版尾離底距離（可調） */
+
+  /* 送出祝福尺寸（微加大） */
+  --btn-w:200px;
+  --btn-h:46px;
 }
 
 /* 固定版面、不捲動 */
@@ -63,7 +68,7 @@ html,body{
   display:flex; flex-direction:column; overflow:hidden;
 }
 
-/* 標題列置於藍色漸層上（透明） */
+/* 標題列 */
 .titlebar{ background:transparent; padding:10px 16px 6px; flex:0 0 auto; }
 h2{
   margin:0 0 6px; text-align:center; font-family:"Sacramento",cursive;
@@ -71,9 +76,16 @@ h2{
   -webkit-text-stroke:.6px rgba(0,0,0,.12); text-shadow:0 3px 4px rgba(255,255,255,.75);
 }
 
-/* 工具列左、狀態列右（保持你 OK 的樣式） */
-.bar{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:6px 0 8px; }
+/* 導覽列容器：寬度與卡片一致，達成左右邊齊 */
+.bar{ padding:6px 22px 8px; }
+.bar-inner{
+  max-width:var(--card-maxw);
+  margin:0 auto;
+  display:flex; align-items:center; gap:12px;
+}
+/* 工具列靠左，狀態列吃滿剩餘寬，右邊齊 */
 .toolbar{ display:flex; gap:var(--toolbar-gap); filter:drop-shadow(0 2px 0 rgba(0,0,0,.08)); }
+.flex-spacer{ flex:1 1 auto; } /* 讓狀態列從「縮小」右側一路拉到最右邊 */
 .tool-btn,.tool-select{
   min-width:64px; height:36px; padding:0 12px; background:#fff; border:1px solid var(--rim); border-radius:var(--radius-md);
   font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:var(--shadow-2);
@@ -82,10 +94,12 @@ h2{
 .tool-btn:active{ transform:translateY(1px) scale(.99); }
 
 #status{
+  flex:1 1 auto;
+  margin-left:12px;               /* 與工具列保持間距 */
   background:var(--soft); border:1px solid #E4E4E4; border-radius:12px; padding:10px;
   font-size:var(--status-fz); white-space:pre-wrap; text-align:center; color:var(--accent)!important; font-weight:700;
   -webkit-text-stroke:.35px rgba(0,0,0,.10); text-shadow:0 1px 0 rgba(255,255,255,.85),0 3px 6px rgba(0,0,0,.04);
-  min-width:220px;
+  min-width:180px;
 }
 
 /* === 內頁舞台 === */
@@ -93,20 +107,20 @@ h2{
 
 /* 內文卡（黃色漸層） */
 .card{
-  position:relative; width:100%; max-width:900px;
+  position:relative; width:100%; max-width:var(--card-maxw);
   background:linear-gradient(180deg, var(--paper-grad-from), var(--paper-grad-to));
   border:1px solid rgba(0,0,0,.05);
   border-radius:var(--radius-xl); box-shadow:0 10px 26px rgba(0,0,0,.08);
   padding:var(--content-pad);
+  padding-bottom:calc(var(--content-pad) + 20px); /* 預留給右下簽名徽章空間，避免被邊緣遮 */
 }
 
-/* 編輯器（筆記線更淡） */
+/* 編輯器：移除所有線條 */
 .editor{
   min-height:300px; max-height:46vh; overflow:auto;
   line-height:1.8; outline:none; background:transparent; border-radius:var(--radius-md); padding:10px 12px;
   font-size:var(--editor-zoom);
-  background-image:linear-gradient(to bottom, rgba(0,0,0,var(--content-line-alpha)) var(--content-line), transparent 0);
-  background-size:100% 38px;
+  background-image:none; /* ← 取消一條一條線 */
 }
 /* placeholder 超淡（按工具鍵也保持淡，直到輸入） */
 .editor[data-empty]{ opacity:.22; }
@@ -115,24 +129,30 @@ h2{
 .fs-up-1{font-size:1.15em;} .fs-up-2{font-size:1.30em;} .fs-up-3{font-size:1.50em;}
 .fs-down-1{font-size:.92em;} .fs-down-2{font-size:.84em;} .fs-down-3{font-size:.76em;}
 
-/* 新人 / 簽名徽章 */
+/* 新人 / 簽名徽章：提高層級避免被蓋住 */
 .badge{
-  position:absolute; background:transparent;
+  position:absolute; z-index:4;
   color:var(--ink);
   padding:10px 14px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.06); font-weight:700;
   display:flex; align-items:center; gap:8px;
 }
-.badge-top-left{ left:-8px; top:-12px; border:none; background:linear-gradient(180deg, var(--paper-grad-from), var(--paper-grad-to)); }
-.badge-bottom-right{ right:-8px; bottom:-12px; border:1px solid rgba(0,0,0,.08); cursor:pointer; background:linear-gradient(180deg, var(--paper-grad-from), var(--paper-grad-to)); }
+.badge-top-left{
+  left:-8px; top:-12px; border:none;
+  background:linear-gradient(180deg, var(--paper-grad-from), var(--paper-grad-to));
+}
+.badge-bottom-right{
+  right:-8px; bottom:-12px; border:1px solid rgba(0,0,0,.08); cursor:pointer;
+  background:linear-gradient(180deg, var(--paper-grad-from), var(--paper-grad-to));
+}
 .badge-bottom-right img{ display:none; width:64px; height:36px; object-fit:contain; background:#fff; border-radius:6px; border:1px dashed rgba(0,0,0,.08); }
 .badge-bottom-right.has-img img{ display:block; }
 .badge-bottom-right .hint{ opacity:.18; transition:opacity .2s; }
 .badge-bottom-right:hover .hint{ opacity:.45; }
 
-/* 送出鍵 */
+/* 送出鍵（微加大） */
 .footer-actions{ flex:0 0 auto; display:flex; justify-content:center; align-items:center; padding:8px 0 10px; }
 .primary{
-  min-width:180px; height:42px; padding:0 18px; background:#fff; border:1px solid var(--rim);
+  min-width:var(--btn-w); height:var(--btn-h); padding:0 18px; background:#fff; border:1px solid var(--rim);
   border-radius:var(--radius-md); font-weight:700; cursor:pointer; box-shadow:var(--shadow-2);
 }
 .primary:active{ transform:translateY(1px) scale(.99); }
@@ -146,11 +166,11 @@ h2{
 .dlg-actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
 .dlg-actions button{ width:120px; height:38px; border-radius:10px; border:1px solid var(--rim); background:#fff; cursor:pointer; font-weight:700; }
 
-/* 版尾：抬高與置頂層 */
+/* 版尾 */
 footer{
   position:fixed; left:0; right:0; bottom:var(--footer-gap);
   text-align:center; color:#6b5e52; font-size:12px; opacity:.9; pointer-events:none;
-  z-index:5; /* 確保不被面板覆蓋 */
+  z-index:5;
 }
 </style>
 
@@ -161,26 +181,34 @@ footer{
   <div class="panel">
     <div class="titlebar">
       <h2>送上祝福</h2>
+
+      <!-- 導覽列（對齊內文卡寬度） -->
       <div class="bar">
-        <!-- 工具列（保持既有） -->
-        <div class="toolbar" role="toolbar" aria-label="文字工具">
-          <button class="tool-btn" id="btnBold"      type="button" title="粗體">粗體</button>
-          <button class="tool-btn" id="btnItalic"    type="button" title="斜體">斜體</button>
-          <button class="tool-btn" id="btnUnderline" type="button" title="底線">底線</button>
-          <select id="colorPick" class="tool-select" title="字體顏色">
-            <option value="" selected>顏色</option>
-            <option value="#0f172a">墨色</option>
-            <option value="#a21caf">紫</option>
-            <option value="#dc2626">紅</option>
-            <option value="#2563eb">藍</option>
-            <option value="#059669">綠</option>
-            <option value="#d97706">橘</option>
-            <option value="#6b7280">灰</option>
-          </select>
-          <button class="tool-btn" id="btnBigger"    type="button" title="放大">放大</button>
-          <button class="tool-btn" id="btnSmaller"   type="button" title="縮小">縮小</button>
+        <div class="bar-inner">
+          <!-- 工具列（靠左，與卡片左緣對齊） -->
+          <div class="toolbar" role="toolbar" aria-label="文字工具">
+            <button class="tool-btn" id="btnBold"      type="button" title="粗體">粗體</button>
+            <button class="tool-btn" id="btnItalic"    type="button" title="斜體">斜體</button>
+            <button class="tool-btn" id="btnUnderline" type="button" title="底線">底線</button>
+            <select id="colorPick" class="tool-select" title="字體顏色">
+              <option value="" selected>顏色</option>
+              <option value="#0f172a">墨色</option>
+              <option value="#a21caf">紫</option>
+              <option value="#dc2626">紅</option>
+              <option value="#2563eb">藍</option>
+              <option value="#059669">綠</option>
+              <option value="#d97706">橘</option>
+              <option value="#6b7280">灰</option>
+            </select>
+            <button class="tool-btn" id="btnBigger"    type="button" title="放大">放大</button>
+            <button class="tool-btn" id="btnSmaller"   type="button" title="縮小">縮小</button>
+          </div>
+
+          <div class="flex-spacer"></div>
+
+          <!-- 狀態列（自動拉長，右邊齊） -->
+          <p id="status">尚未初始化</p>
         </div>
-        <p id="status">尚未初始化</p>
       </div>
     </div>
 
@@ -346,7 +374,7 @@ document.getElementById('btnSubmit').addEventListener('click', async ()=>{
 /* 啟動 */
 window.addEventListener('DOMContentLoaded', ()=>{
   setStatus('等待初始化…');
-  showPlaceholder();                      // 初始即顯示超淡 placeholder
+  showPlaceholder();
   if(window.liff) initLIFF(); else setStatus('已就緒');
 });
 </script>
