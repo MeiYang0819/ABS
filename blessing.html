@@ -18,12 +18,15 @@
   /* —— 外層藍色面板（可疊圖）—— */
   --panel-grad-from:#b7d2f6;
   --panel-grad-to:#cfe1fb;
-  --panel-bg-image:none;  /* 若也想讓外層用圖：url('./assets/wedding.png') */
+  --panel-bg-image:none;
 
-  /* —— 內頁（黃色卡片）上方疊婚禮圖 —— */
-  --card-top-image:url('./assets/wedding.png'); /* 你的透明 PNG 疊在最上層 */
+  /* —— 內頁（黃色卡片）與婚禮圖層 —— */
   --paper-grad-from:rgba(255,242,204,.98);
   --paper-grad-to:rgba(255,242,204,.92);
+  --card-image:url('./assets/wedding.png');   /* 你的婚禮圖：疊在黃底之上 */
+  --card-image-opacity:.36;                   /* 疊層透明度（可調） */
+  --card-image-size: 520px;                   /* 疊層大小（可調：px / contain / cover） */
+  --card-image-filter: contrast(1.06) saturate(1.08); /* 色彩校正（可調） */
 
   --panel-maxw:1060px; --card-maxw:900px;
   --radius-xl:16px; --radius-md:12px;
@@ -35,8 +38,11 @@
   --stroke:rgba(0,0,0,.18); --glow:rgba(255,255,255,.65);
 
   --footer-gap:48px;
-
   --btn-w:220px; --btn-h:50px;
+
+  /* —— 全頁背景加深程度 —— */
+  --bg-photo-opacity:.42;                     /* 原生圖透明度（越大越深） */
+  --bg-tint: rgba(0,0,0,.10);                 /* 額外色罩（再加深一點點） */
 }
 
 /* 基本＆固定版面 */
@@ -48,8 +54,9 @@ html,body{
   -webkit-text-stroke:.35px var(--stroke); text-shadow:0 1px 0 var(--glow);
 }
 
-/* 整頁柔淡背景（可換） */
-.bg-photo{ position:fixed; inset:0; z-index:0; width:100%; height:100%; object-fit:cover; opacity:.30; pointer-events:none; }
+/* 整頁背景與加深色罩 */
+.bg-photo{ position:fixed; inset:0; z-index:0; width:100%; height:100%; object-fit:cover; opacity:var(--bg-photo-opacity); pointer-events:none; }
+.bg-tint{  position:fixed; inset:0; z-index:0; background:var(--bg-tint); pointer-events:none; }
 
 /* 外層藍面板 */
 .panel{
@@ -104,31 +111,47 @@ h2{
 }
 .side-btn.active{ outline:2px solid #bfa5a0; }
 
-/* 編輯卡片（黄色） */
+/* 編輯卡片（黃色） */
 .editor-wrap{
   position:relative; height:100%; display:grid; grid-template-rows:auto 1fr auto; gap:10px; overflow:hidden;
 }
 .card{
   position:relative; width:100%; max-width:var(--card-maxw); margin:0 auto;
-  background:
-    var(--card-top-image) center/contain no-repeat,           /* 最上層：婚禮圖 */
-    linear-gradient(180deg, var(--paper-grad-from), var(--paper-grad-to)); /* 下層：黃底漸層 */
+  background: linear-gradient(180deg, var(--paper-grad-from), var(--paper-grad-to)); /* 下層：黃底漸層 */
   border:1px solid rgba(0,0,0,.05); border-radius:var(--radius-xl);
-  box-shadow:0 10px 26px rgba(0,0,0,.08); padding:var(--content-pad);
-  padding-bottom:calc(var(--content-pad) + 36px);
+  box-shadow:0 10px 26px rgba(0,0,0,.08);
+  padding:var(--content-pad);
+  /* 預留空間：上方新人徽章 42px、下方簽名徽章 50px */
+  padding-top:calc(var(--content-pad) + 44px);
+  padding-bottom:calc(var(--content-pad) + 56px);
+  overflow:hidden;
 }
 
-/* 新人＆簽名徽章：固定在卡片外緣（不跟著內文滾） */
+/* 婚禮圖：疊在卡片內容最上層，但不擋互動（pointer-events:none） */
+.card::before{
+  content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
+  background-image: var(--card-image);
+  background-repeat:no-repeat;
+  background-position: right 20px bottom 16px; /* 角落排版可調 */
+  background-size: var(--card-image-size);
+  opacity: var(--card-image-opacity);
+  filter: var(--card-image-filter);
+}
+
+/* 內容層級設定：編輯器在 z=2，徽章 z=3，疊圖 z=1 */
+.editor{ position:relative; z-index:2; }
+
+/* 新人＆簽名徽章：改為卡片「內側」固定，不再溢出 */
 .badge{
-  position:absolute; z-index:4; color:var(--ink);
-  padding:11px 16px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.06); font-weight:700;
+  position:absolute; z-index:3; color:var(--ink);
+  padding:10px 14px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.06); font-weight:700;
   display:flex; align-items:center; gap:8px; font-size:1.05rem;
   background:linear-gradient(180deg, var(--paper-grad-from), var(--paper-grad-to));
 }
-.badge-top-left{ left:-8px; top:-12px; border:none; }
-.badge-bottom-right{ right:-8px; bottom:-12px; border:1px solid rgba(0,0,0,.08); cursor:pointer; }
+.badge-top-left{ left:10px; top:10px; border:none; }
+.badge-bottom-right{ right:10px; bottom:10px; border:1px solid rgba(0,0,0,.08); cursor:pointer; }
 .badge-bottom-right .hint{ opacity:.18; }
-.badge-bottom-right img{ display:none; width:64px; height:36px; object-fit:contain; background:#fff; border-radius:6px; border:1px dashed rgba(0,0,0,.08); }
+.badge-bottom-right img{ display:none; width:72px; height:40px; object-fit:contain; background:#fff; border-radius:6px; border:1px dashed rgba(0,0,0,.12); }
 .badge-bottom-right.has-img img{ display:block; }
 
 /* 編輯器 */
@@ -185,7 +208,9 @@ footer{
 </style>
 
 <body>
+  <!-- 全頁背景與加深 -->
   <img class="bg-photo" src="./assets/wishing.png" alt="">
+  <div class="bg-tint"></div>
 
   <div class="panel">
     <div class="titlebar"><h2>送上祝福</h2></div>
@@ -214,7 +239,7 @@ footer{
     </div>
 
     <div class="main">
-      <!-- 左側篩選 -->
+      <!-- 左側篩選（你目前使用的 Keep 風放這區） -->
       <aside class="sidebar">
         <div class="side-card">
           <p class="side-title">篩選</p>
@@ -279,30 +304,28 @@ footer{
 
 <script>
 /* ================= 基本與測試 ================= */
-const TEST_MODE = true;                         // ← 後端準備好改 false
-const WEBHOOK   = '';                           // ← 之後換你的 GAS
+const TEST_MODE = true;
 const PLACEHOLDER='在此寫下你對新人的祝福…（可選字後按上方的粗體／斜體／底線／顏色／放大／縮小）💝';
 
-const BRIDE_NAME = '小美';                      // 測試用新人姓名
+const BRIDE_NAME = '小美';
 const GROOM_NAME = '小帥';
 
-let currentSide = 'ALL';                        // 牆面篩選
-let mockRole    = 'GROOM';                      // 測試身分（GROOM/BRIDE）
+let currentSide = 'ALL';
+let mockRole    = 'GROOM';
 let signatureDataURL = '';
 
 const editor = document.getElementById('editor');
 const wallGrid = document.getElementById('wallGrid');
 const statusEl = document.getElementById('status');
 
-/* 狀態列 */
 function setStatus(m){ statusEl.textContent = m + (TEST_MODE ? '（測試）' : ''); }
 
-/* placeholder 邏輯 */
+/* placeholder */
 function showPlaceholder(){ editor.setAttribute('data-empty',''); editor.innerHTML=PLACEHOLDER; }
 editor.addEventListener('focus',()=>{ if(editor.hasAttribute('data-empty')){ editor.innerHTML=''; editor.removeAttribute('data-empty'); }});
 editor.addEventListener('blur',()=>{ if(!editor.textContent.trim()) showPlaceholder(); });
 
-/* 字型工具 */
+/* 工具列 */
 function exec(cmd){ if(editor.hasAttribute('data-empty')) return; document.execCommand(cmd,false,null); editor.focus(); }
 document.getElementById('btnBold').onclick=()=>exec('bold');
 document.getElementById('btnItalic').onclick=()=>exec('italic');
@@ -323,16 +346,13 @@ function wrapSel(cls){
 document.getElementById('btnBigger').onclick=()=>{ if(!wrapSel('fs-up-1')) setGlobal(globalScale+0.06); };
 document.getElementById('btnSmaller').onclick=()=>{ if(!wrapSel('fs-down-1')) setGlobal(globalScale-0.06); };
 
-/* 簽名（簡版：用原先的縮圖欄） */
+/* 簽名（測試先用假的示意圖） */
 document.getElementById('chipSign').addEventListener('click', async ()=>{
-  // 測試版：直接叫瀏覽器開一個簡單畫板？為了簡潔，這裡用 prompt 模擬有簽名
-  // 你要畫板版可換成前面我們給的 Canvas Modal；這版先快速可測。
   const ok = confirm('（測試）按「確定」模擬已簽名，會放入示意圖。');
   if(ok){
-    // 用 1x1 透明 PNG 當假的簽名，再顯示示意
     signatureDataURL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2P8z/C/HwAFGgKcYc3lJwAAAABJRU5ErkJggg==';
     const img=document.getElementById('signThumb');
-    img.src='./assets/wishing.png'; // 你有真簽名時換成 signatureDataURL
+    img.src='./assets/wishing.png'; // 正式版會放 canvas 輸出的 dataURL
     document.getElementById('chipSign').classList.add('has-img');
   }
 });
@@ -346,22 +366,21 @@ document.querySelectorAll('.side-btn[data-side]').forEach(btn=>{
     renderWall();
   });
 });
-document.getElementById('mockMale').onclick = ()=>{ mockRole='GROOM'; setStatus('身分：新郎親友'); };
-document.getElementById('mockFemale').onclick = ()=>{ mockRole='BRIDE'; setStatus('身分：新娘親友'); };
+document.getElementById('mockMale').onclick = ()=>{ mockRole='GROOM'; setStatus('身分：新郎親友'); refreshCoupleBadge(); };
+document.getElementById('mockFemale').onclick = ()=>{ mockRole='BRIDE'; setStatus('身分：新娘親友'); refreshCoupleBadge(); };
 
-/* 新人名字（測試直接帶） */
+/* 新人名字（測試帶入） */
 function refreshCoupleBadge(){
   const name = mockRole==='GROOM' ? GROOM_NAME : BRIDE_NAME;
   document.getElementById('brideLabel').textContent = '新人：' + name;
 }
 
-/* 送出（測試直接寫 localStorage） */
+/* 送出到 localStorage → 牆 */
 document.getElementById('btnSubmit').addEventListener('click', async ()=>{
   if(editor.hasAttribute('data-empty') || !editor.textContent.trim()){ alert('請寫下祝福內容唷～'); return; }
   const contentHTML = editor.innerHTML.trim();
   const id = 'test_' + Date.now();
 
-  // 存到 localStorage
   const item = {
     id, timestamp: new Date().toISOString(),
     lineId: 'TEST', side: mockRole, authorName: (mockRole==='GROOM'?'新郎友':'新娘友'),
@@ -372,7 +391,7 @@ document.getElementById('btnSubmit').addEventListener('click', async ()=>{
   list.unshift(item); localStorage.setItem('blessings', JSON.stringify(list));
 
   setStatus('✅ 祝福已送出（測試）');
-  // 清空輸入
+  // 清空
   showPlaceholder();
   signatureDataURL='';
   document.getElementById('chipSign').classList.remove('has-img');
@@ -398,7 +417,7 @@ function renderWall(){
     `;
   }).join('') || `<p style="-webkit-text-stroke:0;text-shadow:none;color:#6b5e52;opacity:.8;text-align:center;margin:12px 0">尚無祝福，快來寫第一張吧！</p>`;
 
-  // 綁定點卡片看詳情
+  // 綁點開詳情
   document.querySelectorAll('.wall-card').forEach(card=>{
     card.addEventListener('click',()=>{
       const id = card.dataset.id;
