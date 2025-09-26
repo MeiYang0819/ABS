@@ -11,17 +11,21 @@
 
 <style>
 :root{
-  --brand-bg:#c9daf8;    /* 藍色底 */
-  --paper:#fff2cc;       /* 主面板/內文卡同色（黃） */
-  --title:#A68A7C;       /* 標題字色（互動音符主題） */
+  /* 主題與尺寸 */
+  --brand-bg:#c9daf8;        /* 全頁底色（藍） */
+  --paper:#fff2cc;           /* 主面板/內文卡同色（黃） */
+  --title:#A68A7C;
   --ink:#0f172a; --accent:#A68A7C; --rim:#E4E4E4; --soft:#F5F1EC;
 
   --panel-maxw:1020px; --radius-xl:16px; --radius-md:12px;
-  --shadow-1:0 10px 26px rgba(0,0,0,.10); --shadow-2:0 2px 0 rgba(0,0,0,.15),0 2px 8px rgba(0,0,0,.06);
+  --shadow-1:0 10px 26px rgba(0,0,0,.10);
+  --shadow-2:0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06);
 
   --content-pad:22px; --content-line:2px; --content-line-alpha:.10; --editor-zoom:1rem;
   --toolbar-gap:8px; --status-fz:14px; --h2-size:2.8rem;
   --stroke:rgba(0,0,0,.18); --glow:rgba(255,255,255,.65);
+
+  --footer-gap:48px;         /* ✅ 版尾離底距離（可再加大） */
 }
 
 /* 固定版面、不捲動 */
@@ -33,26 +37,26 @@ html,body{
   -webkit-text-stroke:.35px var(--stroke); text-shadow:0 1px 0 var(--glow);
 }
 
-/* 固定背景圖（保證顯示） */
+/* 固定背景照片（去混合模式，提高可見度） */
 .bg-photo{
   position:fixed; inset:0; z-index:0; width:100%; height:100%;
-  object-fit:cover; opacity:.35; mix-blend-mode:multiply;
-  filter:contrast(1.05) saturate(1.05); pointer-events:none;
+  object-fit:cover; opacity:.32;      /* 想更明顯可調到 .45 */
+  pointer-events:none;
 }
 
 /* 主面板：整塊單色（含標題列） */
 .panel{
   position:relative; z-index:1;
   max-width:var(--panel-maxw);
-  height:calc(100vh - 52px);      /* 上下各留空間 */
+  height:calc(100vh - 70px);          /* 上下各留空間，避免擠到頁尾 */
   margin:26px auto;
-  background:var(--paper);        /* 與內文卡一致 */
+  background:var(--paper);            /* 與內文卡一致 → 不會有兩色 */
   border:1px solid var(--rim); border-radius:var(--radius-xl);
   box-shadow:var(--shadow-1);
   display:flex; flex-direction:column; overflow:hidden;
 }
 
-/* 標題列同色（不再藍漸層） */
+/* 標題列同色（取消藍漸層） */
 .titlebar{ background:var(--paper); padding:10px 16px 6px; flex:0 0 auto; }
 h2{
   margin:0 0 6px; text-align:center; font-family:"Sacramento",cursive;
@@ -60,7 +64,7 @@ h2{
   -webkit-text-stroke:.6px rgba(0,0,0,.12); text-shadow:0 3px 4px rgba(255,255,255,.75);
 }
 
-/* 工具列左、狀態列右 */
+/* 工具列左、狀態列右（不調整既有樣式） */
 .bar{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:6px 0 8px; }
 .toolbar{ display:flex; gap:var(--toolbar-gap); filter:drop-shadow(0 2px 0 rgba(0,0,0,.08)); }
 .tool-btn,.tool-select{
@@ -94,8 +98,8 @@ h2{
   background-image:linear-gradient(to bottom, rgba(0,0,0,var(--content-line-alpha)) var(--content-line), transparent 0);
   background-size:100% 38px;
 }
-/* placeholder 更淡 */
-.editor[data-empty]{ opacity:.34; }  /* 比上一版更淡 */
+/* placeholder 極淡（按工具鍵也保持淡） */
+.editor[data-empty]{ opacity:.22; }   /* 再更淡一級 */
 
 /* 放大/縮小類別（保留） */
 .fs-up-1{font-size:1.15em;} .fs-up-2{font-size:1.30em;} .fs-up-3{font-size:1.50em;}
@@ -112,13 +116,13 @@ h2{
 .badge-bottom-right img{ display:none; width:64px; height:36px; object-fit:contain; background:#fff; border-radius:6px; border:1px dashed rgba(0,0,0,.08); }
 .badge-bottom-right.has-img img{ display:block; }
 /* 「點我簽名」再更淡 */
-.badge-bottom-right .hint{ opacity:.26; transition:opacity .2s; }
-.badge-bottom-right:hover .hint{ opacity:.6; }
+.badge-bottom-right .hint{ opacity:.18; transition:opacity .2s; }
+.badge-bottom-right:hover .hint{ opacity:.45; }
 
-/* 送出鍵：往上一點（靠近卡片上方），不貼底 */
+/* 送出鍵 */
 .footer-actions{
   flex:0 0 auto; display:flex; justify-content:center; align-items:center;
-  padding:6px 0 10px; /* 往上 */
+  padding:8px 0 10px;
 }
 .primary{
   min-width:180px; height:42px; padding:0 18px; background:#fff; border:1px solid var(--rim);
@@ -135,22 +139,22 @@ h2{
 .dlg-actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
 .dlg-actions button{ width:120px; height:38px; border-radius:10px; border:1px solid var(--rim); background:#fff; cursor:pointer; font-weight:700; }
 
-/* 版尾：與底部拉開距離 */
+/* 版尾：抬高與底部間距 */
 footer{
-  position:fixed; left:0; right:0; bottom:18px;  /* 往上 18px */
+  position:fixed; left:0; right:0; bottom:var(--footer-gap);
   text-align:center; color:#6b5e52; font-size:12px; opacity:.9; pointer-events:none;
 }
 </style>
 
 <body>
-  <!-- 固定背景圖 -->
+  <!-- 固定背景照片（請確認路徑與檔名大小寫：./assets/wishing.png） -->
   <img class="bg-photo" src="./assets/wishing.png" alt="">
 
   <div class="panel">
     <div class="titlebar">
       <h2>送上祝福</h2>
       <div class="bar">
-        <!-- 工具列（保持不動） -->
+        <!-- 工具列（保持既有） -->
         <div class="toolbar" role="toolbar" aria-label="文字工具">
           <button class="tool-btn" id="btnBold"      type="button" title="粗體">粗體</button>
           <button class="tool-btn" id="btnItalic"    type="button" title="斜體">斜體</button>
@@ -247,18 +251,25 @@ async function initLIFF(){
   }catch(e){ setStatus('LIFF 初始化失敗：'+e.message); }
 }
 
-/* 編輯工具列（保留原功能） */
+/* 編輯工具列（保持原功能） */
 const editor=document.getElementById('editor');
-function btnExec(cmd){ document.execCommand(cmd,false,null); editor.focus(); }
+function btnExec(cmd){
+  // 若仍是 placeholder，就先忽略樣式指令（維持淡色不變）
+  if(editor.hasAttribute('data-empty')) return;
+  document.execCommand(cmd,false,null); editor.focus();
+}
 document.getElementById('btnBold').addEventListener('click',()=>btnExec('bold'));
 document.getElementById('btnItalic').addEventListener('click',()=>btnExec('italic'));
 document.getElementById('btnUnderline').addEventListener('click',()=>btnExec('underline'));
 document.getElementById('colorPick').addEventListener('change',e=>{
-  const v=e.target.value; if(v){ document.execCommand('foreColor',false,v); editor.focus(); } e.target.blur();
+  const v=e.target.value;
+  if(!editor.hasAttribute('data-empty') && v){ document.execCommand('foreColor',false,v); editor.focus(); }
+  e.target.blur();
 });
 
-/* 放大/縮小：選取→包 span；未選取→全域縮放 */
+/* 放大/縮小：選取→包 span；未選取→全域縮放（placeholder 時只調整全域縮放仍保持淡色） */
 function wrapSelectionWithClass(cls){
+  if(editor.hasAttribute('data-empty')) return false;  // 仍是 placeholder → 不包選取
   const sel=window.getSelection(); if(!sel.rangeCount) return false;
   const r=sel.getRangeAt(0); if(r.collapsed) return false;
   const span=document.createElement('span'); span.className=cls;
@@ -273,12 +284,10 @@ function stepSmaller(){ if(!wrapSelectionWithClass('fs-down-1')) setGlobalScale(
 document.getElementById('btnBigger').addEventListener('click',stepBigger);
 document.getElementById('btnSmaller').addEventListener('click',stepSmaller);
 
-/* placeholder：更淡，點擊輸入就清除 */
+/* placeholder：只在「輸入」後才清除（不再因 focus 或按工具鍵變黑） */
 const PLACEHOLDER='在此寫下你對新人的祝福…（可選字後按上方的粗體／斜體／底線／顏色／放大／縮小）💝';
 function showPlaceholder(){ editor.setAttribute('data-empty',''); editor.innerHTML=PLACEHOLDER; }
-function clearPlaceholderIfNeeded(){ if(editor.hasAttribute('data-empty')){ editor.innerHTML=''; editor.removeAttribute('data-empty'); } }
-editor.addEventListener('focus',clearPlaceholderIfNeeded);
-editor.addEventListener('input',clearPlaceholderIfNeeded);
+editor.addEventListener('input',()=>{ if(editor.hasAttribute('data-empty')){ editor.innerHTML=editor.textContent; editor.removeAttribute('data-empty'); }});
 editor.addEventListener('blur',()=>{ if(!editor.textContent.trim()) showPlaceholder(); });
 
 /* 簽名（未簽不顯示縮圖） */
@@ -330,7 +339,7 @@ document.getElementById('btnSubmit').addEventListener('click', async ()=>{
 /* 啟動 */
 window.addEventListener('DOMContentLoaded', ()=>{
   setStatus('等待初始化…');
-  showPlaceholder();
+  showPlaceholder();                      // 初始即顯示極淡 placeholder
   if(window.liff) initLIFF(); else setStatus('已就緒');
 });
 </script>
