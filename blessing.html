@@ -34,7 +34,7 @@
   --left-actions-h:48px;
 }
 
-/* 基本骨架（保持原色與字型） */
+/* 骨架（不變） */
 *{box-sizing:border-box;}
 html,body{
   height:100%; margin:0; overflow:hidden;
@@ -42,8 +42,7 @@ html,body{
   font-family:"Patrick Hand","Noto Sans TC",system-ui,-apple-system,sans-serif;
   -webkit-text-stroke:.35px var(--stroke); text-shadow:0 1px 0 var(--glow);
 }
-.bg-photo{ position:fixed; inset:0; z-index:0; width:100%; height:100%;
-  object-fit:cover; opacity:.35; pointer-events:none; filter:brightness(.6) saturate(.9); }
+.bg-photo{ position:fixed; inset:0; z-index:0; width:100%; height:100%; object-fit:cover; opacity:.35; pointer-events:none; filter:brightness(.6) saturate(.9); }
 
 .panel{
   position:relative; z-index:1; max-width:var(--panel-maxw);
@@ -54,7 +53,7 @@ html,body{
   box-shadow:var(--shadow-1); display:flex; flex-direction:column; overflow:hidden;
 }
 
-/* 標題與工具（維持，僅微調距離） */
+/* 標題與工具（不動） */
 .titlebar{ background:transparent; padding:16px 16px 6px; }
 h2{
   margin:0 0 10px; text-align:center; font-family:"Sacramento",cursive;
@@ -80,24 +79,23 @@ h2{
   -webkit-text-stroke:.35px rgba(0,0,0,.10); text-shadow:0 1px 0 rgba(255,255,255,.85),0 3px 6px rgba(0,0,0,.04);
 }
 
-/* 舞台：左 1/3 黃色（不捲動）＋ 右 2/3 牆（自己捲動） */
+/* 舞台（不動）：左 1/3 ＋ 右 2/3 */
 .stage{ flex:1 1 auto; padding:14px 22px 0; display:flex; justify-content:center; align-items:flex-start; overflow:hidden; }
 .card{
   position:relative; width:100%; max-width:var(--card-maxw);
   border:1px solid rgba(0,0,0,.05); border-radius:var(--radius-xl); box-shadow:0 10px 26px rgba(0,0,0,.08);
   padding:var(--content-pad); height:100%;
-  display:grid; grid-template-columns: 1fr 2fr; gap:14px; overflow:hidden;
-  background:transparent;
+  display:grid; grid-template-columns: 1fr 2fr; gap:14px; overflow:hidden; background:transparent;
 }
 
-/* 左區：黃底容器（不捲動） */
+/* 左區黃底容器（不捲動，內文超過才顯示） */
 .left-wrap{
   position:relative; background:linear-gradient(180deg, var(--paper-grad-from), var(--paper-grad-to));
   border-radius:var(--radius-xl); border:1px solid rgba(0,0,0,.05); padding:12px; overflow:hidden;
 }
 .left-content{ position:relative; height:100%; }
 
-/* 新人／簽名 chip（等大等距；與編輯器邊緣對齊） */
+/* 新人 chip（維持左上） */
 .chip{
   position:absolute; min-width:var(--chip-w); height:var(--chip-h);
   background:#fff; border:1px solid var(--rim); border-radius:10px;
@@ -105,53 +103,63 @@ h2{
   display:flex; align-items:center; justify-content:center; gap:8px; padding:6px 10px; user-select:none;
 }
 #chipBride{ top:var(--chip-gap); left:var(--chip-gap); }
-#chipSign{  right:var(--chip-gap); bottom:calc(var(--chip-gap) + var(--left-actions-h) + 8px); cursor:pointer; }
-#chipSign:not(.has-img){ opacity:.22; }
-#chipSign.locked{ opacity:.9; pointer-events:none; }
-#chipSign.has-img{ padding:3px 6px; }
-#chipSign .hint{ font-weight:900; }
-#signThumb{ display:none; width:100%; height:38px; object-fit:contain; background:linear-gradient(180deg, var(--paper-grad-from), var(--paper-grad-to)); border-radius:6px; }
-#chipSign.has-img #signThumb{ display:block; }  #chipSign.has-img .hint{ display:none; }
 
-/* 編輯器：上下被兩顆 chip 夾住，與兩側留等距；高度略拉長 */
+/* 內文編輯器：往下拉一些；需要時才出捲軸 */
 .editor{
   position:absolute;
-  top:calc(var(--chip-gap) + var(--chip-h) + 14px);
+  top:calc(var(--chip-gap) + var(--chip-h) + 16px);
   right:var(--chip-gap);
-  bottom:calc(var(--chip-gap) + var(--chip-h) + 14px + var(--left-actions-h) + 8px);
+  bottom:calc(var(--chip-gap) + var(--left-actions-h) + 10px);
   left:var(--chip-gap);
-  overflow:auto; line-height:1.8; outline:none; background:transparent; border-radius:12px; padding:14px;
+  overflow:auto; /* 超過才會出現捲軸 */
+  line-height:1.8; outline:none; background:transparent; border-radius:12px; padding:14px;
   font-size:var(--editor-zoom); border:1px dashed rgba(0,0,0,.12);
 }
 .editor[data-empty]{ opacity:.22; }
 .editor.locked{ pointer-events:none; opacity:.85; }
 
-/* 左下：修改／送出（與右下簽名 chip 等距） */
+/* 下方三顆：修改 / 送出 / 簽名  —— 三等分，同寬同高 */
 .left-actions{
   position:absolute; left:var(--chip-gap); right:var(--chip-gap);
   bottom:var(--chip-gap); height:var(--left-actions-h);
   display:flex; gap:10px;
 }
+.left-actions > *{ flex:1 1 0; height:100%; }
+
 .left-actions button{
-  flex:1 1 0; height:100%; background:#fff; border:1px solid var(--rim); border-radius:10px; font-weight:800;
+  background:#fff; border:1px solid var(--rim); border-radius:10px; font-weight:800;
   box-shadow:var(--shadow-2); cursor:pointer;
 }
 .left-actions button:active{ transform:translateY(1px) scale(.99); }
 
-/* 右區：祝福牆容器——粉色底，自己捲動 */
+/* 簽名 chip 改為在按鈕列裡（跟按鈕同寬） */
+#chipSign{
+  position:static; /* 從右下角絕對定位改為進入按鈕列 */
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  background:#fff; border:1px solid var(--rim); border-radius:10px; box-shadow:var(--shadow-2);
+  padding:0 8px;
+}
+#chipSign:not(.has-img){ opacity:.22; }
+#chipSign.locked{ opacity:.9; pointer-events:none; }
+#chipSign.has-img{ padding:0 6px; }
+#chipSign .hint{ font-weight:900; }
+#signThumb{ display:none; width:100%; height:70%; object-fit:contain; }
+#chipSign.has-img #signThumb{ display:block; }  #chipSign.has-img .hint{ display:none; }
+
+/* 右區粉色祝福牆容器：需要時才出捲軸 */
 .wall-wrap{
   background:linear-gradient(180deg,#f9e5ee,#f6dce7);
   border-radius:var(--radius-xl); border:1px solid rgba(0,0,0,.05);
-  padding:12px; overflow:auto;
+  padding:12px; overflow:auto; /* 超過才會出現捲軸 */
 }
 .wall{
   min-height:280px; display:grid;
   grid-template-columns: repeat(auto-fill, minmax(var(--tile-w), 1fr));
   gap:12px; align-content:start; padding:2px;
-  overflow:visible; /* 讓繩結可超出 */
+  overflow:visible; /* 讓繩結能超出 */
 }
 
-/* 木牌（繩結超出 + 木紋 + 三行省略號） */
+/* 木牌樣式（維持你要的繩結外露與三行省略） */
 .tile{
   position:relative; width:100%; height:var(--tile-h);
   background:
@@ -160,15 +168,8 @@ h2{
   border:1px solid #d8c8b6; border-radius:14px; box-shadow:0 6px 14px rgba(0,0,0,.08);
   padding:10px 16px 12px; cursor:pointer; overflow:visible; display:flex; flex-direction:column; gap:6px;
 }
-.tile:before{ /* 吊繩：往外長出卡片 */
-  content:""; position:absolute; top:-18px; left:50%; transform:translateX(-50%);
-  width:12px; height:32px; background:linear-gradient(#b10,#d22); border-radius:6px;
-}
-.tile:after{ /* 繩結圓頭 */
-  content:""; position:absolute; top:0; left:50%; transform:translateX(-50%);
-  width:24px; height:10px; background:linear-gradient(#b10,#d22); border-radius:0 0 12px 12px; box-shadow:0 2px 0 rgba(0,0,0,.08);
-}
-
+.tile:before{ content:""; position:absolute; top:-18px; left:50%; transform:translateX(-50%); width:12px; height:32px; background:linear-gradient(#b10,#d22); border-radius:6px; }
+.tile:after{ content:""; position:absolute; top:0; left:50%; transform:translateX(-50%); width:24px; height:10px; background:linear-gradient(#b10,#d22); border-radius:0 0 12px 12px; box-shadow:0 2px 0 rgba(0,0,0,.08); }
 .tile-name{ font-weight:800; text-align:center; margin-top:8px; }
 .tile-sep{ height:1px; background:rgba(0,0,0,.1); margin:4px 0; }
 .tile-date{ font-size:12px; opacity:.8; text-align:center; }
@@ -177,7 +178,7 @@ h2{
   display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
 }
 
-/* Modal（只留關閉）與底部大按鈕（保留） */
+/* 只留關閉的檢視窗（不動其他） */
 .overlay{ position:fixed; inset:0; z-index:9999; display:none; align-items:center; justify-content:center; background:rgba(17,24,39,.35); backdrop-filter:blur(3px); }
 .overlay.show{ display:flex; }
 .dialog{ width:min(92vw,680px); max-height:82vh; background:var(--soft); border:1px solid var(--rim); border-radius:14px; padding:16px; box-shadow:0 18px 44px rgba(0,0,0,.18); overflow:auto; }
@@ -187,13 +188,14 @@ h2{
 .view-actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
 .view-actions button{ min-width:120px; height:38px; border-radius:10px; border:1px solid var(--rim); background:#fff; cursor:pointer; font-weight:700; }
 
+/* 底部大按鈕（原樣） */
 .footer-actions{ flex:0 0 auto; display:flex; justify-content:center; align-items:center; padding:14px 0 16px; }
 .primary{ min-width:var(--btn-w); height:var(--btn-h); padding:0 20px; background:#fff; border:1px solid var(--rim); border-radius:var(--radius-md); font-weight:700; cursor:pointer; box-shadow:var(--shadow-2); }
 .primary:active{ transform:translateY(1px) scale(.99); }
 
 footer{ position:fixed; left:0; right:0; bottom:var(--footer-gap); text-align:center; color:#6b5e52; font-size:12px; opacity:.9; pointer-events:none; z-index:5; }
 
-/* 簽名對話框 */
+/* 簽名對話框（原樣） */
 #sigOverlay .dialog{ width:min(92vw,520px); }
 #pad{ width:100%; height:260px; background:#fff; border:1px solid #ddd; border-radius:12px; touch-action:none; }
 .dlg-actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
@@ -240,7 +242,7 @@ footer{ position:fixed; left:0; right:0; bottom:var(--footer-gap); text-align:ce
 
     <div class="stage">
       <div class="card" id="card">
-        <!-- 左 1/3：黃底 -->
+        <!-- 左 1/3 -->
         <section class="left-wrap">
           <div class="left-content">
             <div class="chip" id="chipBride" title="新人"><span id="brideLabel">新人：—</span></div>
@@ -252,16 +254,16 @@ footer{ position:fixed; left:0; right:0; bottom:var(--footer-gap); text-align:ce
             <div class="left-actions">
               <button id="btnEdit"  type="button">修改</button>
               <button id="btnSend"  type="button">送出</button>
-            </div>
-
-            <div class="chip" id="chipSign" title="點此簽名">
-              <span class="hint">點我簽名</span>
-              <img id="signThumb" alt="signature preview" />
+              <!-- 簽名 chip 放到按鈕列，與按鈕同寬同高 -->
+              <div class="chip" id="chipSign" title="點此簽名">
+                <span class="hint">點我簽名</span>
+                <img id="signThumb" alt="signature preview" />
+              </div>
             </div>
           </div>
         </section>
 
-        <!-- 右 2/3：粉色祝福牆（可捲動） -->
+        <!-- 右 2/3：粉色祝福牆（超過才出捲軸） -->
         <section class="wall-wrap">
           <div class="wall" id="wall"></div>
         </section>
@@ -275,7 +277,7 @@ footer{ position:fixed; left:0; right:0; bottom:var(--footer-gap); text-align:ce
 
   <footer>© Copyright 2025 MY‘s System</footer>
 
-  <!-- 放大檢視（只留「關閉」） -->
+  <!-- 放大檢視（只留關閉） -->
   <div id="viewOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="viewTitle">
     <div class="dialog">
       <h3 id="viewTitle">祝福內容</h3>
@@ -370,7 +372,7 @@ function showPlaceholder(){ editor.setAttribute('data-empty',''); editor.innerHT
 editor.addEventListener('focus',()=>{ if(editor.hasAttribute('data-empty')){ editor.innerHTML=''; editor.removeAttribute('data-empty'); }});
 editor.addEventListener('blur',()=>{ if(!editor.textContent.trim()) showPlaceholder(); });
 
-/* 簽名 chip */
+/* 簽名 chip（在按鈕列中） */
 const sigOverlay=document.getElementById('sigOverlay');
 const pad=document.getElementById('pad'); const ctx=pad.getContext('2d');
 let drawing=false,lastX=0,lastY=0,signatureDataURL='';
@@ -393,7 +395,7 @@ document.getElementById('sigOK').addEventListener('click',()=>{
   closeSign();
 });
 
-/* 牆 */
+/* 祝福牆 */
 const wallEl=document.getElementById('wall');
 let currentRole='all';
 let myLastRow=null;
@@ -433,7 +435,7 @@ async function refreshWall(){
 }
 function bindTileClicks(){ wallEl.querySelectorAll('.tile').forEach(tile=>{ tile.addEventListener('click', ()=>openView(tile)); }); }
 
-/* 詳細視窗（只關閉） */
+/* 檢視窗（只關閉） */
 const viewOverlay=document.getElementById('viewOverlay');
 const viewMeta=document.getElementById('viewMeta');
 const viewContent=document.getElementById('viewContent');
@@ -465,7 +467,7 @@ document.getElementById('roleAll').addEventListener('click',()=>setRole('all'));
 document.getElementById('roleMale').addEventListener('click',()=>setRole('male'));
 document.getElementById('roleFemale').addEventListener('click',()=>setRole('female'));
 
-/* 編輯鎖定控制（送出後鎖內文＋簽名；按「修改」只解鎖內文） */
+/* 編輯鎖定控制 */
 function lockEditor(){ editor.classList.add('locked'); editor.setAttribute('contenteditable','false'); }
 function unlockEditor(){ editor.classList.remove('locked'); editor.setAttribute('contenteditable','true'); editor.focus(); }
 function lockSignature(){ document.getElementById('chipSign').classList.add('locked'); }
