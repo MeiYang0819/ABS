@@ -11,18 +11,20 @@
 
 <style>
 :root{
-  /* 主題與尺寸（★1：藍色區塊加寬） */
+  /* 主題與尺寸（保持原色系；僅調寬度） */
   --brand-bg:#c9daf8;
   --title:#A68A7C;  --ink:#0f172a; --accent:#A68A7C; --rim:#E4E4E4; --soft:#F5F1EC;
 
+  /* 面板漸層與（可選）背景圖 */
   --panel-grad-from:#b7d2f6;
   --panel-grad-to:#cfe1fb;
   --panel-bg-image:none;
 
+  /* 內頁卡片漸層 */
   --paper-grad-from:rgba(255,242,204,.98);
   --paper-grad-to:rgba(255,242,204,.92);
 
-  /* ★1：面板整體加寬；卡片同步放大一點 */
+  /* ★ 加寬 */
   --panel-maxw:1320px;   /* 原 1180 → 1320 */
   --card-maxw:1200px;    /* 原 1060 → 1200 */
 
@@ -40,7 +42,7 @@
 
   --tile-w:220px; --tile-h:150px;
 
-  /* ★3：固定角落 chip 尺寸（新人/簽名等大） */
+  /* 固定角落 chip 尺寸（新人/簽名 等大） */
   --chip-w:140px; --chip-h:44px;
   --chip-gap:10px;
 }
@@ -77,10 +79,11 @@ html,body{
   display:flex; flex-direction:column; overflow:hidden;
 }
 
-/* 標題列 */
-.titlebar{ background:transparent; padding:10px 16px 6px; flex:0 0 auto; }
+/* 標題列（下移一點，與狀態列等距更舒適） */
+.titlebar{ background:transparent; padding:16px 16px 6px; } /* 原 10 → 16 */
 h2{
-  margin:0 0 6px; text-align:center; font-family:"Sacramento",cursive;
+  margin:0 0 10px; /* 原 6 → 10 */
+  text-align:center; font-family:"Sacramento",cursive;
   font-weight:700; font-size:var(--h2-size); letter-spacing:1px; color:var(--title);
   -webkit-text-stroke:.6px rgba(0,0,0,.12); text-shadow:0 3px 4px rgba(255,255,255,.75);
 }
@@ -92,6 +95,7 @@ h2{
   margin:0 auto;
   display:flex; align-items:center; gap:12px;
 }
+
 /* 工具鍵樣式（沿用） */
 .toolbar{ display:flex; gap:var(--toolbar-gap); filter:drop-shadow(0 2px 0 rgba(0,0,0,.08)); }
 .tool-btn,.tool-select{
@@ -101,13 +105,12 @@ h2{
 .tool-select{ min-width:auto; padding:0 10px; }
 .tool-btn:active{ transform:translateY(1px) scale(.99); }
 
-/* ★2：把狀態列與工具列交換位置，並新增「全部/男方/女方」三鍵在最左側 */
+/* 角色三鍵（取代舊的側邊篩選） */
 .rolebar{ display:flex; gap:var(--toolbar-gap); }
-.role-btn{ composes: tool-btn; } /* 僅語意標註 */
 .role-btn{ min-width:64px; height:36px; padding:0 12px; background:#fff; border:1px solid var(--rim); border-radius:var(--radius-md); font-weight:700; display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-2); }
 .role-btn.active{ outline:2px solid rgba(0,0,0,.15); }
 
-/* 狀態列 */
+/* 狀態列（置中拉寬） */
 #status{
   flex:1 1 auto; min-width:240px;
   background:var(--soft); border:1px solid #E4E4E4; border-radius:12px; padding:10px;
@@ -126,17 +129,17 @@ h2{
   border-radius:var(--radius-xl); box-shadow:0 10px 26px rgba(0,0,0,.08);
   padding:var(--content-pad);
   height:100%; overflow:auto;
-  /* ★6：兩大區塊：左 1/3 內文；右 2/3 許願牆 */
+  /* 兩大區塊：左 1/3 內文；右 2/3 許願牆 */
   display:grid; grid-template-columns: 1fr 2fr; gap:14px;
 }
 
-/* ★3：左側內容容器（用絕對定位的 chip 固定角落） */
+/* 左側內容容器（用絕對定位的 chip 固定角落） */
 .left-content{
   position:relative; background:transparent; border-radius:12px;
   min-height:280px;
 }
 
-/* 固定角落 chip（新人 / 簽名） */
+/* 固定角落 chip（新人 / 簽名：完全一致的顏色與樣式） */
 .chip{
   position:absolute; width:var(--chip-w); height:var(--chip-h);
   background:#fff; border:1px solid var(--rim); border-radius:10px;
@@ -144,21 +147,20 @@ h2{
   display:flex; align-items:center; justify-content:center; gap:8px;
   padding:6px 10px; user-select:none;
 }
-/* ★3：新人在左上角；簽名在右下角；兩者等大 */
+/* 位置固定：新人左上；簽名右下 */
 #chipBride{ top:var(--chip-gap); left:var(--chip-gap); }
-#chipSign{ right:var(--chip-gap); bottom:var(--chip-gap); cursor:pointer; }
+#chipSign{  right:var(--chip-gap); bottom:var(--chip-gap); cursor:pointer; }
 
-/* ★3：移除「右側內文 / 簽名」兩個字，改成無文字 chip；簽名預設與 placeholder 同等淡化 */
-#chipSign:not(.has-img){ opacity:.22; }  /* 與 editor placeholder 一致 */
+/* 簽名 chip：未簽時與 placeholder 同等淡化 */
+#chipSign:not(.has-img){ opacity:.22; }
 #chipSign .hint{ font-weight:900; }
 #signThumb{ display:none; width:120px; height:50px; object-fit:contain; background:linear-gradient(180deg, var(--paper-grad-from), var(--paper-grad-to)); border:1px solid var(--rim); border-radius:8px; }
 #chipSign.has-img #signThumb{ display:block; }
 #chipSign.has-img .hint{ display:none; }
 
-/* 編輯器：在兩個 chip 之間「撐滿」——上下間距等高（★3） */
+/* 內文編輯器：在兩個 chip 之間撐滿；邊框稍加明顯（僅一點點） */
 .editor{
   position:absolute;
-  /* 讓上緣避開新人 chip，下緣避開簽名 chip */
   top:calc(var(--chip-gap) + var(--chip-h) + 10px);
   right:var(--chip-gap);
   bottom:calc(var(--chip-gap) + var(--chip-h) + 10px);
@@ -167,7 +169,7 @@ h2{
   overflow:auto; line-height:1.8; outline:none; background:transparent; border-radius:12px; padding:12px;
   font-size:var(--editor-zoom);
   background-image:none;
-  border:1px dashed rgba(0,0,0,.06);
+  border:1px dashed rgba(0,0,0,.12);  /* 原 .06 → .12 */
 }
 /* placeholder 淡化 */
 .editor[data-empty]{ opacity:.22; }
@@ -176,7 +178,7 @@ h2{
 .fs-up-1{font-size:1.15em;} .fs-up-2{font-size:1.30em;} .fs-up-3{font-size:1.50em;}
 .fs-down-1{font-size:.92em;} .fs-down-2{font-size:.84em;} .fs-down-3{font-size:.76em;}
 
-/* 右側：許願牆（維持你原卡片樣式） */
+/* 右側：許願牆（維持原卡片樣式） */
 .wall{
   min-height:280px;
   display:grid;
@@ -240,7 +242,7 @@ footer{
     <div class="titlebar">
       <h2>送上祝福</h2>
 
-      <!-- ★2：角色三鍵 → 狀態列 → WORD 六鍵（位置已交換） -->
+      <!-- 頂部：角色三鍵 → 狀態列 → WORD 六鍵（交換後的位置） -->
       <div class="bar">
         <div class="bar-inner" id="barInner">
           <div class="rolebar">
@@ -270,12 +272,11 @@ footer{
           </div>
         </div>
       </div>
-      <!-- /bar -->
     </div>
 
     <div class="stage">
       <div class="card" id="card">
-        <!-- ★6：左 1/3 內文區（無「右側內文/簽名」字樣） -->
+        <!-- 左 1/3：內文（新人左上、簽名右下，固定位置；中間為編輯器） -->
         <section class="left-content">
           <div class="chip" id="chipBride" title="新人">
             <span id="brideLabel">新人：—</span>
@@ -285,13 +286,12 @@ footer{
             <img id="signThumb" alt="signature preview" />
           </div>
 
-          <!-- ★3：編輯器固定在兩個 chip 之間，能拉高填滿 -->
           <div class="editor" id="editor" contenteditable="true" aria-label="祝福內容">
             在此寫下你對新人的祝福…（可選字後按上方的粗體／斜體／底線／顏色／放大／縮小）💝
           </div>
         </section>
 
-        <!-- ★6：右 2/3 許願牆 -->
+        <!-- 右 2/3：許願牆 -->
         <section>
           <div class="wall" id="wall"><!-- JS 動態注入 --></div>
         </section>
@@ -305,7 +305,7 @@ footer{
 
   <footer>© Copyright 2025 MY‘s System</footer>
 
-  <!-- 放大檢視 Modal（沿用） -->
+  <!-- 放大檢視 Modal -->
   <div id="viewOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="viewTitle">
     <div class="dialog">
       <h3 id="viewTitle">祝福內容</h3>
@@ -319,7 +319,7 @@ footer{
     </div>
   </div>
 
-  <!-- 簽名 Modal（沿用） -->
+  <!-- 簽名 Modal -->
   <div id="sigOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="sigTitle">
     <div class="dialog">
       <h3 id="sigTitle">請於下方簽名</h3>
@@ -388,7 +388,7 @@ document.getElementById('colorPick').addEventListener('change',e=>{
   e.target.blur();
 });
 
-/* 放大/縮小（沿用） */
+/* 放大/縮小（保留） */
 function wrapSelectionWithClass(cls){
   if(editor.hasAttribute('data-empty')) return false;
   const sel=window.getSelection(); if(!sel.rangeCount) return false;
@@ -411,7 +411,7 @@ function showPlaceholder(){ editor.setAttribute('data-empty',''); editor.innerHT
 editor.addEventListener('focus',()=>{ if(editor.hasAttribute('data-empty')){ editor.innerHTML=''; editor.removeAttribute('data-empty'); }});
 editor.addEventListener('blur',()=>{ if(!editor.textContent.trim()) showPlaceholder(); });
 
-/* ====== 簽名（沿用；但 chip 固定在右下角） ====== */
+/* ====== 簽名（沿用；chip 固定在右下角） ====== */
 const sigOverlay=document.getElementById('sigOverlay');
 const pad=document.getElementById('pad'); const ctx=pad.getContext('2d');
 let drawing=false,lastX=0,lastY=0,signatureDataURL='';
@@ -435,7 +435,7 @@ document.getElementById('sigOK').addEventListener('click',()=>{
   closeSign();
 });
 
-/* ====== 祝福牆（保留），但移除舊的側邊篩選 ====== */
+/* ====== 許願牆（沿用） ====== */
 const wallEl=document.getElementById('wall');
 let currentRole='all';
 
@@ -531,7 +531,7 @@ document.getElementById('roleAll').addEventListener('click',()=>setRole('all'));
 document.getElementById('roleMale').addEventListener('click',()=>setRole('male'));
 document.getElementById('roleFemale').addEventListener('click',()=>setRole('female'));
 
-/* ====== 送出（沿用） ====== */
+/* ====== 送出 ====== */
 document.getElementById('btnSubmit').addEventListener('click', async ()=>{
   if(editor.hasAttribute('data-empty') || !editor.textContent.trim()){ alert('請寫下祝福內容唷～'); return; }
   const text=editor.innerHTML.trim();
@@ -552,9 +552,19 @@ document.getElementById('btnSubmit').addEventListener('click', async ()=>{
     if(!j && r.ok) j={ok:true};
     if(j&&j.ok){
       setStatus('✅ 祝福已送出成功！');
-      showPlaceholder(); signatureDataURL=''; document.getElementById('chipSign').classList.remove('has-img'); document.getElementById('signThumb').src='';
-      await refreshWall();               /* ★5：送出後立即更新牆，確保「紙張」出現 */
-    } else { setStatus('❌ 送出失敗，請稍後再試'); }
+
+      // 清空編輯器 & 簽名 chip
+      showPlaceholder();
+      signatureDataURL='';
+      document.getElementById('chipSign').classList.remove('has-img');
+      document.getElementById('signThumb').src='';
+
+      // 立刻刷新牆一次，並在 600ms 後再保險刷新一次，避免雲端寫入延遲
+      await refreshWall();
+      setTimeout(()=>{ refreshWall().catch(()=>{}); }, 600);
+    } else {
+      setStatus('❌ 送出失敗，請稍後再試');
+    }
   }catch(e){ setStatus('❌ 送出逾時或失敗：'+(e?.message||'')); }
 });
 
