@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>送上祝福</title>
+<title>❤️同心祈願❤️</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,6 +10,11 @@
 
 <style>
 :root{
+  /* ====== 可自行調整（數字越大效果越強） ======
+     --editor-zoom：編輯器整體字級（例 1.2rem → 變大）
+     --wood-grain-contrast：木紋對比（0.0~1.0；建議 0.25~0.6）
+     --rope-width / --rope-height / --knot-size：繩條與結點尺寸
+  =========================================== */
   --brand-bg:#c9daf8;
   --title:#A68A7C;  --ink:#0f172a; --accent:#A68A7C; --rim:#E4E4E4; --soft:#F5F1EC;
   --panel-grad-from:#b7d2f6; --panel-grad-to:#cfe1fb; --panel-bg-image:none;
@@ -21,7 +26,7 @@
   --shadow-1:0 10px 26px rgba(0,0,0,.10);
   --shadow-2:0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06);
 
-  --content-pad:22px; --editor-zoom:1rem;
+  --content-pad:22px; --editor-zoom:1rem; /* ← 例：調成 1.2rem 字會變大 */
   --toolbar-gap:8px; --status-fz:14px; --h2-size:2.8rem;
   --stroke:rgba(0,0,0,.18); --glow:rgba(255,255,255,.65);
 
@@ -33,6 +38,13 @@
 
   --chip-w:140px; --chip-h:44px; --chip-gap:10px;
   --left-actions-h:36px;             /* ▶ 三顆按鈕同高 */
+
+  /* 木牌＋繩結（可調） */
+  --wood-grain-contrast:.35; /* 木紋強度：0.0~1.0（越大越明顯） */
+  --rope-shadow:6px;         /* 陰影強度(px) */
+  --rope-width:14px;         /* 繩條寬(px) */
+  --rope-height:36px;        /* 繩條高(px) */
+  --knot-size:26px;          /* 結點大小(px) */
 }
 
 /* === 骨架（不動其它） === */
@@ -159,18 +171,71 @@ h2{
   overflow:visible;
 }
 
-/* 木牌：左右內距略縮小；繩結外露；三行省略 */
+/* === 木牌（強化木質紋路） & 繩結（更精緻） ===========================
+   可調參數（越大越明顯）：
+   --wood-grain-contrast: 木紋對比（0.0~1.0），數字越大木紋越明顯
+   --rope-shadow:        繩結陰影強度（px）
+   --rope-width:         繩帶寬度（px）
+   --rope-height:        繩帶高度（px）
+   --knot-size:          結點圓角方塊尺寸（px）
+===================================================================== */
 .tile{
   position:relative; width:100%; height:var(--tile-h);
   background:
-    linear-gradient(180deg,#f2e4d5,#e9d7c5),
-    repeating-linear-gradient(12deg, rgba(0,0,0,.035) 0, rgba(0,0,0,.035) 6px, rgba(255,255,255,.04) 6px, rgba(255,255,255,.04) 12px );
+    /* 柔和底色 */
+    linear-gradient(180deg,#f3e6d6,#ead9c6),
+    /* 主木紋（斜向細紋） */
+    repeating-linear-gradient(12deg,
+      rgba(0,0,0, calc(.02 + var(--wood-grain-contrast)*.06)) 0,
+      rgba(0,0,0, calc(.02 + var(--wood-grain-contrast)*.06)) 6px,
+      rgba(255,255,255, calc(.02 + var(--wood-grain-contrast)*.04)) 6px,
+      rgba(255,255,255, calc(.02 + var(--wood-grain-contrast)*.04)) 12px
+    ),
+    /* 深淺波紋（年輪感） */
+    repeating-linear-gradient(0deg,
+      rgba(0,0,0, calc(.008 + var(--wood-grain-contrast)*.02)) 0,
+      rgba(0,0,0, calc(.008 + var(--wood-grain-contrast)*.02)) 2px,
+      rgba(255,255,255, calc(.008 + var(--wood-grain-contrast)*.02)) 2px,
+      rgba(255,255,255, calc(.008 + var(--wood-grain-contrast)*.02)) 4px
+    ),
+    /* 節理點（零星結疤） */
+    radial-gradient(18px 12px at 28% 32%, rgba(0,0,0,.05), transparent 60%),
+    radial-gradient(14px 10px at 72% 64%, rgba(0,0,0,.05), transparent 60%);
+
   border:1px solid #d8c8b6; border-radius:14px; box-shadow:0 6px 14px rgba(0,0,0,.08);
-  padding:10px 12px 12px;           /* ▶ 左右由 16px → 12px */
+  padding:10px 12px 12px; /* ▶ 左右12px（原樣） */
   cursor:pointer; overflow:visible; display:flex; flex-direction:column; gap:6px;
 }
-.tile:before{ content:""; position:absolute; top:-18px; left:50%; transform:translateX(-50%); width:12px; height:32px; background:linear-gradient(#b10,#d22); border-radius:6px; }
-.tile:after{ content:""; position:absolute; top:0; left:50%; transform:translateX(-50%); width:24px; height:10px; background:linear-gradient(#b10,#d22); border-radius:0 0 12px 12px; box-shadow:0 2px 0 rgba(0,0,0,.08); }
+
+/* 繩條（使用 conic-gradient 做纏繞質感） */
+.tile:before{
+  content:"";
+  position:absolute; top:calc(var(--rope-height)*-0.55); left:50%; transform:translateX(-50%);
+  width:var(--rope-width); height:var(--rope-height);
+  background:
+    conic-gradient(from 0deg at 50% 50%,
+      #b87333 0 25%, #c88237 0 50%, #b87333 0 75%, #c88237 0 100%);
+  border-radius:999px;
+  box-shadow:0 2px var(--rope-shadow) rgba(0,0,0,.12);
+  filter:brightness(.95) saturate(.9);
+}
+
+/* 結點（立體感） */
+.tile:after{
+  content:"";
+  position:absolute; top:-6px; left:50%; transform:translateX(-50%);
+  width:calc(var(--knot-size) * 1.2); height:var(--knot-size);
+  background:
+    radial-gradient(60% 80% at 35% 40%, rgba(255,255,255,.55), transparent 60%),
+    linear-gradient(180deg,#c88237,#a9652b);
+  border-radius:12px;
+  box-shadow:
+    0 2px 0 rgba(0,0,0,.08),
+    0 8px 14px rgba(0,0,0,.10);
+  border:1px solid rgba(0,0,0,.12);
+}
+
+/* 牌面內容（原樣） */
 .tile-name{ font-weight:800; text-align:center; margin-top:8px; }
 .tile-sep{ height:1px; background:rgba(0,0,0,.1); margin:4px 0; }
 .tile-date{ font-size:12px; opacity:.8; text-align:center; }
@@ -206,7 +271,7 @@ footer{ position:fixed; left:0; right:0; bottom:var(--footer-gap); text-align:ce
 
   <div class="panel">
     <div class="titlebar">
-      <h2>送上祝福</h2>
+      <h2>❤️同心祈願❤️</h2>
 
       <div class="bar">
         <div class="bar-inner" id="barInner">
@@ -216,7 +281,7 @@ footer{ position:fixed; left:0; right:0; bottom:var(--footer-gap); text-align:ce
             <button type="button" class="role-btn" id="roleFemale">女方</button>
           </div>
 
-          <p id="status">已就緒</p>
+          <p id="status">📥 還在等待，待送出資料</p>
 
           <div class="toolbar" role="toolbar" aria-label="文字工具">
             <button class="tool-btn" id="btnBold"      type="button" title="粗體">粗體</button>
@@ -224,13 +289,13 @@ footer{ position:fixed; left:0; right:0; bottom:var(--footer-gap); text-align:ce
             <button class="tool-btn" id="btnUnderline" type="button" title="底線">底線</button>
             <select id="colorPick" class="tool-select" title="字體顏色">
               <option value="" selected>顏色</option>
-              <option value="#0f172a">墨色</option>
-              <option value="#a21caf">紫</option>
-              <option value="#dc2626">紅</option>
-              <option value="#2563eb">藍</option>
-              <option value="#059669">綠</option>
-              <option value="#d97706">橘</option>
-              <option value="#6b7280">灰</option>
+              <option value="#0f172a">墨</option>
+              <option value="#a21caf">小紫紫</option>
+              <option value="#dc2626">小紅紅</option>
+              <option value="#2563eb">小藍藍</option>
+              <option value="#059669">小綠綠</option>
+              <option value="#d97706">小橘橘</option>
+              <option value="#6b7280">小灰灰</option>
             </select>
             <button class="tool-btn" id="btnBigger"    type="button" title="放大">放大</button>
             <button class="tool-btn" id="btnSmaller"   type="button" title="縮小">縮小</button>
@@ -244,17 +309,17 @@ footer{ position:fixed; left:0; right:0; bottom:var(--footer-gap); text-align:ce
         <!-- 左 1/3 -->
         <section class="left-wrap">
           <div class="left-content">
-            <div class="chip" id="chipBride" title="新人"><span id="brideLabel">新人：—</span></div>
+            <div class="chip" id="chipBride" title="新人"><span id="brideLabel">Dear —</span></div>
 
-            <div class="editor" id="editor" contenteditable="true" aria-label="祝福內容">
-              在此寫下你對新人的祝福…（可選字後按上方的粗體／斜體／底線／顏色／放大／縮小）💝
+            <div class="editor" id="editor" contenteditable="true" aria-label="祈願內容">
+              寫下並獻上最誠摯的祝福…💝
             </div>
 
             <div class="left-actions">
               <button id="btnEdit"  type="button">修改</button>
               <button id="btnSend"  type="button">送出</button>
               <div class="chip" id="chipSign" title="點此簽名">
-                <span class="hint">點我簽名</span>
+                <span class="hint">簽名畫押</span>
                 <img id="signThumb" alt="signature preview" />
               </div>
             </div>
@@ -290,7 +355,7 @@ footer{ position:fixed; left:0; right:0; bottom:var(--footer-gap); text-align:ce
   <!-- 簽名 Modal -->
   <div id="sigOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="sigTitle">
     <div class="dialog">
-      <h3 id="sigTitle">請於下方簽名</h3>
+      <h3 id="sigTitle">請於下方畫押唷😈</h3>
       <canvas id="pad"></canvas>
       <div class="dlg-actions">
         <button id="sigClear"  type="button">清除</button>
@@ -303,7 +368,7 @@ footer{ position:fixed; left:0; right:0; bottom:var(--footer-gap); text-align:ce
 <script>
 /* ====== 基本設定（沿用） ====== */
 const LIFF_ID='2008149060-m5pDXW6a';
-const WEBHOOK='https://script.google.com/macros/s/AKfycbx4wqm5tIWGvXRqIrjKPEFTYkaDf7cHLrYQTrJZ9ETQ8Fgikkv5QMny0TG8xW6aW_l0/exec';
+const WEBHOOK='https://script.google.com/macros/s/AKfycbzPFzzHiniv29CLrMxqVaCoWw1M7jXZwX98VXmFpgMe67v7gufw4HEGNAG31ouZLtKy/exec';
 const TIMEOUT_MS=20000;
 
 /* 狀態列 */
@@ -318,9 +383,9 @@ function setStatus(m){
 /* LIFF */
 let lineId='',displayName='',pictureUrl='';
 async function initLIFF(){
-  if(typeof liff==='undefined'){ setStatus('（未載入 LIFF SDK，可先測樣式）'); return; }
+  if(typeof liff==='undefined'){ setStatus('未載入LIFF SDK，可先測樣式'); return; }
   try{
-    setStatus('初始化 LIFF…');
+    setStatus('⏳ 正在初始化，請稍後...');
     await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser:true });
     if(!liff.isLoggedIn()){ liff.login({ scope:['openid','profile'] }); return; }
     if(liff.ready) await liff.ready;
@@ -332,10 +397,13 @@ async function initLIFF(){
     pictureUrl=(prof&&prof.pictureUrl)||'';
     try{
       const r=await fetch(WEBHOOK+'?action=couple',{method:'GET',cache:'no-store'});
-      if(r.ok){ const j=await r.json().catch(()=>null); if(j&&j.ok&&j.name){ document.getElementById('brideLabel').textContent='新人：'+String(j.name||'—'); } }
+      if(r.ok){ const j=await r.json().catch(()=>null); if(j&&j.ok&&j.name){ document.getElementById('brideLabel').textContent=''+String(j.name||'—'); } }
     }catch(_){}
-    await refreshWall(); setStatus('已就緒');
-  }catch(e){ setStatus('LIFF 初始化失敗：'+e.message); }
+    await refreshWall(); setStatus('📥 還在等待，待送出資料');
+  }catch(e){
+    // 修正原碼中的標點錯誤，避免 JS 中斷
+    setStatus('❌ 初始化失敗：' + (e && e.message ? e.message : '未知錯誤') + '，嘗試無效請回到官方LINE呼叫管理員');
+  }
 }
 
 /* 工具列（原本功能） */
@@ -365,7 +433,7 @@ document.getElementById('btnBigger').addEventListener('click',stepBigger);
 document.getElementById('btnSmaller').addEventListener('click',stepSmaller);
 
 /* placeholder */
-const PLACEHOLDER='在此寫下你對新人的祝福…（可選字後按上方的粗體／斜體／底線／顏色／放大／縮小）💝';
+const PLACEHOLDER='寫下並獻上最誠摯的祝福…💝';
 function showPlaceholder(){ editor.setAttribute('data-empty',''); editor.innerHTML=PLACEHOLDER; }
 editor.addEventListener('focus',()=>{ if(editor.hasAttribute('data-empty')){ editor.innerHTML=''; editor.removeAttribute('data-empty'); }});
 editor.addEventListener('blur',()=>{ if(!editor.textContent.trim()) showPlaceholder(); });
@@ -483,18 +551,18 @@ function hasSignature(){
 }
 async function sendOrUpdate(){
   if(editor.hasAttribute('data-empty') || !editor.textContent.trim()){
-    alert('請寫下祝福內容唷～'); return;
+    alert('欸，不可能不祝福我們吧🖕️'); return;
   }
   if(!hasSignature()){
-    alert('請先完成簽名再送出！'); return;
+    alert('欸，沒有畫押不准離開✍️'); return;
   }
 
   const text=editor.innerHTML.trim();
 
   try{
     const ping=await fetch(WEBHOOK+'?action=ping',{method:'GET',cache:'no-store'});
-    const t=await ping.text().catch(()=> ''); if(String(t).trim().toLowerCase()!=='ok'){ setStatus('⚠️ 後端未回應正常'); return; }
-  }catch(_){ setStatus('⚠️ 無法連到後端'); return; }
+    const t=await ping.text().catch(()=> ''); if(String(t).trim().toLowerCase()!=='ok'){ setStatus('⚠️ 後端未回應正常，嘗試無效請回到官方LINE呼叫管理員'); return; }
+  }catch(_){ setStatus('⚠️ 無法連線到後端，嘗試無效請回到官方LINE呼叫管理員'); return; }
 
   setStatus('⏳ 送出中…');
 
@@ -511,18 +579,21 @@ async function sendOrUpdate(){
       lockEditor(); lockSignature();
       await refreshWall();
     }else if(j && j.error==='deadline_passed'){
-      setStatus('⛔ 已到截止日，無法送出/編輯'); lockEditor(); lockSignature();
+      setStatus('⛔ 已到截止日，無法送出及編輯'); lockEditor(); lockSignature();
     }else{
-      setStatus('❌ 送出失敗，請稍後再試');
+      setStatus('❌ 送出失敗，請稍後再試，嘗試無效請回到官方LINE呼叫管理員');
     }
-  }catch(e){ setStatus('❌ 送出失敗：'+(e?.message||'')); }
+  }catch(e){
+    // 修正原碼中的標點錯誤，避免 JS 中斷
+    setStatus('❌ 送出失敗' + (e && e.message ? e.message : '未知錯誤') + '，嘗試無效請回到官方LINE呼叫管理員');
+  }
 }
 document.getElementById('btnSend').addEventListener('click',sendOrUpdate);
 document.getElementById('btnSubmit').addEventListener('click',sendOrUpdate);
 
 /* 啟動 */
 window.addEventListener('DOMContentLoaded', ()=>{
-  setStatus('已就緒'); showPlaceholder();
+  setStatus('📥 還在等待，待送出資料...'); showPlaceholder();
   if(window.liff) initLIFF(); else refreshWall();
 });
 </script>
