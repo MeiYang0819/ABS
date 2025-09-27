@@ -11,135 +11,110 @@
 
 <style>
 :root{
-  /* 主題與尺寸（保持原色系；僅調寬度） */
-  --brand-bg:#c9daf8;
-  --title:#A68A7C;  --ink:#0f172a; --accent:#A68A7C; --rim:#E4E4E4; --soft:#F5F1EC;
+  /* 主題配色（不更動） */
+  --brand-bg:#c9daf8; --title:#A68A7C; --ink:#0f172a; --accent:#A68A7C; --rim:#E4E4E4; --soft:#F5F1EC;
 
-  /* 面板漸層與（可選）背景圖 */
-  --panel-grad-from:#b7d2f6;
-  --panel-grad-to:#cfe1fb;
-  --panel-bg-image:none;
+  /* 面板漸層 */
+  --panel-grad-from:#b7d2f6; --panel-grad-to:#cfe1fb; --panel-bg-image:none;
 
   /* 內頁卡片漸層 */
-  --paper-grad-from:rgba(255,242,204,.98);
-  --paper-grad-to:rgba(255,242,204,.92);
+  --paper-grad-from:rgba(255,242,204,.98); --paper-grad-to:rgba(255,242,204,.92);
 
-  /* ★ 加寬 */
-  --panel-maxw:1320px;   /* 原 1180 → 1320 */
-  --card-maxw:1200px;    /* 原 1060 → 1200 */
+  /* 寬度（比原本再寬） */
+  --panel-maxw:1320px; --card-maxw:1200px;
 
   --radius-xl:16px; --radius-md:12px;
   --shadow-1:0 10px 26px rgba(0,0,0,.10);
   --shadow-2:0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06);
 
   --content-pad:22px; --editor-zoom:1rem;
-  --toolbar-gap:8px; --status-fz:14px; --h2-size:2.8rem;
+  --toolbar-gap:8px; --status-fz:14px;
+
+  /* ★ 標題：字級、行高、上下距（要與互動音符一致，必要時把 56px 換成你那頁的 px 值） */
+  --h2-size:56px;           /* 若互動音符是別的值，改成相同 px 值即可一樣大 */
+  --h2-line:1;              /* 固定行高讓高度視覺一致 */
+  --h2-gap:12px;            /* 標題與工具列距離（上下等距感） */
+
   --stroke:rgba(0,0,0,.18); --glow:rgba(255,255,255,.65);
 
   --footer-gap:48px;
-
   --btn-w:220px; --btn-h:50px;
 
+  /* 許願牌尺寸 */
   --tile-w:220px; --tile-h:150px;
 
-  /* 固定角落 chip 尺寸（新人/簽名 等大） */
-  --chip-w:140px; --chip-h:44px;
-  --chip-gap:10px;
+  /* 左區固定角落與底部控制 */
+  --chip-w:140px; --chip-h:44px; --chip-gap:10px;
+  --left-footer-h:44px;     /* 左區底部三鍵高度 */
 }
 
-/* 固定版面 */
+/* 基礎 */
 *{ box-sizing:border-box; }
-html,body{
-  height:100%; margin:0; overflow:hidden;
-  color:var(--ink); background:var(--brand-bg);
+html,body{ height:100%; margin:0; overflow:hidden; color:var(--ink); background:var(--brand-bg);
   font-family:"Patrick Hand","Noto Sans TC",system-ui,-apple-system,sans-serif;
   -webkit-text-stroke:.35px var(--stroke); text-shadow:0 1px 0 var(--glow);
 }
 
-/* 背景圖 */
-.bg-photo{
-  position:fixed; inset:0; z-index:0; width:100%; height:100%;
-  object-fit:cover; opacity:.35; pointer-events:none;
-  filter: brightness(.6) saturate(.9);
-}
+/* 背景 */
+.bg-photo{ position:fixed; inset:0; z-index:0; width:100%; height:100%; object-fit:cover; opacity:.35; pointer-events:none; filter:brightness(.6) saturate(.9); }
 
 /* 面板 */
 .panel{
-  position:relative; z-index:1;
-  max-width:var(--panel-maxw);
-  height:calc(100vh - (70px + var(--footer-gap)));
-  margin:26px auto;
-  background:
-    linear-gradient(135deg, var(--panel-grad-from), var(--panel-grad-to)),
-    var(--panel-bg-image);
-  background-size:auto, cover;
-  background-position:left top, center;
-  border:1px solid var(--rim); border-radius:var(--radius-xl);
-  box-shadow:var(--shadow-1);
+  position:relative; z-index:1; max-width:var(--panel-maxw);
+  height:calc(100vh - (70px + var(--footer-gap))); margin:26px auto;
+  background: linear-gradient(135deg, var(--panel-grad-from), var(--panel-grad-to)), var(--panel-bg-image);
+  background-size:auto, cover; background-position:left top, center;
+  border:1px solid var(--rim); border-radius:var(--radius-xl); box-shadow:var(--shadow-1);
   display:flex; flex-direction:column; overflow:hidden;
 }
 
-/* 標題列（下移一點，與狀態列等距更舒適） */
-.titlebar{ background:transparent; padding:16px 16px 6px; } /* 原 10 → 16 */
+/* 標題（與互動音符同高度觀感） */
+.titlebar{ background:transparent; padding:16px 16px 6px; } /* 頂端留白 */
 h2{
-  margin:0 0 10px; /* 原 6 → 10 */
-  text-align:center; font-family:"Sacramento",cursive;
-  font-weight:700; font-size:var(--h2-size); letter-spacing:1px; color:var(--title);
+  margin:0 0 var(--h2-gap);
+  text-align:center; font-family:"Sacramento",cursive; font-weight:700;
+  font-size:var(--h2-size); line-height:var(--h2-line);
+  letter-spacing:1px; color:var(--title);
   -webkit-text-stroke:.6px rgba(0,0,0,.12); text-shadow:0 3px 4px rgba(255,255,255,.75);
 }
 
-/* 導覽列容器 */
+/* 上方 bar */
 .bar{ padding:6px 22px 8px; }
-.bar-inner{
-  max-width:var(--card-maxw);
-  margin:0 auto;
-  display:flex; align-items:center; gap:12px;
-}
+.bar-inner{ max-width:var(--card-maxw); margin:0 auto; display:flex; align-items:center; gap:12px; }
 
-/* 工具鍵樣式（沿用） */
-.toolbar{ display:flex; gap:var(--toolbar-gap); filter:drop-shadow(0 2px 0 rgba(0,0,0,.08)); }
-.tool-btn,.tool-select{
+/* 角色三鍵（取代舊側邊） */
+.rolebar{ display:flex; gap:var(--toolbar-gap); }
+.role-btn,.tool-btn,.tool-select{
   min-width:64px; height:36px; padding:0 12px; background:#fff; border:1px solid var(--rim); border-radius:var(--radius-md);
   font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:var(--shadow-2);
 }
+.role-btn.active{ outline:2px solid rgba(0,0,0,.15); }
 .tool-select{ min-width:auto; padding:0 10px; }
 .tool-btn:active{ transform:translateY(1px) scale(.99); }
 
-/* 角色三鍵（取代舊的側邊篩選） */
-.rolebar{ display:flex; gap:var(--toolbar-gap); }
-.role-btn{ min-width:64px; height:36px; padding:0 12px; background:#fff; border:1px solid var(--rim); border-radius:var(--radius-md); font-weight:700; display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-2); }
-.role-btn.active{ outline:2px solid rgba(0,0,0,.15); }
-
-/* 狀態列（置中拉寬） */
+/* 狀態列 */
 #status{
-  flex:1 1 auto; min-width:240px;
-  background:var(--soft); border:1px solid #E4E4E4; border-radius:12px; padding:10px;
+  flex:1 1 auto; min-width:240px; background:var(--soft); border:1px solid #E4E4E4; border-radius:12px; padding:10px;
   font-size:var(--status-fz); white-space:pre-wrap; text-align:center; color:var(--accent)!important; font-weight:700;
   -webkit-text-stroke:.35px rgba(0,0,0,.10); text-shadow:0 1px 0 rgba(255,255,255,.85),0 3px 6px rgba(0,0,0,.04);
 }
 
-/* 內頁舞台 */
+/* 舞台 */
 .stage{ flex:1 1 auto; padding:14px 22px 0; display:flex; justify-content:center; align-items:flex-start; overflow:hidden; }
 
-/* 內文卡（黃色漸層） */
+/* 內頁卡 */
 .card{
   position:relative; width:100%; max-width:var(--card-maxw);
   background:linear-gradient(180deg, var(--paper-grad-from), var(--paper-grad-to));
-  border:1px solid rgba(0,0,0,.05);
-  border-radius:var(--radius-xl); box-shadow:0 10px 26px rgba(0,0,0,.08);
-  padding:var(--content-pad);
-  height:100%; overflow:auto;
-  /* 兩大區塊：左 1/3 內文；右 2/3 許願牆 */
-  display:grid; grid-template-columns: 1fr 2fr; gap:14px;
+  border:1px solid rgba(0,0,0,.05); border-radius:var(--radius-xl); box-shadow:0 10px 26px rgba(0,0,0,.08);
+  padding:var(--content-pad); height:100%; overflow:auto;
+  display:grid; grid-template-columns:1fr 2fr; gap:14px; /* 左 1/3 右 2/3 */
 }
 
-/* 左側內容容器（用絕對定位的 chip 固定角落） */
-.left-content{
-  position:relative; background:transparent; border-radius:12px;
-  min-height:280px;
-}
+/* 左區：固定 chip + 編輯器 + 底部三鍵 */
+.left-content{ position:relative; min-height:280px; border-radius:12px; }
 
-/* 固定角落 chip（新人 / 簽名：完全一致的顏色與樣式） */
+/* 新人 / 簽名 chip（同色同樣式） */
 .chip{
   position:absolute; width:var(--chip-w); height:var(--chip-h);
   background:#fff; border:1px solid var(--rim); border-radius:10px;
@@ -147,62 +122,70 @@ h2{
   display:flex; align-items:center; justify-content:center; gap:8px;
   padding:6px 10px; user-select:none;
 }
-/* 位置固定：新人左上；簽名右下 */
 #chipBride{ top:var(--chip-gap); left:var(--chip-gap); }
-#chipSign{  right:var(--chip-gap); bottom:var(--chip-gap); cursor:pointer; }
-
-/* 簽名 chip：未簽時與 placeholder 同等淡化 */
+#chipSign{ bottom:calc(var(--left-footer-h) + var(--chip-gap)*2); left:50%; transform:translateX(-50%); cursor:pointer; } /* 底部置中，避開底部三鍵 */
 #chipSign:not(.has-img){ opacity:.22; }
 #chipSign .hint{ font-weight:900; }
 #signThumb{ display:none; width:120px; height:50px; object-fit:contain; background:linear-gradient(180deg, var(--paper-grad-from), var(--paper-grad-to)); border:1px solid var(--rim); border-radius:8px; }
 #chipSign.has-img #signThumb{ display:block; }
 #chipSign.has-img .hint{ display:none; }
 
-/* 內文編輯器：在兩個 chip 之間撐滿；邊框稍加明顯（僅一點點） */
+/* 內文編輯器：兩個 chip 之間撐滿；稍微明顯的邊框 */
 .editor{
   position:absolute;
   top:calc(var(--chip-gap) + var(--chip-h) + 10px);
-  right:var(--chip-gap);
-  bottom:calc(var(--chip-gap) + var(--chip-h) + 10px);
   left:var(--chip-gap);
-
+  right:var(--chip-gap);
+  bottom:calc(var(--left-footer-h) + var(--chip-gap)*3 + var(--chip-h)); /* 須留出簽名 chip 與底部三鍵空間 */
   overflow:auto; line-height:1.8; outline:none; background:transparent; border-radius:12px; padding:12px;
-  font-size:var(--editor-zoom);
-  background-image:none;
-  border:1px dashed rgba(0,0,0,.12);  /* 原 .06 → .12 */
+  font-size:var(--editor-zoom); background-image:none; border:1px dashed rgba(0,0,0,.12);
 }
-/* placeholder 淡化 */
 .editor[data-empty]{ opacity:.22; }
+.editor.locked{ pointer-events:none; user-select:text; opacity:1; } /* 鎖定狀態：可選取但不可編輯 */
 
-/* 放大/縮小類別（保留） */
-.fs-up-1{font-size:1.15em;} .fs-up-2{font-size:1.30em;} .fs-up-3{font-size:1.50em;}
-.fs-down-1{font-size:.92em;} .fs-down-2{font-size:.84em;} .fs-down-3{font-size:.76em;}
+/* 左區底部三鍵 */
+.left-footer{
+  position:absolute; left:var(--chip-gap); right:var(--chip-gap); bottom:var(--chip-gap);
+  height:var(--left-footer-h); display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;
+}
+.left-footer button{
+  height:100%; background:#fff; border:1px solid var(--rim); border-radius:10px; font-weight:700; box-shadow:var(--shadow-2); cursor:pointer;
+}
+.left-footer button:active{ transform:translateY(1px) scale(.99); }
 
-/* 右側：許願牆（維持原卡片樣式） */
+/* 右區：許願牆（木牌風格） */
 .wall{
-  min-height:280px;
-  display:grid;
-  grid-template-columns: repeat(auto-fill, minmax(var(--tile-w), 1fr));
-  gap:12px;
-  align-content:start;
-  padding:6px 4px 10px;
+  min-height:280px; display:grid; grid-template-columns:repeat(auto-fill, minmax(var(--tile-w), 1fr));
+  gap:12px; align-content:start; padding:6px 4px 10px;
 }
 .tile{
   width:100%; height:var(--tile-h);
-  background:#fff;
-  border:1px solid var(--rim);
-  border-radius:12px;
-  box-shadow:0 4px 12px rgba(0,0,0,.06);
-  padding:10px 12px; cursor:pointer; position:relative; overflow:hidden;
+  position:relative; background:linear-gradient(180deg,#F2E4D5,#E9D7C5); /* 木牌淡奶茶色 */
+  border:1px solid #d8c8b6; border-radius:14px;
+  box-shadow:0 6px 14px rgba(0,0,0,.08);
+  padding:12px 14px 14px; cursor:pointer; overflow:hidden;
   display:flex; flex-direction:column; justify-content:flex-start; gap:6px;
 }
-.tile-header{ display:flex; align-items:center; justify-content:center; gap:8px; font-weight:800; text-align:center; }
-.tile-meta{ font-size:12px; opacity:.8; text-align:center; }
-.tile-snippet{ font-size:14px; line-height:1.5; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; text-align:center; }
+/* 繩子 */
+.tile:before{
+  content:""; position:absolute; top:-10px; left:50%; transform:translateX(-50%);
+  width:16px; height:22px; background:#b21; border-radius:8px;
+}
+/* 吊孔 */
+.tile:after{
+  content:""; position:absolute; top:8px; left:50%; transform:translateX(-50%);
+  width:10px; height:10px; border-radius:50%; background:rgba(0,0,0,.1);
+}
+/* 內容 */
+.tile-header{ font-weight:800; text-align:center; margin-top:6px; }
+.tile-meta{ font-size:12px; opacity:.75; text-align:center; }
+.tile-snippet{
+  font-size:14px; line-height:1.6; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; text-align:center;
+}
 .tile-sign{ position:absolute; right:8px; bottom:8px; width:70px; height:34px; border:1px solid var(--rim); border-radius:6px; background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden; }
 .tile-sign img{ width:100%; height:100%; object-fit:contain; }
 
-/* 放大檢視 modal（沿用） */
+/* Modal（看全文，不再提供編輯） */
 .overlay{ position:fixed; inset:0; z-index:9999; display:none; align-items:center; justify-content:center; background:rgba(17,24,39,.35); backdrop-filter:blur(3px); }
 .overlay.show{ display:flex; }
 .dialog{ width:min(92vw,680px); max-height:82vh; background:var(--soft); border:1px solid var(--rim); border-radius:14px; padding:16px; box-shadow:0 18px 44px rgba(0,0,0,.18); overflow:auto; }
@@ -212,22 +195,13 @@ h2{
 .view-actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
 .view-actions button{ min-width:120px; height:38px; border-radius:10px; border:1px solid var(--rim); background:#fff; cursor:pointer; font-weight:700; }
 
-/* 送出鍵（原樣） */
-.footer-actions{ flex:0 0 auto; display:flex; justify-content:center; align-items:center; padding:14px 0 16px; }
-.primary{
-  min-width:var(--btn-w); height:var(--btn-h); padding:0 20px; background:#fff; border:1px solid var(--rim);
-  border-radius:var(--radius-md); font-weight:700; cursor:pointer; box-shadow:var(--shadow-2);
-}
-.primary:active{ transform:translateY(1px) scale(.99); }
+/* 底部送出鍵（全頁，用不到可保留） */
+.footer-actions{ display:none; } /* 隱藏全頁底部送出，改用左區三鍵 */
 
 /* 版尾 */
-footer{
-  position:fixed; left:0; right:0; bottom:var(--footer-gap);
-  text-align:center; color:#6b5e52; font-size:12px; opacity:.9; pointer-events:none;
-  z-index:5;
-}
+footer{ position:fixed; left:0; right:0; bottom:var(--footer-gap); text-align:center; color:#6b5e52; font-size:12px; opacity:.9; pointer-events:none; z-index:5; }
 
-/* 簽名 Modal（沿用） */
+/* 簽名 Modal */
 #sigOverlay .dialog{ width:min(92vw,520px); }
 #pad{ width:100%; height:260px; background:#fff; border:1px solid #ddd; border-radius:12px; touch-action:none; }
 .dlg-actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
@@ -235,14 +209,14 @@ footer{
 </style>
 
 <body>
-  <!-- 背景照片 -->
+  <!-- 背景 -->
   <img class="bg-photo" src="./assets/wishing.png" alt="">
 
   <div class="panel">
     <div class="titlebar">
       <h2>送上祝福</h2>
 
-      <!-- 頂部：角色三鍵 → 狀態列 → WORD 六鍵（交換後的位置） -->
+      <!-- bar：角色三鍵 → 狀態列 → 文字工具 -->
       <div class="bar">
         <div class="bar-inner" id="barInner">
           <div class="rolebar">
@@ -276,11 +250,9 @@ footer{
 
     <div class="stage">
       <div class="card" id="card">
-        <!-- 左 1/3：內文（新人左上、簽名右下，固定位置；中間為編輯器） -->
+        <!-- 左區：新人（左上）、簽名（底部置中）、編輯器、底部三鍵 -->
         <section class="left-content">
-          <div class="chip" id="chipBride" title="新人">
-            <span id="brideLabel">新人：—</span>
-          </div>
+          <div class="chip" id="chipBride" title="新人"><span id="brideLabel">新人：—</span></div>
           <div class="chip" id="chipSign" title="點此簽名">
             <span class="hint">點我簽名</span>
             <img id="signThumb" alt="signature preview" />
@@ -289,23 +261,23 @@ footer{
           <div class="editor" id="editor" contenteditable="true" aria-label="祝福內容">
             在此寫下你對新人的祝福…（可選字後按上方的粗體／斜體／底線／顏色／放大／縮小）💝
           </div>
+
+          <div class="left-footer">
+            <button id="btnEdit"  type="button">編輯</button>
+            <button id="btnSend"  type="button">送出</button>
+            <button id="btnSignOpen" type="button">點我簽名</button>
+          </div>
         </section>
 
-        <!-- 右 2/3：許願牆 -->
-        <section>
-          <div class="wall" id="wall"><!-- JS 動態注入 --></div>
-        </section>
+        <!-- 右區：許願牆（木牌） -->
+        <section><div class="wall" id="wall"></div></section>
       </div>
-    </div>
-
-    <div class="footer-actions">
-      <button id="btnSubmit" class="primary" type="button">送出祝福</button>
     </div>
   </div>
 
   <footer>© Copyright 2025 MY‘s System</footer>
 
-  <!-- 放大檢視 Modal -->
+  <!-- 放大檢視 Modal（僅閱讀，不提供編輯） -->
   <div id="viewOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="viewTitle">
     <div class="dialog">
       <h3 id="viewTitle">祝福內容</h3>
@@ -313,8 +285,6 @@ footer{
       <div id="viewContent" class="view-content"></div>
       <div class="view-actions">
         <button id="viewClose" type="button">關閉</button>
-        <button id="viewEdit"  type="button" style="display:none;">編輯（僅限本人）</button>
-        <button id="viewSave"  type="button" style="display:none;">儲存</button>
       </div>
     </div>
   </div>
@@ -333,9 +303,9 @@ footer{
   </div>
 
 <script>
-/* ====== 基本設定（沿用） ====== */
+/* ====== 基本設定 ====== */
 const LIFF_ID='2008149060-m5pDXW6a';
-const WEBHOOK='https://script.google.com/macros/s/AKfycbx4wqm5tIWGvXRqIrjKPEFTYkaDf7cHLrYQTrJZ9ETQ8Fgikkv5QMny0TG8xW6aW_l0/exec';
+const WEBHOOK='https://script.google.com/macros/s/AKfycbzv1N_JkqZQDmm3F9pj9NwVbsJ94G4MMJBJOBl3Ewf4DZQwH7_ILAlz6OCE1wnx7yW7/exec';
 const TIMEOUT_MS=20000;
 
 /* 狀態列 */
@@ -347,7 +317,7 @@ function setStatus(m){
   else if(/失敗|逾時|無法|錯誤/.test(m)) el.classList.add('err');
 }
 
-/* LIFF 初始化（沿用） */
+/* LIFF 初始化 */
 let lineId='',displayName='',pictureUrl='';
 async function initLIFF(){
   if(typeof liff==='undefined'){ setStatus('（未載入 LIFF SDK，可先測樣式）'); return; }
@@ -362,35 +332,29 @@ async function initLIFF(){
     lineId=(prof&&prof.userId)||(idt&&idt.sub)||'';
     displayName=(prof&&prof.displayName)||(idt&&(idt.name||idt.nickname))||'';
     pictureUrl=(prof&&prof.pictureUrl)||'';
-    // 載入新人姓名
+    // 新人姓名
     try{
       const r=await fetch(WEBHOOK+'?action=couple',{method:'GET',cache:'no-store'});
       if(r.ok){ const j=await r.json().catch(()=>null); if(j&&j.ok&&j.name){ document.getElementById('brideLabel').textContent='新人：'+String(j.name||'—'); } }
     }catch(_){}
-    // 讀取牆
     await refreshWall();
     setStatus('已就緒');
   }catch(e){ setStatus('LIFF 初始化失敗：'+e.message); }
 }
 
-/* ====== 工具列（保留原本功能） ====== */
+/* 工具列 */
 const editor=document.getElementById('editor');
-function btnExec(cmd){
-  if(editor.hasAttribute('data-empty')) return;
-  document.execCommand(cmd,false,null); editor.focus();
-}
+function btnExec(cmd){ if(editor.hasAttribute('data-empty')||editor.classList.contains('locked')) return; document.execCommand(cmd,false,null); editor.focus(); }
 document.getElementById('btnBold').addEventListener('click',()=>btnExec('bold'));
 document.getElementById('btnItalic').addEventListener('click',()=>btnExec('italic'));
 document.getElementById('btnUnderline').addEventListener('click',()=>btnExec('underline'));
 document.getElementById('colorPick').addEventListener('change',e=>{
-  const v=e.target.value;
-  if(!editor.hasAttribute('data-empty') && v){ document.execCommand('foreColor',false,v); editor.focus(); }
-  e.target.blur();
+  const v=e.target.value; if(!editor.hasAttribute('data-empty') && !editor.classList.contains('locked') && v){ document.execCommand('foreColor',false,v); editor.focus(); } e.target.blur();
 });
 
-/* 放大/縮小（保留） */
+/* 放大縮小 */
 function wrapSelectionWithClass(cls){
-  if(editor.hasAttribute('data-empty')) return false;
+  if(editor.hasAttribute('data-empty')||editor.classList.contains('locked')) return false;
   const sel=window.getSelection(); if(!sel.rangeCount) return false;
   const r=sel.getRangeAt(0); if(r.collapsed) return false;
   const span=document.createElement('span'); span.className=cls;
@@ -405,18 +369,18 @@ function stepSmaller(){ if(!wrapSelectionWithClass('fs-down-1')) setGlobalScale(
 document.getElementById('btnBigger').addEventListener('click',stepBigger);
 document.getElementById('btnSmaller').addEventListener('click',stepSmaller);
 
-/* placeholder（沿用） */
+/* placeholder */
 const PLACEHOLDER='在此寫下你對新人的祝福…（可選字後按上方的粗體／斜體／底線／顏色／放大／縮小）💝';
 function showPlaceholder(){ editor.setAttribute('data-empty',''); editor.innerHTML=PLACEHOLDER; }
-editor.addEventListener('focus',()=>{ if(editor.hasAttribute('data-empty')){ editor.innerHTML=''; editor.removeAttribute('data-empty'); }});
+editor.addEventListener('focus',()=>{ if(editor.hasAttribute('data-empty') && !editor.classList.contains('locked')){ editor.innerHTML=''; editor.removeAttribute('data-empty'); }});
 editor.addEventListener('blur',()=>{ if(!editor.textContent.trim()) showPlaceholder(); });
 
-/* ====== 簽名（沿用；chip 固定在右下角） ====== */
+/* 簽名 Modal */
 const sigOverlay=document.getElementById('sigOverlay');
 const pad=document.getElementById('pad'); const ctx=pad.getContext('2d');
 let drawing=false,lastX=0,lastY=0,signatureDataURL='';
 function fitCanvas(){ const dpr=Math.max(1,window.devicePixelRatio||1),w=pad.clientWidth,h=pad.clientHeight; pad.width=w*dpr; pad.height=h*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); ctx.lineCap='round'; ctx.lineJoin='round'; ctx.lineWidth=3; ctx.strokeStyle='#111'; ctx.clearRect(0,0,w,h); }
-function openSign(){ sigOverlay.classList.add('show'); setTimeout(fitCanvas,40); }
+function openSign(){ if(editor.classList.contains('locked')) return; sigOverlay.classList.add('show'); setTimeout(fitCanvas,40); }
 function closeSign(){ sigOverlay.classList.remove('show'); }
 function pos(e){ const r=pad.getBoundingClientRect(); return {x:(e.touches?e.touches[0].clientX:e.clientX)-r.left, y:(e.touches?e.touches[0].clientY:e.clientY)-r.top}; }
 function start(e){ drawing=true; const p=pos(e); lastX=p.x; lastY=p.y; e.preventDefault(); }
@@ -424,18 +388,18 @@ function move(e){ if(!drawing) return; const p=pos(e); ctx.beginPath(); ctx.move
 function end(){ drawing=false; }
 pad.addEventListener('mousedown',start); pad.addEventListener('mousemove',move); pad.addEventListener('mouseup',end); pad.addEventListener('mouseleave',end);
 pad.addEventListener('touchstart',start,{passive:false}); pad.addEventListener('touchmove',move,{passive:false}); pad.addEventListener('touchend',end);
-
 document.getElementById('chipSign').addEventListener('click',openSign);
+document.getElementById('btnSignOpen').addEventListener('click',openSign);
 document.getElementById('sigClear').addEventListener('click',fitCanvas);
 document.getElementById('sigCancel').addEventListener('click',closeSign);
 document.getElementById('sigOK').addEventListener('click',()=>{
   signatureDataURL=pad.toDataURL('image/png');
   const chip=document.getElementById('chipSign'); const img=document.getElementById('signThumb');
-  img.src=signatureDataURL; chip.classList.add('has-img'); /* 文字自動消失 */
+  img.src=signatureDataURL; chip.classList.add('has-img');
   closeSign();
 });
 
-/* ====== 許願牆（沿用） ====== */
+/* 祝福牆（木牌） */
 const wallEl=document.getElementById('wall');
 let currentRole='all';
 
@@ -449,9 +413,8 @@ function escapeHTML(s){ return String(s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;
 function tileTemplate(item){
   const date = item.time ? String(item.time).slice(0,16) : '';
   const snippet = (item.preview || '').trim() || '—';
-  const signHTML = item.signature && item.signatureType==='drive'
-      ? `<img src="${item.signature}" alt="">`
-      : (item.signature ? `<img src="${item.signature}" alt="">` : '');
+  const signHTML = item.signature
+      ? `<img src="${item.signature}" alt="">` : '';
   return `
   <div class="tile" data-row="${item.row||''}" data-owner="${item.lineId||''}">
     <div class="tile-header">${escapeHTML(item.displayName||'—')}</div>
@@ -469,7 +432,7 @@ async function refreshWall(){
       wallEl.innerHTML = (j.items||[]).map(tileTemplate).join('') || '';
       bindTileClicks();
     }
-  }catch(e){ /* 忽略牆失敗 */ }
+  }catch(e){}
 }
 
 function bindTileClicks(){
@@ -478,32 +441,18 @@ function bindTileClicks(){
   });
 }
 
-/* 放大檢視/編輯（沿用） */
+/* 放大檢視（只讀） */
 const viewOverlay=document.getElementById('viewOverlay');
 const viewMeta=document.getElementById('viewMeta');
 const viewContent=document.getElementById('viewContent');
 const btnViewClose=document.getElementById('viewClose');
-const btnViewEdit=document.getElementById('viewEdit');
-const btnViewSave=document.getElementById('viewSave');
-let currentViewRow=null, currentViewOwner='';
+let currentViewRow=null;
 
 btnViewClose.addEventListener('click', ()=>{ viewOverlay.classList.remove('show'); currentViewRow=null; });
-btnViewEdit.addEventListener('click', ()=>{ viewContent.setAttribute('contenteditable','true'); btnViewSave.style.display='inline-flex'; btnViewEdit.style.display='none'; });
-btnViewSave.addEventListener('click', async ()=>{
-  if(!currentViewRow) return;
-  try{
-    const payload={ action:'updateBlessing', row:Number(currentViewRow), lineId, contentHTML:viewContent.innerHTML.trim() };
-    const r=await fetch(WEBHOOK,{ method:'POST', headers:{'Content-Type':'text/plain;charset=UTF-8'}, body:JSON.stringify(payload) });
-    const j= await r.json().catch(()=>null);
-    if(j && j.ok){ setStatus('✅ 已儲存'); viewContent.removeAttribute('contenteditable'); btnViewSave.style.display='none'; await refreshWall(); }
-    else{ setStatus('❌ 無法儲存（可能已過截止或非本人）'); }
-  }catch(e){ setStatus('❌ 儲存失敗：'+(e?.message||'')); }
-});
 
 async function openView(tileEl){
   const row = tileEl.getAttribute('data-row');
-  const owner = tileEl.getAttribute('data-owner')||'';
-  currentViewRow=row; currentViewOwner=owner;
+  currentViewRow=row;
   try{
     const j=await fetchJSON(WEBHOOK+`?action=getBlessingDetail&id=${encodeURIComponent(row)}`,{method:'GET',cache:'no-store'});
     if(j && j.ok && j.item){
@@ -511,14 +460,12 @@ async function openView(tileEl){
       const date=it.time? String(it.time).slice(0,16):'';
       viewMeta.textContent = `${it.displayName||'—'} ｜ ${date}`;
       viewContent.innerHTML = it.contentHTML || '';
-      if(lineId && owner===lineId){ btnViewEdit.style.display='inline-flex'; } else { btnViewEdit.style.display='none'; }
-      btnViewSave.style.display='none';
       viewOverlay.classList.add('show');
     }
-  }catch(e){ /* ignore */ }
+  }catch(e){}
 }
 
-/* 角色三鍵（取代舊 sidebar 篩選） */
+/* 角色三鍵 */
 function setRole(role){
   currentRole=role;
   document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));
@@ -531,8 +478,14 @@ document.getElementById('roleAll').addEventListener('click',()=>setRole('all'));
 document.getElementById('roleMale').addEventListener('click',()=>setRole('male'));
 document.getElementById('roleFemale').addEventListener('click',()=>setRole('female'));
 
-/* ====== 送出 ====== */
-document.getElementById('btnSubmit').addEventListener('click', async ()=>{
+/* 左區：編輯 / 送出 流程 */
+document.getElementById('btnEdit').addEventListener('click', ()=>{
+  editor.classList.remove('locked');
+  if(editor.hasAttribute('data-empty')){ editor.innerHTML=''; editor.removeAttribute('data-empty'); }
+  editor.focus();
+});
+
+document.getElementById('btnSend').addEventListener('click', async ()=>{
   if(editor.hasAttribute('data-empty') || !editor.textContent.trim()){ alert('請寫下祝福內容唷～'); return; }
   const text=editor.innerHTML.trim();
 
@@ -542,6 +495,7 @@ document.getElementById('btnSubmit').addEventListener('click', async ()=>{
   }catch(_){ setStatus('⚠️ 無法連到後端（ping 失敗）'); return; }
 
   setStatus('⏳ 送出中…');
+  document.getElementById('btnSend').disabled=true;
   const payload={ action:'createBlessing', lineId, displayName, pictureUrl, contentHTML:text, signaturePNG:signatureDataURL||'', extra:{} };
   const ctl=new AbortController(); const timer=setTimeout(()=>ctl.abort(), TIMEOUT_MS);
   try{
@@ -551,30 +505,251 @@ document.getElementById('btnSubmit').addEventListener('click', async ()=>{
     if(ct.includes('application/json')) j=await r.json().catch(()=>null); else { const t=await r.text().catch(()=> ''); if(/^\s*\{/.test(t)) try{ j=JSON.parse(t);}catch(_){} }
     if(!j && r.ok) j={ok:true};
     if(j&&j.ok){
-      setStatus('✅ 祝福已送出成功！');
-
-      // 清空編輯器 & 簽名 chip
-      showPlaceholder();
-      signatureDataURL='';
-      document.getElementById('chipSign').classList.remove('has-img');
-      document.getElementById('signThumb').src='';
-
-      // 立刻刷新牆一次，並在 600ms 後再保險刷新一次，避免雲端寫入延遲
+      setStatus('✅ 已送出，已覆蓋更新！');
+      // 鎖定編輯器；簽名保留（不清空）
+      editor.classList.add('locked');
+      // 立即與延遲刷新牆
       await refreshWall();
       setTimeout(()=>{ refreshWall().catch(()=>{}); }, 600);
+      // 之後再送出不用重新上傳簽名
+      signatureDataURL=''; // 保留縮圖，但不重傳（後端會保留舊簽名）
     } else {
       setStatus('❌ 送出失敗，請稍後再試');
     }
   }catch(e){ setStatus('❌ 送出逾時或失敗：'+(e?.message||'')); }
+  finally { document.getElementById('btnSend').disabled=false; }
 });
 
 /* 啟動 */
 window.addEventListener('DOMContentLoaded', ()=>{
   setStatus('已就緒');
   showPlaceholder();
-  if(window.liff) initLIFF(); else refreshWall(); // 無 LIFF 也可看牆
+  if(window.liff) initLIFF(); else refreshWall();
 });
 </script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </body>
 </html>
+
+/**** GAS：互動音符 v2 + 送上祝福（整合） **********************************
+ * 祝福（blessings）：
+ *   A=time, B=lineId, C=displayName, D=pictureUrl, E=role,
+ *   F=contentHTML, G=signatureURL(or base64), H=signatureType, I=extraJSON
+ *************************************************************************/
+
+const SPREADSHEET_ID_MAIN   = '1loTbnXfQ90AN3tGUdpEsR3AGZUFHvaijBSctOUSZQFs';
+const SPREADSHEET_ID_PUBLIC = '18hxRoLU_TFV6Dc4fNAxQFEv9VAYoSbeVZvfIZ17MHPQ';
+const LIFF_URL_NOTES        = 'https://meiyang0819.github.io/SSS/line.html';
+const LIFF_URL_BLESSING     = 'https://meiyang0819.github.io/SSS/blessing.html';
+
+const SAVE_SIGNATURE_TO_DRIVE = true;
+const DRIVE_FOLDER_ID         = '';
+
+const KWS_PORTAL = ['音符','互動音符','吉他','鋼琴','🎵'];
+const WELCOME_AUDIO_URL = 'https://drive.google.com/file/d/1Voif_FluZuNUMSjVeA6NitAb6skxnnFp/view?usp=drive_link';
+const WELCOME_AUDIO_MS  = 6000;
+const GLOBAL_DEADLINE_ISO = '2025-10-31';
+
+const FLEX_SIZE_LEVEL=2, GAP_LEVEL=2, LINK_FONT_LEVEL=2, LINK_WIDTH_PERCENT=62;
+const LINK_CORNER_PX=18, LINK_BORDER_PX=1, LINK_PAD_V_PX=12, LINK_PAD_H_PX=18;
+const FLEX_COLORS={ body:'#E4E4E4', footer:'#E4E4E4', title:'#0f172a', accent:'#A68A7C', linkBg:'#F5F1EC' };
+const KEYWORD_THEME={ body:'#E4E4E4', footer:'#E4E4E4', title:'#0f172a', text:'#A68A7C' };
+
+const SHEET_GUESTS='guests', SHEET_LOGS='logs', SHEET_BLESSING='blessings';
+const TZ='Asia/Taipei', TIME_FMT='yyyy-MM-dd HH:mm:ss', HEADER_ROWS=1;
+const ROLE_MALE_FRIEND='MALE_FRIEND', ROLE_FEMALE_FRIEND='FEMALE_FRIEND';
+
+const J=o=>ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
+const T=s=>ContentService.createTextOutput(String(s||'')).setMimeType(ContentService.MimeType.TEXT);
+const nowStr = ()=>Utilities.formatDate(new Date(), TZ, TIME_FMT);
+
+/* Spreadsheet 開啟 */
+function openMain_(){ return SpreadsheetApp.openById(SPREADSHEET_ID_MAIN); }
+function openPublic_(){ return SpreadsheetApp.openById(SPREADSHEET_ID_PUBLIC); }
+
+/* 建表頭 */
+function ensureHeaderAtRow1_(sh, header){
+  const last=sh.getLastRow();
+  if(last===0){ sh.getRange(1,1,1,header.length).setValues([header]); return; }
+  const vals=sh.getRange(1,1,1,header.length).getValues()[0];
+  const same=header.every((h,i)=>String(vals[i]||'').toLowerCase()===String(h).toLowerCase());
+  if(!same){ sh.getRange(1,1,1,header.length).setValues([header]); }
+}
+function ensureLogs_(ss){ let sh=ss.getSheetByName(SHEET_LOGS); if(!sh) sh=ss.insertSheet(SHEET_LOGS); ensureHeaderAtRow1_(sh,['time','lineId','pictureUrl','friend','displayName','instruments','notes','message']); return sh; }
+function ensureBlessings_(ss){ let sh=ss.getSheetByName(SHEET_BLESSING); if(!sh) sh=ss.insertSheet(SHEET_BLESSING); ensureHeaderAtRow1_(sh,['time','lineId','displayName','pictureUrl','role','contentHTML','signature','signatureType','extraJSON']); return sh; }
+function getCoupleName_(ss){
+  const sh=ss.getSheetByName(SHEET_GUESTS); if(!sh) return '';
+  const man=String(sh.getRange(2,1).getValue()||'').trim();
+  const woman=String(sh.getRange(2,2).getValue()||'').trim();
+  if(man || woman) return `${man}${man&&woman?' & ':''}${woman}`;
+  const man1=String(sh.getRange(1,1).getValue()||'').trim();
+  const woman1=String(sh.getRange(1,2).getValue()||'').trim();
+  return `${man1}${man1&&woman1?' & ':''}${woman1}`.trim();
+}
+
+/* logs 工具 */
+function findLogRowByLineId_(sh, lineId){
+  const last=sh.getLastRow(); if(last<=HEADER_ROWS) return -1;
+  const vals=sh.getRange(HEADER_ROWS+1,2,last-HEADER_ROWS,1).getValues();
+  for(let i=0;i<vals.length;i++){ if(String(vals[i][0]||'')===String(lineId)) return i+HEADER_ROWS+1; }
+  return -1;
+}
+function bindLineIdEnsureRow_(ss, lineId, displayName, pictureUrl){
+  const sh=ensureLogs_(ss);
+  const r=findLogRowByLineId_(sh,lineId);
+  if(r===-1){ sh.appendRow([ nowStr(), lineId, String(pictureUrl||''), '', String(displayName||''), '', '', '' ]); }
+  else{
+    const row=sh.getRange(r,1,1,8).getValues()[0];
+    row[0]=nowStr(); row[1]=lineId;
+    row[2]=String(pictureUrl||'') ? String(pictureUrl)  : String(row[2]||'');
+    row[4]=String(displayName||'')? String(displayName) : String(row[4]||'');
+    sh.getRange(r,1,1,8).setValues([row]);
+  }
+}
+function alreadySubmitted_(sh,lineId){ const r=findLogRowByLineId_(sh,lineId); if(r===-1) return false; const e=String(sh.getRange(r,6).getValue()||'').trim(); const f=String(sh.getRange(r,7).getValue()||'').trim(); return !!(e||f); }
+function getRole_(sh,lineId){ const r=findLogRowByLineId_(sh,lineId); if(r===-1) return ''; return String(sh.getRange(r,4).getValue()||'').trim(); }
+function setRole_(sh,lineId,role){ const r=findLogRowByLineId_(sh,lineId); if(r===-1) return; sh.getRange(r,4).setValue(String(role||'')); }
+function isFirstInteraction_(sh, lineId){ const r=findLogRowByLineId_(sh,lineId); if(r===-1) return true; const role=String(sh.getRange(r,4).getValue()||'').trim(); const e=String(sh.getRange(r,6).getValue()||'').trim(); const f=String(sh.getRange(r,7).getValue()||'').trim(); return !role && !e && !f; }
+
+/* 截止 */
+function getGlobalDeadline_(){ return new Date(GLOBAL_DEADLINE_ISO+'T23:59:59+08:00'); }
+function isExpired_(){ return new Date() > getGlobalDeadline_(); }
+
+/* LINE profile（略） */
+function fetchUserProfile_(channelToken, userId){
+  if(!channelToken||!userId) return {displayName:'',pictureUrl:''};
+  const url='https://api.line.me/v2/bot/profile/'+encodeURIComponent(userId);
+  const opt={method:'get',headers:{Authorization:'Bearer '+channelToken},muteHttpExceptions:true};
+  try{ const r=UrlFetchApp.fetch(url,opt); if(r.getResponseCode()===200){ const j=JSON.parse(r.getContentText()||'{}'); return {displayName:String(j.displayName||''), pictureUrl:String(j.pictureUrl||'')}} }catch(_){}
+  return {displayName:'', pictureUrl:''};
+}
+
+/* Web 入口 */
+function doGet(e){
+  const p=e?.parameter||{}; const action=String(p.action||'').toLowerCase();
+  if(action==='ping')   return T('ok');
+  if(action==='couple') return J({ok:true, name:getCoupleName_(openMain_())});
+
+  if(action==='listblessings'){
+    const role=(String(p.role||'all').toLowerCase());
+    const data=listBlessings_();
+    const filtered = role==='all' ? data :
+      data.filter(x=> String(x.role||'').toLowerCase().includes(role==='male'?'male':'female'));
+    return J({ok:true, items:filtered});
+  }
+
+  if(action==='getblessingdetail'){
+    const id = Math.max(2, Number(p.id||0));
+    const sh = ensureBlessings_(openMain_());
+    const last = sh.getLastRow();
+    if(id>last) return J({ok:false,error:'not_found'});
+    const r = sh.getRange(id,1,1,9).getValues()[0];
+    return J({ok:true, item:{
+      row:id, time:r[0], lineId:r[1], displayName:r[2], pictureUrl:r[3],
+      role:r[4], contentHTML:r[5], signature:r[6], signatureType:r[7], extra:r[8]
+    }});
+  }
+
+  return T('ok');
+}
+
+function doPost(e){
+  let body={}; try{ body=JSON.parse(e?.postData?.contents||'{}'); }catch(_){ body={}; }
+
+  if(body && Array.isArray(body.events)) return handleLineWebhook_(body);
+
+  const act=String(body.action||'').toLowerCase();
+  if(act==='createblessing') return handleCreateBlessing_(body); // ★ 變更：同一入口，會自動「有就更新」
+  if(act==='updateblessing') return handleUpdateBlessing_(body);  // 仍保留，但前端不再使用
+  return handleLiffSubmit_(body);
+}
+
+/* 互動音符 LINE webhook（保留，略） */
+function replyFlex_(){/* 省略不動 */} function replyAudio_(){} function replyMulti_(){}
+function buildCard_Entrance_(){} function buildCard_Submitted_(){} function buildCard_Expired_(){} function buildCard_Reminder_(){} function buildCard_RoleSelect_(){}
+
+function handleLineWebhook_(body){ return J({status:'ok'}); } /* 為簡潔起見，這裡不展開；你的原始邏輯保留即可 */
+
+/* 互動音符 LIFF 送單（保留） */
+function handleLiffSubmit_(body){ return J({ok:true}); } /* 你的原邏輯照放即可 */
+
+/* ===== 送上祝福：有就更新、無則新增（以 lineId 為主鍵） ===== */
+function findBlessingRowByLineId_(sh, lineId){
+  const last=sh.getLastRow(); if(last<=HEADER_ROWS) return -1;
+  const vals=sh.getRange(HEADER_ROWS+1,2,last-HEADER_ROWS,1).getValues(); // B=lineId
+  for(let i=0;i<vals.length;i++){ if(String(vals[i][0]||'')===String(lineId)) return i+HEADER_ROWS+1; }
+  return -1;
+}
+
+function handleCreateBlessing_(body){
+  const ss = openMain_(); const sh = ensureBlessings_(ss); const shLogs = ensureLogs_(ss);
+  const lineId=String(body.lineId||'').trim();
+  const displayName=String(body.displayName||'').trim();
+  const pictureUrl=String(body.pictureUrl||'').trim();
+  const contentHTML=String(body.contentHTML||'').trim();
+  const signature=String(body.signaturePNG||'').trim(); // dataURL or empty
+  const extra=JSON.stringify(body.extra||{});
+  if(!lineId) return J({ok:false,error:'missing_line_id'});
+  if(!contentHTML) return J({ok:false,error:'missing_content'});
+  const role = getRole_(shLogs, lineId) || '';
+
+  // 簽名：若這次有帶，則保存；若沒帶，沿用舊值
+  let sigVal='', sigType='none';
+  if(signature){
+    if(SAVE_SIGNATURE_TO_DRIVE){ const url=saveSignatureToDrive_(signature, lineId, displayName); sigVal=url; sigType='drive'; }
+    else{ sigVal=signature; sigType='base64'; }
+  }
+
+  const r=findBlessingRowByLineId_(sh,lineId);
+  if(r===-1){
+    // 新增
+    const g = signature ? sigVal : ''; const gt = signature ? sigType : 'none';
+    sh.appendRow([ nowStr(), lineId, displayName, pictureUrl, role, contentHTML, g, gt, extra ]);
+  }else{
+    // 更新（覆蓋）
+    const row=sh.getRange(r,1,1,9).getValues()[0];
+    row[0]=nowStr();            // time
+    row[2]=displayName||row[2]; // displayName（保護舊值）
+    row[3]=pictureUrl||row[3];
+    row[4]=role||row[4];
+    row[5]=contentHTML;         // contentHTML 覆蓋
+    if(signature){ row[6]=sigVal; row[7]=sigType; } // 帶新簽名才覆蓋，否則保留舊簽名
+    row[8]=extra;
+    sh.getRange(r,1,1,9).setValues([row]);
+  }
+  return J({ok:true});
+}
+
+/* 備用：更新自己的祝福（仍保留給舊前端） */
+function handleUpdateBlessing_(body){
+  const ss=openMain_(); const sh=ensureBlessings_(ss);
+  const row=Number(body.row||0); const lineId=String(body.lineId||'').trim(); const contentHTML=String(body.contentHTML||'').trim();
+  if(!row || !lineId || !contentHTML) return J({ok:false,error:'missing_params'});
+  if(isExpired_()) return J({ok:false,error:'deadline_passed'});
+  const rec=sh.getRange(row,1,1,9).getValues()[0]; const owner=String(rec[1]||'').trim(); if(owner!==lineId) return J({ok:false,error:'forbidden'});
+  sh.getRange(row,6).setValue(contentHTML); sh.getRange(row,1).setValue(nowStr()); return J({ok:true});
+}
+
+/* 簽名 → Drive，回傳可直接 <img> 的直連（uc?export=view&id=） */
+function saveSignatureToDrive_(dataUrl, lineId, displayName){
+  const m = /^data:image\/(png|jpeg);base64,([A-Za-z0-9+/=]+)$/.exec(String(dataUrl||'')); if(!m) return '';
+  const ext = m[1]==='jpeg'?'jpg':m[1]; const bytes = Utilities.base64Decode(m[2]);
+  const blob = Utilities.newBlob(bytes, 'image/'+(ext==='jpg'?'jpeg':ext), `sign_${lineId||'anon'}_${Date.now()}.${ext}`);
+  let folder=null;
+  if(DRIVE_FOLDER_ID){ try{ folder=DriveApp.getFolderById(DRIVE_FOLDER_ID); }catch(_){ } }
+  if(!folder){ const it=DriveApp.getFoldersByName('Blessing-Signatures'); folder=it.hasNext()? it.next() : DriveApp.createFolder('Blessing-Signatures'); }
+  const file = folder.createFile(blob);
+  try{ file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); }catch(_){}
+  const id=file.getId();
+  return 'https://drive.google.com/uc?export=view&id='+id; // ★ 直連可嵌圖
+}
+
+/* 列表 / 明細 */
+function listBlessings_(){
+  const sh=ensureBlessings_(openMain_()); const last=sh.getLastRow(); if(last<=HEADER_ROWS) return [];
+  const vals=sh.getRange(HEADER_ROWS+1,1,last-HEADER_ROWS,9).getValues();
+  return vals.map((r,i)=>({
+    row:i+HEADER_ROWS+1, time:r[0], lineId:r[1], displayName:r[2], pictureUrl:r[3], role:r[4]||'',
+    preview:String(r[5]||'').replace(/<[^>]+>/g,'').slice(0,60), signature:r[6], signatureType:r[7], extra:r[8]
+  }));
+}
