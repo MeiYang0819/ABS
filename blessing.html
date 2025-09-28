@@ -23,13 +23,26 @@
   --content-pad:22px; --editor-zoom:1rem;
   --toolbar-gap:8px; --status-fz:14px; --h2-size:2.8rem;
 
-  --btn-w:184px; --btn-h:36px;     /* 送出滿滿祝福：再短一點 */
-  --tool-h:36px;                   /* 基準高度（chip 也跟這個走） */
+  --btn-w:184px; --btn-h:36px;
+  --tool-h:36px;
 
-  /* 祝福牆：更窄、更像木頭 */
-  --tile-w:180px; --tile-h:156px;     /* 再窄一點 */
-  --wood-grain-contrast:.9;           /* 木紋更強 */
-  --rope-width:8px; --rope-height:42px; --knot-size:22px;
+  /* 祝福牆：木牌尺寸 */
+  --tile-w:180px; --tile-h:156px;
+  /* 繩條/繩結：再細一點 */
+  --rope-width:6px; --rope-height:44px; --knot-size:18px;
+}
+
+/* 背景圖固定在底層 */
+.bg-notes{
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+  opacity: .9;
 }
 
 /* === layout 基本 === */
@@ -61,7 +74,7 @@ h2{position:relative;left:50%;transform:translateX(-50%);margin:12px 0 6px;text-
 .left-wrap{position:relative;background:linear-gradient(180deg, rgba(255,242,204,.98), rgba(255,242,204,.92));border-radius:16px;border:1px solid rgba(0,0,0,.05);padding:12px;overflow:hidden;}
 .left-content{position:relative;height:100%;}
 
-/* ===== 新人 chip（高度改成跟工具同高） ===== */
+/* ===== 新人 chip（高度跟工具同高） ===== */
 .chip{position:absolute;min-width:160px;height:var(--tool-h);background:#fff;border:1px solid var(--rim);border-radius:10px;
   box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;gap:8px;padding:0 10px;user-select:none;}
 #chipBride{top:10px;left:10px;}
@@ -78,7 +91,7 @@ h2{position:relative;left:50%;transform:translateX(-50%);margin:12px 0 6px;text-
 .left-actions button{background:#fff;border:1px solid var(--rim);border-radius:10px;font-weight:800;box-shadow:var(--shadow-2);cursor:pointer;}
 .left-actions button:active{transform:translateY(1px) scale(.99);}
 
-/* 簽名 chip：未簽顯示淡色「畫押簽名」，簽完才顯示縮圖 */
+/* 簽名 chip */
 #chipSign{position:static;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;border:1px solid var(--rim);border-radius:10px;box-shadow:var(--shadow-2);padding:0 8px;}
 #chipSign .hint{font-weight:900;color:rgba(15,23,42,.35);}
 #chipSign:not(.has-img){opacity:1;}
@@ -91,18 +104,35 @@ h2{position:relative;left:50%;transform:translateX(-50%);margin:12px 0 6px;text-
 .wall-wrap{background:linear-gradient(180deg,#f9e5ee,#f6dce7);border-radius:16px;border:1px solid rgba(0,0,0,.05);padding:12px;overflow:auto;}
 .wall{min-height:280px;display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--tile-w),1fr));gap:14px;align-content:start;padding:2px;overflow:visible;}
 
-/* ===== 吊牌樣式（木紋、斜切、孔、嫩芽、繩條 & 繩結） ===== */
+/* ===== 吊牌樣式（木牌＋繩條/繩結） ===== */
 .tile{
   position:relative;width:100%;height:var(--tile-h);padding:14px 12px 12px;cursor:pointer;overflow:visible;display:flex;flex-direction:column;gap:6px;
+
+  /* 牌面底色＋淡木紋 */
   background:
     linear-gradient(180deg,#f1e3cf,#e5d1b8),
-    repeating-linear-gradient(14deg, rgba(0,0,0, calc(.03 + var(--wood-grain-contrast)*.10)) 0 4px, rgba(255,255,255, calc(.02 + var(--wood-grain-contrast)*.06)) 4px 9px),
-    repeating-linear-gradient(0deg, rgba(0,0,0, calc(.018 + var(--wood-grain-contrast)*.04)) 0 2px, rgba(255,255,255, calc(.015 + var(--wood-grain-contrast)*.04)) 2px 4px),
-    radial-gradient(16px 12px at 28% 36%, rgba(0,0,0,.08), transparent 60%),
-    radial-gradient(14px 10px at 72% 62%, rgba(0,0,0,.08), transparent 60%);
-  border:1px solid #cfba9b;border-radius:14px;box-shadow:0 10px 18px rgba(0,0,0,.10);
+    repeating-linear-gradient(14deg, rgba(0,0,0,.05) 0 4px, rgba(255,255,255,.04) 4px 9px),
+    repeating-linear-gradient(0deg,  rgba(0,0,0,.035) 0 2px, rgba(255,255,255,.035) 2px 4px),
+    radial-gradient(16px 12px at 28% 36%, rgba(0,0,0,.06), transparent 60%),
+    radial-gradient(14px 10px at 72% 62%, rgba(0,0,0,.06), transparent 60%);
+  /* 木頭外框（舊式咖啡色框框 → 木質感） */
+  border:3px solid transparent;
+  border-image: repeating-linear-gradient(
+      15deg,
+      #8f6a3a 0 6px,
+      #a67942 6px 12px,
+      #7c5430 12px 18px
+    ) 8 round;
+
+  border-radius:14px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.28),   /* 內側上緣高光（像拋光） */
+    inset 0 -1.5px 0 rgba(0,0,0,.12),      /* 內側下緣陰影 */
+    0 10px 18px rgba(0,0,0,.10);           /* 外陰影 */
+  /* 牌面斜切造型 */
   clip-path:polygon(0 12%, 12% 0, 88% 0, 100% 12%, 100% 100%, 0 100%);
 }
+
 /* 吊孔 */
 .tile::before{content:"";position:absolute;top:4px;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;
   background:radial-gradient(circle at 35% 35%, #fff 0 35%, #bbb 36% 60%, transparent 61%);box-shadow:inset 0 1px 0 rgba(255,255,255,.9), inset 0 -1px 0 rgba(0,0,0,.15);}
@@ -110,34 +140,48 @@ h2{position:relative;left:50%;transform:translateX(-50%);margin:12px 0 6px;text-
 .tile::after{content:"";position:absolute;top:-6px;right:12px;width:18px;height:12px;border-radius:0 18px 18px 18px / 0 12px 12px 12px;
   background:linear-gradient(180deg,#7fcf7a,#58b35a);box-shadow:0 1px 0 rgba(255,255,255,.45), inset 0 -1px 0 rgba(0,0,0,.15);}
 
-/* 麻繩（更立體） */
-.tile .rope{position:absolute;top:-18px;left:50%;transform:translateX(-50%);width:var(--rope-width);height:var(--rope-height);
+/* 麻繩（更立體、外凸） */
+.tile .rope{position:absolute;top:-20px;left:50%;transform:translateX(-50%);width:var(--rope-width);height:var(--rope-height);
   background:
     repeating-linear-gradient(90deg,#b77c3a 0 3px,#c98a45 3px 6px),
     linear-gradient(180deg,rgba(255,255,255,.65),rgba(255,255,255,0) 55%),
     linear-gradient(0deg,rgba(0,0,0,.12),transparent 60%);
-  border-radius:999px;filter:saturate(.9);box-shadow:0 3px 8px rgba(0,0,0,.15);}
+  border-radius:999px;filter:saturate(.95);
+  box-shadow:
+    0 4px 10px rgba(0,0,0,.18),           /* 外投影（外凸感） */
+    inset 0 1px 0 rgba(255,255,255,.55),  /* 內高光 */
+    inset 0 -1px 0 rgba(0,0,0,.10);
+  z-index:2;
+}
 
-/* 繩結：往上「凸」一點，做出纏繞感 */
+/* 繩結（更細、內外都凸、超出牌緣） */
 .tile .knot{
-  position:absolute;top:-12px;left:50%;transform:translateX(-50%);
-  width:calc(var(--knot-size) * 1.3);height:calc(var(--knot-size) * .9);
+  position:absolute;top:-14px;left:50%;transform:translateX(-50%);
+  width:calc(var(--knot-size) * 1.25);height:calc(var(--knot-size) * .88);
   background:linear-gradient(180deg,#cc8a3d,#a9652b);
-  border-radius:14px;box-shadow:0 2px 0 rgba(0,0,0,.08), 0 10px 16px rgba(0,0,0,.12);
-  border:1px solid rgba(0,0,0,.12);
+  border-radius:14px;border:1px solid rgba(0,0,0,.12);
+  box-shadow:
+    0 2px 0 rgba(0,0,0,.08),               /* 內側接縫陰影（內凸） */
+    0 12px 18px rgba(0,0,0,.20),           /* 外投影（外凸） */
+    inset 0 1px 0 rgba(255,255,255,.35),   /* 上緣高光 */
+    inset 0 -2px 0 rgba(0,0,0,.15);        /* 下緣內陰影 */
+  z-index:3;
 }
 .tile .knot::before,
 .tile .knot::after{
   content:"";position:absolute;top:40%;width:54%;height:54%;
   background:linear-gradient(180deg,#d09045,#b17233);
-  border-radius:999px;box-shadow:inset 0 2px 2px rgba(255,255,255,.35);
+  border-radius:999px;
+  box-shadow:
+    inset 0 2px 2px rgba(255,255,255,.38),
+    0 4px 6px rgba(0,0,0,.10);
 }
 .tile .knot::before{left:-14px;transform:rotate(-28deg);}
 .tile .knot::after{right:-14px;transform:rotate(28deg);}
 
 /* 牌面文字 */
 .tile-name{font-weight:800;text-align:center;margin-top:8px;}
-.tile-sep{height:1px;background:rgba(0,0,0,.12);margin:6px 0;}
+.tile-sep{height:1px;background:linear-gradient(90deg, rgba(0,0,0,.18), rgba(0,0,0,.06) 40%, rgba(0,0,0,.18));opacity:.7;margin:6px 0;}
 .tile-date{font-size:12px;opacity:.8;text-align:center;}
 .tile-snippet{font-size:14px;line-height:1.6;text-align:left;word-break:break-word;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;}
 
@@ -147,20 +191,27 @@ h2{position:relative;left:50%;transform:translateX(-50%);margin:12px 0 6px;text-
 .dialog{width:min(92vw,680px);max-height:82vh;background:#F5F1EC;border:1px solid var(--rim);border-radius:14px;padding:16px;box-shadow:0 18px 44px rgba(0,0,0,.18);overflow:auto;}
 .dialog h3{margin:0 0 10px;font-size:18px;color:#6b5e52;text-align:center;-webkit-text-stroke:0;text-shadow:none;}
 .view-meta{text-align:center;font-size:12px;opacity:.75;margin-bottom:8px;}
-.view-content{background:#fff;border:1px solid #ddd;border-radius:12px;padding:12px;line-height:1.8;}
+.view-content{background:#fff;border:1px solid #ddd;border-radius:12px;padding:12px;line-height:1.8;white-space:pre-wrap;} /* 顯示純文字時保留換行 */
 .view-actions{display:flex;gap:10px;justify-content:center;margin-top:12px;}
 .view-actions button{min-width:120px;height:var(--tool-h);border-radius:10px;border:1px solid var(--rim);background:#fff;cursor:pointer;font-weight:700;}
 .footer-actions{flex:0 0 auto;display:flex;justify-content:center;align-items:center;padding:14px 0 16px;}
 .primary{min-width:var(--btn-w);height:var(--btn-h);padding:0 20px;background:#fff;border:1px solid var(--rim);border-radius:12px;font-weight:700;cursor:pointer;box-shadow:var(--shadow-2);}
 .primary:active{transform:translateY(1px) scale(.99);}
 
-#sigOverlay .dialog{width:min(92vw,520px);}
-#pad{width:100%;height:260px;background:#fff;border:1px solid #ddd;border-radius:12px;touch-action:none;}
-.dlg-actions{display:flex;gap:10px;justify-content:center;margin-top:12px;}
-.dlg-actions button{width:120px;height:var(--tool-h);border-radius:10px;border:1px solid var(--rim);background:#fff;cursor:pointer;font-weight:700;}
+/* 版權字樣 */
+footer.copyright{
+  position: fixed; left: 12px; bottom: 8px;
+  font-size: 12px; opacity: .75;
+  -webkit-text-stroke: 0; text-shadow: none;
+  z-index: 2;
+}
 </style>
 
 <body>
+  <!-- === 背景圖（次常改）=== -->
+  <!-- ✅ 可調整：背景圖檔案/版本 -->
+  <img class="bg-notes" src="./assets/favors.png?v=4" alt="">
+
   <div class="panel">
     <h2>❤️同心祈願❤️</h2>
 
@@ -227,6 +278,10 @@ h2{position:relative;left:50%;transform:translateX(-50%);margin:12px 0 6px;text-
     </div>
   </div>
 
+  <footer class="copyright">
+    © Copyright 2025 MY‘s System Version:b1.0.227
+  </footer>
+
   <!-- 檢視窗 -->
   <div id="viewOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="viewTitle">
     <div class="dialog">
@@ -286,7 +341,11 @@ async function preloadMyLatest(){
     const j=await (await fetch(WEBHOOK+`?action=getLatestByLineId&lineId=${encodeURIComponent(lineId)}`)).json();
     if(j?.ok && j.item){
       const it=j.item;
-      if(it.contentHTML){ editor.innerHTML=it.contentHTML; editor.removeAttribute('data-empty'); lockEditor(); }
+      if(it.contentHTML){
+        editor.textContent = it.contentHTML;      // 純文字顯示
+        editor.removeAttribute('data-empty'); 
+        lockEditor();
+      }
       if(it.signature){
         const chip=document.getElementById('chipSign'); const img=document.getElementById('signThumb');
         img.src=it.signature; chip.classList.add('has-img'); chip.classList.add('locked');
@@ -296,12 +355,12 @@ async function preloadMyLatest(){
   }catch(_){}
 }
 
-/* ===== 工具列 ===== */
+/* ===== 工具列（即使有按鈕，儲存仍強制純文字） ===== */
 function exec(cmd){ if(editor.hasAttribute('data-empty')||editor.classList.contains('locked')) return; document.execCommand(cmd,false,null); editor.focus(); }
 document.getElementById('btnBold').onclick=()=>exec('bold');
 document.getElementById('btnItalic').onclick=()=>exec('italic');
 document.getElementById('btnUnderline').onclick=()=>exec('underline');
-document.getElementById('colorPick').onchange=e=>{ const v=e.target.value; if(v&&!editor.classList.contains('locked')&&!editor.hasAttribute('data-empty')) document.execCommand('foreColor',false,v); e.target.blur(); };
+document.getElementById('colorPick').onchange=e=>{ e.target.blur(); }; // 顏色選了也不會被儲存（純文字）
 let globalScale=1; function setScale(s){globalScale=Math.max(.7,Math.min(1.7,s)); editor.style.setProperty('--editor-zoom',globalScale+'rem');}
 document.getElementById('btnBigger').onclick=()=>setScale(globalScale+.06);
 document.getElementById('btnSmaller').onclick=()=>setScale(globalScale-.06);
@@ -344,31 +403,41 @@ function bindTileClicks(){ document.querySelectorAll('.tile').forEach(t=>t.addEv
 async function openView(el){
   const row=el.getAttribute('data-row');
   const j=await (await fetch(WEBHOOK+`?action=getBlessingDetail&id=${encodeURIComponent(row)}`)).json();
-  if(j?.ok&&j.item){ document.getElementById('viewMeta').textContent=`${j.item.displayName||'—'} ｜ ${fmt(j.item.time)}`; document.getElementById('viewContent').innerHTML=j.item.contentHTML||''; document.getElementById('viewOverlay').classList.add('show'); }
+  if(j?.ok&&j.item){
+    document.getElementById('viewMeta').textContent=`${j.item.displayName||'—'} ｜ ${fmt(j.item.time)}`;
+    const vc=document.getElementById('viewContent');
+    vc.textContent = j.item.contentHTML || '';  // 純文字顯示
+    document.getElementById('viewOverlay').classList.add('show');
+  }
 }
 document.getElementById('viewClose').onclick=()=>document.getElementById('viewOverlay').classList.remove('show');
 document.getElementById('roleAll').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));document.getElementById('roleAll').classList.add('active');refreshWall();};
 document.getElementById('roleMale').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));document.getElementById('roleMale').classList.add('active');refreshWall();};
 document.getElementById('roleFemale').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));document.getElementById('roleFemale').classList.add('active');refreshWall();};
 
-/* ===== 送出 / 更新 ===== */
+/* ===== 送出 / 更新（純文字） ===== */
 function lockEditor(){editor.classList.add('locked');editor.setAttribute('contenteditable','false');}
 function unlockEditor(){editor.classList.remove('locked');editor.setAttribute('contenteditable','true');editor.focus();}
 document.getElementById('btnEdit').onclick=()=>unlockEditor();
 
 function hasSignature(){return document.getElementById('chipSign').classList.contains('has-img');}
 async function sendOrUpdate(){
-  if(editor.hasAttribute('data-empty')||!editor.textContent.trim()){ alert('欸，不可能不祝福我們吧🖕️'); return; }
+  const contentPlain=(editor.hasAttribute('data-empty')?'':editor.textContent).trim(); // 純文字
+  if(!contentPlain){ alert('欸，不可能不祝福我們吧🖕️'); return; }
   if(!hasSignature()){ alert('欸，沒有畫押不准離開✍️'); return; }
-  const content=editor.innerHTML.trim();
+
   const payload = myLastRow
-    ? {action:'updateBlessing',row:Number(myLastRow),lineId,contentHTML:content}
-    : {action:'createBlessing',lineId,displayName,pictureUrl,contentHTML:content,signaturePNG:signatureDataURL||'',extra:{}};
+    ? {action:'updateBlessing',row:Number(myLastRow),lineId,contentHTML:contentPlain}
+    : {action:'createBlessing',lineId,displayName,pictureUrl,contentHTML:contentPlain,signaturePNG:signatureDataURL||'',extra:{}};
+
   const r=await fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(payload)});
   const j=await r.json().catch(()=>null);
-  if(j?.ok){ lockEditor(); await refreshWall(); if(!myLastRow) await preloadMyLatest(); setStatus(myLastRow?'✅ 已更新並鎖定':'✅ 已送出並鎖定'); }
-  else if(j?.error==='deadline_passed'){ setStatus('⛔ 已到截止日，無法送出及編輯'); lockEditor(); }
-  else setStatus('❌ 送出失敗，稍後再試');
+  if(j?.ok){
+    lockEditor(); await refreshWall(); if(!myLastRow) await preloadMyLatest();
+    setStatus(myLastRow?'✅ 已更新並鎖定':'✅ 已送出並鎖定');
+  } else if(j?.error==='deadline_passed'){
+    setStatus('⛔ 已到截止日，無法送出及編輯'); lockEditor();
+  } else setStatus('❌ 送出失敗，稍後再試');
 }
 document.getElementById('btnSend').onclick=sendOrUpdate;
 document.getElementById('btnSubmit').onclick=sendOrUpdate;
