@@ -28,21 +28,14 @@
 
   /* 祝福牆：木牌尺寸 */
   --tile-w:180px; --tile-h:156px;
-  /* 繩條/繩結：再細一點 */
+  /* 繩條/繩結（更細） */
   --rope-width:6px; --rope-height:44px; --knot-size:18px;
 }
 
-/* 背景圖固定在底層 */
+/* === 背景圖（回復） === */
 .bg-notes{
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 0;
-  pointer-events: none;
-  user-select: none;
-  opacity: .9;
+  position: fixed; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; z-index: 0; pointer-events: none; user-select: none; opacity: .9;
 }
 
 /* === layout 基本 === */
@@ -74,7 +67,7 @@ h2{position:relative;left:50%;transform:translateX(-50%);margin:12px 0 6px;text-
 .left-wrap{position:relative;background:linear-gradient(180deg, rgba(255,242,204,.98), rgba(255,242,204,.92));border-radius:16px;border:1px solid rgba(0,0,0,.05);padding:12px;overflow:hidden;}
 .left-content{position:relative;height:100%;}
 
-/* ===== 新人 chip（高度跟工具同高） ===== */
+/* 新人 chip */
 .chip{position:absolute;min-width:160px;height:var(--tool-h);background:#fff;border:1px solid var(--rim);border-radius:10px;
   box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;gap:8px;padding:0 10px;user-select:none;}
 #chipBride{top:10px;left:10px;}
@@ -85,7 +78,7 @@ h2{position:relative;left:50%;transform:translateX(-50%);margin:12px 0 6px;text-
 .editor[data-empty]{opacity:1;color:rgba(15,23,42,.28);-webkit-text-stroke:0;text-shadow:none;font-style:italic;}
 .editor.locked{pointer-events:none;opacity:.85;}
 
-/* 下方三顆 */
+/* 左下方三顆 */
 .left-actions{position:absolute;left:10px;right:10px;bottom:10px;height:36px;display:flex;gap:10px;}
 .left-actions>*{flex:1 1 0;height:100%;}
 .left-actions button{background:#fff;border:1px solid var(--rim);border-radius:10px;font-weight:800;box-shadow:var(--shadow-2);cursor:pointer;}
@@ -104,77 +97,51 @@ h2{position:relative;left:50%;transform:translateX(-50%);margin:12px 0 6px;text-
 .wall-wrap{background:linear-gradient(180deg,#f9e5ee,#f6dce7);border-radius:16px;border:1px solid rgba(0,0,0,.05);padding:12px;overflow:auto;}
 .wall{min-height:280px;display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--tile-w),1fr));gap:14px;align-content:start;padding:2px;overflow:visible;}
 
-/* ===== 吊牌樣式（木牌＋繩條/繩結） ===== */
+/* ===== 木牌樣式（含咖啡色木框 & 繩條/結 外凸） ===== */
 .tile{
   position:relative;width:100%;height:var(--tile-h);padding:14px 12px 12px;cursor:pointer;overflow:visible;display:flex;flex-direction:column;gap:6px;
 
-  /* 牌面底色＋淡木紋 */
   background:
     linear-gradient(180deg,#f1e3cf,#e5d1b8),
     repeating-linear-gradient(14deg, rgba(0,0,0,.05) 0 4px, rgba(255,255,255,.04) 4px 9px),
     repeating-linear-gradient(0deg,  rgba(0,0,0,.035) 0 2px, rgba(255,255,255,.035) 2px 4px),
     radial-gradient(16px 12px at 28% 36%, rgba(0,0,0,.06), transparent 60%),
     radial-gradient(14px 10px at 72% 62%, rgba(0,0,0,.06), transparent 60%);
-  /* 木頭外框（舊式咖啡色框框 → 木質感） */
   border:3px solid transparent;
-  border-image: repeating-linear-gradient(
-      15deg,
-      #8f6a3a 0 6px,
-      #a67942 6px 12px,
-      #7c5430 12px 18px
-    ) 8 round;
-
+  border-image: repeating-linear-gradient(15deg,#8f6a3a 0 6px,#a67942 6px 12px,#7c5430 12px 18px) 8 round;
   border-radius:14px;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.28),   /* 內側上緣高光（像拋光） */
-    inset 0 -1.5px 0 rgba(0,0,0,.12),      /* 內側下緣陰影 */
-    0 10px 18px rgba(0,0,0,.10);           /* 外陰影 */
-  /* 牌面斜切造型 */
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.28), inset 0 -1.5px 0 rgba(0,0,0,.12), 0 10px 18px rgba(0,0,0,.10);
   clip-path:polygon(0 12%, 12% 0, 88% 0, 100% 12%, 100% 100%, 0 100%);
 }
-
 /* 吊孔 */
 .tile::before{content:"";position:absolute;top:4px;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;
   background:radial-gradient(circle at 35% 35%, #fff 0 35%, #bbb 36% 60%, transparent 61%);box-shadow:inset 0 1px 0 rgba(255,255,255,.9), inset 0 -1px 0 rgba(0,0,0,.15);}
-/* 嫩芽 */
 .tile::after{content:"";position:absolute;top:-6px;right:12px;width:18px;height:12px;border-radius:0 18px 18px 18px / 0 12px 12px 12px;
   background:linear-gradient(180deg,#7fcf7a,#58b35a);box-shadow:0 1px 0 rgba(255,255,255,.45), inset 0 -1px 0 rgba(0,0,0,.15);}
 
-/* 麻繩（更立體、外凸） */
+/* 麻繩（更細、外凸） */
 .tile .rope{position:absolute;top:-20px;left:50%;transform:translateX(-50%);width:var(--rope-width);height:var(--rope-height);
   background:
     repeating-linear-gradient(90deg,#b77c3a 0 3px,#c98a45 3px 6px),
     linear-gradient(180deg,rgba(255,255,255,.65),rgba(255,255,255,0) 55%),
     linear-gradient(0deg,rgba(0,0,0,.12),transparent 60%);
   border-radius:999px;filter:saturate(.95);
-  box-shadow:
-    0 4px 10px rgba(0,0,0,.18),           /* 外投影（外凸感） */
-    inset 0 1px 0 rgba(255,255,255,.55),  /* 內高光 */
-    inset 0 -1px 0 rgba(0,0,0,.10);
+  box-shadow:0 4px 10px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.55), inset 0 -1px 0 rgba(0,0,0,.10);
   z-index:2;
 }
-
-/* 繩結（更細、內外都凸、超出牌緣） */
+/* 繩結（更細、內外都凸） */
 .tile .knot{
   position:absolute;top:-14px;left:50%;transform:translateX(-50%);
   width:calc(var(--knot-size) * 1.25);height:calc(var(--knot-size) * .88);
   background:linear-gradient(180deg,#cc8a3d,#a9652b);
   border-radius:14px;border:1px solid rgba(0,0,0,.12);
-  box-shadow:
-    0 2px 0 rgba(0,0,0,.08),               /* 內側接縫陰影（內凸） */
-    0 12px 18px rgba(0,0,0,.20),           /* 外投影（外凸） */
-    inset 0 1px 0 rgba(255,255,255,.35),   /* 上緣高光 */
-    inset 0 -2px 0 rgba(0,0,0,.15);        /* 下緣內陰影 */
+  box-shadow:0 2px 0 rgba(0,0,0,.08), 0 12px 18px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.35), inset 0 -2px 0 rgba(0,0,0,.15);
   z-index:3;
 }
-.tile .knot::before,
-.tile .knot::after{
+.tile .knot::before,.tile .knot::after{
   content:"";position:absolute;top:40%;width:54%;height:54%;
-  background:linear-gradient(180deg,#d09045,#b17233);
-  border-radius:999px;
-  box-shadow:
-    inset 0 2px 2px rgba(255,255,255,.38),
-    0 4px 6px rgba(0,0,0,.10);
+  background:linear-gradient(180deg,#d09045,#b17233); border-radius:999px;
+  box-shadow:inset 0 2px 2px rgba(255,255,255,.38), 0 4px 6px rgba(0,0,0,.10);
 }
 .tile .knot::before{left:-14px;transform:rotate(-28deg);}
 .tile .knot::after{right:-14px;transform:rotate(28deg);}
@@ -191,14 +158,28 @@ h2{position:relative;left:50%;transform:translateX(-50%);margin:12px 0 6px;text-
 .dialog{width:min(92vw,680px);max-height:82vh;background:#F5F1EC;border:1px solid var(--rim);border-radius:14px;padding:16px;box-shadow:0 18px 44px rgba(0,0,0,.18);overflow:auto;}
 .dialog h3{margin:0 0 10px;font-size:18px;color:#6b5e52;text-align:center;-webkit-text-stroke:0;text-shadow:none;}
 .view-meta{text-align:center;font-size:12px;opacity:.75;margin-bottom:8px;}
-.view-content{background:#fff;border:1px solid #ddd;border-radius:12px;padding:12px;line-height:1.8;white-space:pre-wrap;} /* 顯示純文字時保留換行 */
+.view-content{background:#fff;border:1px solid #ddd;border-radius:12px;padding:12px;line-height:1.8;white-space:pre-wrap;}
 .view-actions{display:flex;gap:10px;justify-content:center;margin-top:12px;}
 .view-actions button{min-width:120px;height:var(--tool-h);border-radius:10px;border:1px solid var(--rim);background:#fff;cursor:pointer;font-weight:700;}
+
+/* ======= 簽名對話框（回復舊樣式 Cl3） ======= */
+#sigOverlay .dialog{width:min(92vw,520px);}
+#pad{
+  width:100%; height:260px; background:#fff; border:1px solid #ddd; border-radius:12px;
+  touch-action:none; display:block;
+}
+.dlg-actions{
+  display:flex; gap:10px; justify-content:center; margin-top:12px;
+}
+.dlg-actions button{
+  width:120px; height:var(--tool-h); border-radius:10px; border:1px solid var(--rim); background:#fff; cursor:pointer; font-weight:700;
+}
+
 .footer-actions{flex:0 0 auto;display:flex;justify-content:center;align-items:center;padding:14px 0 16px;}
 .primary{min-width:var(--btn-w);height:var(--btn-h);padding:0 20px;background:#fff;border:1px solid var(--rim);border-radius:12px;font-weight:700;cursor:pointer;box-shadow:var(--shadow-2);}
 .primary:active{transform:translateY(1px) scale(.99);}
 
-/* 版權字樣 */
+/* 版權字樣（回復） */
 footer.copyright{
   position: fixed; left: 12px; bottom: 8px;
   font-size: 12px; opacity: .75;
@@ -208,8 +189,7 @@ footer.copyright{
 </style>
 
 <body>
-  <!-- === 背景圖（次常改）=== -->
-  <!-- ✅ 可調整：背景圖檔案/版本 -->
+  <!-- 背景圖 -->
   <img class="bg-notes" src="./assets/favors.png?v=4" alt="">
 
   <div class="panel">
@@ -320,7 +300,7 @@ async function initLIFF(){
     await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser:true });
     if(!liff.isLoggedIn()){ liff.login(); return; }
     await liff.ready;
-    const prof=await liff.getProfile(); const idt=liff.getDecodedIDToken();
+    const prof=await liff.getProfile(); const idt=await liff.getDecodedIDToken();
     lineId=prof.userId||idt.sub||''; displayName=prof.displayName||idt.name||''; pictureUrl=prof.pictureUrl||'';
   }catch(_){}
   await fetchRoleAndNames(); await preloadMyLatest(); await refreshWall();
@@ -355,12 +335,12 @@ async function preloadMyLatest(){
   }catch(_){}
 }
 
-/* ===== 工具列（即使有按鈕，儲存仍強制純文字） ===== */
+/* ===== 工具列（即使有按鈕，儲存仍純文字） ===== */
 function exec(cmd){ if(editor.hasAttribute('data-empty')||editor.classList.contains('locked')) return; document.execCommand(cmd,false,null); editor.focus(); }
 document.getElementById('btnBold').onclick=()=>exec('bold');
 document.getElementById('btnItalic').onclick=()=>exec('italic');
 document.getElementById('btnUnderline').onclick=()=>exec('underline');
-document.getElementById('colorPick').onchange=e=>{ e.target.blur(); }; // 顏色選了也不會被儲存（純文字）
+document.getElementById('colorPick').onchange=e=>{ e.target.blur(); }; // 顏色不入庫（純文字）
 let globalScale=1; function setScale(s){globalScale=Math.max(.7,Math.min(1.7,s)); editor.style.setProperty('--editor-zoom',globalScale+'rem');}
 document.getElementById('btnBigger').onclick=()=>setScale(globalScale+.06);
 document.getElementById('btnSmaller').onclick=()=>setScale(globalScale-.06);
@@ -368,18 +348,28 @@ const PLACEHOLDER='寫下並獻上最誠摯的祝福…💝';
 editor.addEventListener('focus',()=>{ if(editor.hasAttribute('data-empty')){ editor.textContent=''; editor.removeAttribute('data-empty'); }});
 editor.addEventListener('blur',()=>{ if(!editor.textContent.trim()){ editor.setAttribute('data-empty',''); editor.textContent=PLACEHOLDER; }});
 
-/* ===== 簽名 ===== */
+/* ===== 簽名（修復：事件完整綁定 + 舊樣式） ===== */
 const sigOverlay=document.getElementById('sigOverlay'); const pad=document.getElementById('pad'); const ctx=pad.getContext('2d');
 let drawing=false,lastX=0,lastY=0,signatureDataURL='';
 function fitCanvas(){ const dpr=Math.max(1,devicePixelRatio||1),w=pad.clientWidth,h=pad.clientHeight; pad.width=w*dpr; pad.height=h*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); ctx.lineCap='round'; ctx.lineJoin='round'; ctx.lineWidth=3; ctx.strokeStyle='#111'; ctx.clearRect(0,0,w,h); }
-function pos(e){ const r=pad.getBoundingClientRect(); return {x:(e.touches?e.touches[0].clientX:e.clientX)-r.left, y:(e.touches?e.touches[0].clientY:e.clientY)-r.top}; }
+function pos(e){ const r=pad.getBoundingClientRect(); const p=e.touches?e.touches[0]:e; return {x:p.clientX-r.left, y:p.clientY-r.top}; }
 function start(e){ drawing=true; const p=pos(e); lastX=p.x; lastY=p.y; e.preventDefault(); }
 function move(e){ if(!drawing)return; const p=pos(e); ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke(); lastX=p.x; lastY=p.y; e.preventDefault(); }
 function end(){ drawing=false; }
+
 document.getElementById('chipSign').addEventListener('click',()=>{ if(document.getElementById('chipSign').classList.contains('locked')) return; sigOverlay.classList.add('show'); setTimeout(fitCanvas,40); });
 document.getElementById('sigClear').onclick=fitCanvas;
 document.getElementById('sigCancel').onclick=()=>sigOverlay.classList.remove('show');
 document.getElementById('sigOK').onclick=()=>{ signatureDataURL=pad.toDataURL('image/png'); const chip=document.getElementById('chipSign'); const img=document.getElementById('signThumb'); img.src=signatureDataURL; chip.classList.add('has-img'); sigOverlay.classList.remove('show'); };
+
+/* 綁定滑鼠 + 觸控事件（passive:false 才能 preventDefault） */
+pad.addEventListener('mousedown',start);
+pad.addEventListener('mousemove',move);
+pad.addEventListener('mouseup',end);
+pad.addEventListener('mouseleave',end);
+pad.addEventListener('touchstart',start,{passive:false});
+pad.addEventListener('touchmove',move,{passive:false});
+pad.addEventListener('touchend',end);
 
 /* ===== 祝福牆 ===== */
 function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
