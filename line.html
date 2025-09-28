@@ -1,645 +1,439 @@
-<!doctype html>
-<html lang="zh-Hant">
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>❤️同心祈願❤️</title>
+/**** 互動音符 v2 – 後端完整版（Flex 二選一卡＆配色統一 + 永久保留頭貼暱稱 + LINE 端阻擋） ********
+ * 表結構（主本 / 副本結構相同）
+ *  - guests: A=man, B=woman, C=deadline
+ *  - logs  : A=time, B=lineId, C=pictureUrl, D=這是親友(男方或女方)=role,
+ *            E=displayName, F=instruments, G=notes, H=message
+ ******************************************************************************/
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand:wght@400&family=Sacramento:wght@400;700&display=swap" rel="stylesheet">
+/* ==================== 可調參數 ==================== */
+const SPREADSHEET_ID_MAIN   = '1loTbnXfQ90AN3tGUdpEsR3AGZUFHvaijBSctOUSZQFs';
+const SPREADSHEET_ID_PUBLIC = '18hxRoLU_TFV6Dc4fNAxQFEv9VAYoSbeVZvfIZ17MHPQ';
+const LIFF_URL              = 'https://meiyang0819.github.io/SSS/line.html';
 
-<style>
-:root{
-  /* ===== 可調參數 ===== */
-  --brand-bg:#c9daf8;                 /* 頁面藍底 */
-  --title:#A68A7C;  --ink:#0f172a; --accent:#A68A7C; --rim:#E4E4E4; --soft:#F5F1EC;
-  --panel-grad-from:#b7d2f6; --panel-grad-to:#cfe1fb; --panel-bg-image:none;
+const KWS_PORTAL = ['音符','互動音符','吉他','鋼琴','🎵'];
 
-  /* 左黃右粉（維持你原設定） */
-  --paper-grad-from:rgba(255,242,204,.98); --paper-grad-to:rgba(255,242,204,.92);
-  --wall-grad-from:#f9e5ee; --wall-grad-to:#f6dce7;
+const WELCOME_AUDIO_URL = 'https://drive.google.com/file/d/1Voif_FluZuNUMSjVeA6NitAb6skxnnFp/view?usp=drive_link';
+const WELCOME_AUDIO_MS  = 6000;
 
-  --panel-maxw:1320px;  --card-maxw:1200px;
+/* 全局截止日（到當日 23:59:59 才算過期，台北時區） */
+const GLOBAL_DEADLINE_ISO = '2025-08-31';
 
-  --radius-xl:16px; --radius-md:12px;
-  --shadow-1:0 10px 26px rgba(0,0,0,.10);
-  --shadow-2:0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06);
+/* Flex 視覺控制 */
+const FLEX_SIZE_LEVEL    = 2;  // 1 micro / 2 kilo / 3 mega
+const GAP_LEVEL          = 2;  // 1 sm / 2 md / 3 lg
+const LINK_FONT_LEVEL    = 2;  // 1 sm / 2 md / 3 lg
+const LINK_WIDTH_PERCENT = 62;
 
-  --content-pad:22px; --editor-zoom:1rem;
-  --toolbar-gap:8px; --status-fz:14px; --h2-size:2.8rem;
-  --stroke:rgba(0,0,0,.18); --glow:rgba(255,255,255,.65);
+const LINK_CORNER_PX     = 18;
+const LINK_BORDER_PX     = 1;
+const LINK_PAD_V_PX      = 12;
+const LINK_PAD_H_PX      = 18;
 
-  --footer-gap:48px;
-  --btn-w:184px; --btn-h:36px;     /* 送出滿滿祝福：再短一點 */
-  --tool-h:36px;
+const FLEX_COLORS = {
+  body:   '#E4E4E4',
+  footer: '#E4E4E4',
+  title:  '#0f172a',
+  accent: '#A68A7C',
+  linkBg: '#F5F1EC'
+};
 
-  --tile-w:210px; --tile-h:156px;  /* 吊牌略窄略高 */
+const KEYWORD_THEME = { body:'#E4E4E4', footer:'#E4E4E4', title:'#0f172a', text:'#A68A7C' };
 
-  --chip-w:160px; --chip-h:44px; --chip-gap:10px;
-  --left-actions-h:36px;
+const SHEET_GUESTS = 'guests';
+const SHEET_LOGS   = 'logs';
+const TZ           = 'Asia/Taipei';
+const TIME_FMT     = 'yyyy-MM-dd HH:mm:ss';
+const HEADER_ROWS  = 1;
 
-  /* 祝福牆木牌＋繩結（更像麻繩） */
-  --wood-grain-contrast:.68; /* 木紋更強 */
-  --rope-shadow:5px;
-  --rope-width:8px;          /* 更細 */
-  --rope-height:34px;
-  --knot-size:20px;
+const ROLE_MALE_FRIEND   = 'MALE_FRIEND';
+const ROLE_FEMALE_FRIEND = 'FEMALE_FRIEND';
+
+/* 小工具 */
+const J = (o)=>ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
+const T = (s)=>ContentService.createTextOutput(String(s||'')).setMimeType(ContentService.MimeType.TEXT);
+const nowStr = ()=>Utilities.formatDate(new Date(), TZ, TIME_FMT);
+
+/* ---------- 顏色/尺寸工具 ---------- */
+function mapSizeLevel_(n){ return ({1:'micro',2:'kilo',3:'mega'})[n] || 'kilo'; }
+function mapGap_(n){ return ({1:'sm',2:'md',3:'lg'})[n] || 'md'; }
+function mapFont_(n){ return ({1:'sm',2:'md',3:'lg'})[n] || 'md'; }
+function hexToRgb_(hex){ const m=/^#?([a-fA-F0-9]{6})$/.exec((hex||'').trim()); const n=m?parseInt(m[1],16):0xE4E4E4; return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}; }
+function blendHex_(fgHex,bgHex,alpha){ const f=hexToRgb_(fgHex), b=hexToRgb_(bgHex); const r=Math.round(f.r*alpha+b.r*(1-alpha)), g=Math.round(f.g*alpha+b.g*(1-alpha)), bl=Math.round(f.b*alpha+b.b*(1-alpha)); return '#'+[r,g,bl].map(v=>v.toString(16).padStart(2,'0')).join(''); }
+
+/* ---------- Flex 建構 ---------- */
+function buildLinkChip_(uri, label){
+  const w = Math.max(0, Math.min(100, Number(LINK_WIDTH_PERCENT)||0));
+  const side = Math.max(0, Math.floor((100 - w)/2));
+  const leftFlex  = side;
+  const midFlex   = Math.max(1, w);
+  const rightFlex = Math.max(0, 100 - leftFlex - midFlex);
+
+  return {
+    type:'box', layout:'horizontal',
+    contents:[
+      { type:'filler', flex:leftFlex },
+      {
+        type:'box', layout:'vertical', flex:midFlex,
+        backgroundColor:FLEX_COLORS.linkBg,
+        cornerRadius:String(LINK_CORNER_PX)+'px',
+        borderColor:FLEX_COLORS.accent, borderWidth:String(LINK_BORDER_PX)+'px',
+        paddingTop:String(LINK_PAD_V_PX)+'px', paddingBottom:String(LINK_PAD_V_PX)+'px',
+        paddingStart:String(LINK_PAD_H_PX)+'px', paddingEnd:String(LINK_PAD_H_PX)+'px',
+        action:{ type:'uri', uri:String(uri||LIFF_URL) },
+        contents:[{
+          type:'text', text:String(label||'🛎️ 賜予最完美的旋律'), size:mapFont_(LINK_FONT_LEVEL),
+          weight:'bold', color:FLEX_COLORS.accent, align:'center'
+        }]
+      },
+      { type:'filler', flex:rightFlex }
+    ]
+  };
 }
 
-/* === 基本骨架 === */
-*{box-sizing:border-box;}
-html,body{
-  height:100%; margin:0; overflow:hidden;
-  color:var(--ink); background:var(--brand-bg);
-  font-family:"Patrick Hand","Noto Sans TC",system-ui,-apple-system,sans-serif;
-  -webkit-text-stroke:.35px var(--stroke); text-shadow:0 1px 0 var(--glow);
-}
-.bg-photo{ position:fixed; inset:0; z-index:0; width:100%; height:100%; object-fit:cover; opacity:.35; pointer-events:none; filter:brightness(.6) saturate(.9); }
-
-.panel{
-  position:relative; z-index:1; max-width:var(--panel-maxw);
-  height:calc(100vh - (70px + var(--footer-gap))); margin:26px auto;
-  background:linear-gradient(135deg, var(--panel-grad-from), var(--panel-grad-to)), var(--panel-bg-image);
-  background-size:auto, cover; background-position:left top, center;
-  border:1px solid var(--rim); border-radius:var(--radius-xl);
-  box-shadow:var(--shadow-1); display:flex; flex-direction:column; overflow:hidden;
+/* Chip 按鈕（postback 版） */
+function buildChoiceChip_(label, data){
+  return {
+    type:'box', layout:'vertical', flex:1,
+    backgroundColor:FLEX_COLORS.linkBg,
+    cornerRadius:String(LINK_CORNER_PX)+'px',
+    borderColor:FLEX_COLORS.accent, borderWidth:String(LINK_BORDER_PX)+'px',
+    paddingTop:String(LINK_PAD_V_PX)+'px', paddingBottom:String(LINK_PAD_V_PX)+'px',
+    paddingStart:String(LINK_PAD_H_PX)+'px', paddingEnd:String(LINK_PAD_H_PX)+'px',
+    action:{ type:'postback', data:data, displayText:label },
+    contents:[{ type:'text', text:label, size:mapFont_(LINK_FONT_LEVEL), weight:'bold', color:FLEX_COLORS.accent, align:'center' }]
+  };
 }
 
-/* 標題與工具 */
-.titlebar{ background:transparent; padding:16px 16px 6px; position:relative; }
-h2{
-  position:relative; left:50%; transform:translateX(-50%); /* 絕對置中修正 */
-  margin:0 0 10px; text-align:center; width:max-content; max-width:90%;
-  font-family:"Sacramento",cursive; font-weight:700; font-size:var(--h2-size); letter-spacing:1px; color:var(--title);
-  -webkit-text-stroke:.6px rgba(0,0,0,.12); text-shadow:0 3px 4px rgba(255,255,255,.75);
-}
-.bar{ padding:6px 22px 8px; }
-.bar-inner{ max-width:var(--card-maxw); margin:0 auto; display:flex; align-items:center; gap:12px; }
-.toolbar{ display:flex; gap:var(--toolbar-gap); filter:drop-shadow(0 2px 0 rgba(0,0,0,.08)); }
-.tool-btn,.tool-select{
-  min-width:64px; height:var(--tool-h); padding:0 12px; background:#fff; border:1px solid var(--rim); border-radius:var(--radius-md);
-  font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:var(--shadow-2);
-}
-.tool-select{ min-width:auto; padding:0 10px; }
-.tool-btn:active{ transform:translateY(1px) scale(.99); }
-.rolebar{ display:flex; gap:var(--toolbar-gap); }
-.role-btn{ min-width:64px; height:var(--tool-h); padding:0 12px; background:#fff; border:1px solid var(--rim); border-radius:var(--radius-md); font-weight:700; display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-2); }
-.role-btn.active{ outline:2px solid rgba(0,0,0,.15); }
-#status{
-  flex:1 1 auto; min-width:240px; background:var(--soft); border:1px solid #E4E4E4;
-  border-radius:12px; padding:10px; font-size:var(--status-fz); white-space:pre-wrap;
-  text-align:center; color:var(--accent)!important; font-weight:700;
-  -webkit-text-stroke:.35px rgba(0,0,0,.10); text-shadow:0 1px 0 rgba(255,255,255,.85),0 3px 6px rgba(0,0,0,.04);
+function buildThemedTextCard_(lines, theme){
+  const bubbleSize = mapSizeLevel_(FLEX_SIZE_LEVEL);
+  const gapToken   = mapGap_(GAP_LEVEL);
+  const padAll     = '15px';
+  const sepColor   = blendHex_(theme.text, theme.body, 0.5);
+
+  const bodyContents = [
+    { type:'text', text:'🤵🏻新人👰🏻‍♀️', weight:'bold', size:'lg', color:theme.title, align:'center', wrap:true },
+    { type:'separator', color:sepColor, margin:'md' },
+    ...lines.map((t,i)=>({
+      type:'text', text:t, size:'md', weight:'bold', color:theme.text, align:'center', wrap:true,
+      margin: i===0 ? 'md' : gapToken
+    }))
+  ];
+
+  return { type:'flex', altText:'通知', contents:{
+    type:'bubble', size:bubbleSize,
+    styles:{ body:{backgroundColor:theme.body}, footer:{backgroundColor:theme.footer} },
+    body:{ type:'box', layout:'vertical', paddingAll:padAll, spacing:gapToken, contents:bodyContents }
+  }};
 }
 
-/* 舞台：左 1/3 ＋ 右 2/3；內層大框改 #e6b8af */
-.stage{ flex:1 1 auto; padding:14px 22px 0; display:flex; justify-content:center; align-items:flex-start; overflow:hidden; }
-.card{
-  position:relative; width:100%; max-width:var(--card-maxw);
-  border:1px solid rgba(0,0,0,.05); border-radius:var(--radius-xl); box-shadow:0 10px 26px rgba(0,0,0,.08);
-  padding:var(--content-pad); height:100%;
-  display:grid; grid-template-columns: 1fr 2fr; gap:14px; overflow:hidden;
-  background:#e6b8af; /* 內層圓角大框 */
+/* 入口/狀態卡 */
+function buildCard_Entrance_(){ 
+  return { type:'flex', altText:'🛎️ 賜予最完美的旋律', contents:{
+    type:'bubble', size:mapSizeLevel_(FLEX_SIZE_LEVEL),
+    styles:{ body:{backgroundColor:FLEX_COLORS.body}, footer:{backgroundColor:FLEX_COLORS.footer} },
+    body:{ type:'box', layout:'vertical', paddingAll:'15px', spacing:mapGap_(GAP_LEVEL), contents:[
+      { type:'text', text:'🤵🏻新人👰🏻‍♀️', weight:'bold', size:'lg', color:FLEX_COLORS.title, align:'center', wrap:true },
+      { type:'separator', color:blendHex_(FLEX_COLORS.accent, FLEX_COLORS.body,0.5), margin:'md' },
+      { type:'text', text:'賜予最完美的旋律', size:'md', weight:'bold', color:FLEX_COLORS.accent, align:'center', wrap:true, margin:'md' }
+    ]},
+    footer:{ type:'box', layout:'vertical', contents:[ buildLinkChip_(LIFF_URL, '🛎️ 賜予最完美的旋律') ], backgroundColor:FLEX_COLORS.footer }
+  }}; 
+}
+function buildCard_Submitted_(){ return buildThemedTextCard_(['欸，兄弟／姊妹已填彈過了🫶🏻','想要更換音階請呼叫管理員🙏'], KEYWORD_THEME); }
+function buildCard_Expired_(){ return buildThemedTextCard_(['欸，兄弟／姊妹已過截止日🕒','但還可點圖文選單玩玩呢👣'], KEYWORD_THEME); }
+function buildCard_Reminder_(){ return buildThemedTextCard_(['📍提醒📍','因後台資料過於龐大','回覆會有點略慢出來','再麻煩親友們多擔待'], KEYWORD_THEME); }
+
+/* Flex 二選一卡：你/妳是…我的？（chip 風格＋統一配色） */
+function buildCard_RoleSelect_(){
+  const bubbleSize = mapSizeLevel_(FLEX_SIZE_LEVEL);
+  const gapToken   = mapGap_(GAP_LEVEL);
+  const padAll     = '15px';
+  const sepColor   = blendHex_(KEYWORD_THEME.text, KEYWORD_THEME.body, 0.5);
+
+  return {
+    type: 'flex',
+    altText: '你/妳是…我的？',
+    contents: {
+      type: 'bubble',
+      size: bubbleSize,
+      styles: { body:{backgroundColor:KEYWORD_THEME.body}, footer:{backgroundColor:KEYWORD_THEME.footer} },
+      body: {
+        type: 'box', layout: 'vertical', paddingAll: padAll, spacing: gapToken,
+        contents: [
+          { type:'text', text:'🤵🏻新人👰🏻‍♀️', weight:'bold', size:'lg', color:KEYWORD_THEME.title, align:'center', wrap:true },
+          { type:'separator', color:sepColor, margin:'md' },
+          { type:'text', text:'你/妳是…我的？', size:'md', weight:'bold', color:KEYWORD_THEME.text, align:'center', wrap:true, margin:'md' }
+        ]
+      },
+      footer: {
+        type: 'box', layout: 'horizontal', spacing: 'md', backgroundColor: KEYWORD_THEME.footer,
+        contents: [
+          buildChoiceChip_('🤵🏻親友','role=male'),
+          buildChoiceChip_('👰🏻‍♀️親友','role=female')
+        ]
+      }
+    }
+  };
 }
 
-/* 左區（黃） */
-.left-wrap{
-  position:relative;
-  background:linear-gradient(180deg, var(--paper-grad-from), var(--paper-grad-to));
-  border-radius:var(--radius-xl); border:1px solid rgba(0,0,0,.05); padding:12px; overflow:hidden;
+/* ---------- Reply ---------- */
+function replyFlex_(token, replyToken, flexMsg){
+  const url='https://api.line.me/v2/bot/message/reply';
+  const payload={ replyToken, messages:[ flexMsg ] };
+  const opt={ method:'post', contentType:'application/json', headers:{Authorization:'Bearer '+token}, payload:JSON.stringify(payload), muteHttpExceptions:true };
+  try{ UrlFetchApp.fetch(url,opt); }catch(_){}
 }
-.left-content{ position:relative; height:100%; }
-
-/* 新人 chip（顯示新郎名/新娘名；粗體） */
-.chip{
-  position:absolute; min-width:var(--chip-w); height:var(--chip-h);
-  background:#fff; border:1px solid var(--rim); border-radius:10px;
-  box-shadow:0 2px 8px rgba(0,0,0,.06);
-  display:flex; align-items:center; justify-content:center; gap:8px; padding:6px 10px; user-select:none;
+function replyAudio_(token, replyToken, audioUrl, durationMs){
+  const url='https://api.line.me/v2/bot/message/reply';
+  const payload={ replyToken, messages:[{ type:'audio', originalContentUrl:String(audioUrl), duration:Number(durationMs)||1000 }] };
+  const opt={ method:'post', contentType:'application/json', headers:{Authorization:'Bearer '+token}, payload:JSON.stringify(payload), muteHttpExceptions:true };
+  try{ UrlFetchApp.fetch(url,opt); }catch(_){}
 }
-#chipBride{ top:var(--chip-gap); left:var(--chip-gap); }
-#brideLabel{ font-weight:800; }
-
-/* 內文編輯器 + 淡淡 placeholder */
-.editor{
-  position:absolute;
-  top:calc(var(--chip-gap) + var(--chip-h) + 16px);
-  right:var(--chip-gap);
-  bottom:calc(var(--chip-gap) + var(--left-actions-h) + 10px);
-  left:var(--chip-gap);
-  overflow:auto;
-  line-height:1.8; outline:none; background:transparent; border-radius:12px; padding:14px;
-  font-size:var(--editor-zoom); border:1px dashed rgba(0,0,0,.12);
-}
-.editor[data-empty]{ opacity:1; color:rgba(15,23,42,.25); -webkit-text-stroke:0; text-shadow:none; font-style:italic; }
-.editor.locked{ pointer-events:none; opacity:.85; }
-
-/* 下方三顆 */
-.left-actions{
-  position:absolute; left:var(--chip-gap); right:var(--chip-gap);
-  bottom:var(--chip-gap); height:var(--left-actions-h);
-  display:flex; gap:10px; font-size:16px;
-}
-.left-actions > *{ flex:1 1 0; height:100%; }
-.left-actions button{
-  background:#fff; border:1px solid var(--rim); border-radius:10px; font-weight:800;
-  box-shadow:var(--shadow-2); cursor:pointer;
-}
-.left-actions button:active{ transform:translateY(1px) scale(.99); }
-
-/* 簽名 chip */
-#chipSign{
-  position:static; display:flex; align-items:center; justify-content:center; cursor:pointer;
-  background:#fff; border:1px solid var(--rim); border-radius:10px; box-shadow:var(--shadow-2);
-  padding:0 8px;
-}
-#chipSign:not(.has-img){ opacity:.22; }
-#chipSign.locked{ opacity:.9; pointer-events:none; }
-#chipSign.has-img{ padding:0 6px; }
-#chipSign .hint{ font-weight:900; }
-#signThumb{ display:none; width:100%; height:70%; object-fit:contain; }
-#chipSign.has-img #signThumb{ display:block; }  #chipSign.has-img .hint{ display:none; }
-
-/* 右區祝福牆（粉） */
-.wall-wrap{
-  background:linear-gradient(180deg,var(--wall-grad-from),var(--wall-grad-to));
-  border-radius:var(--radius-xl); border:1px solid rgba(0,0,0,.05);
-  padding:12px; overflow:auto;
-}
-.wall{
-  min-height:280px; display:grid;
-  grid-template-columns: repeat(auto-fill, minmax(var(--tile-w), 1fr));
-  gap:14px; align-content:start; padding:2px;
-  overflow:visible;
+function replyMulti_(token, replyToken, messages){
+  const url='https://api.line.me/v2/bot/message/reply';
+  const payload={ replyToken, messages };
+  const opt={ method:'post', contentType:'application/json', headers:{Authorization:'Bearer '+token}, payload:JSON.stringify(payload), muteHttpExceptions:true };
+  try{ UrlFetchApp.fetch(url,opt); }catch(_){}
 }
 
-/* === 吊牌造型（上緣斜切、孔、嫩芽；木紋更強；繩條更像麻繩） === */
-.tile{
-  position:relative; width:100%; height:var(--tile-h);
-  padding:14px 12px 12px;
-  cursor:pointer; overflow:visible; display:flex; flex-direction:column; gap:6px;
-
-  background:
-    /* 底色 */
-    linear-gradient(180deg,#f3e6d6,#ead9c6),
-    /* 斜向細紋 */
-    repeating-linear-gradient(12deg,
-      rgba(0,0,0, calc(.02 + var(--wood-grain-contrast)*.10)) 0,
-      rgba(0,0,0, calc(.02 + var(--wood-grain-contrast)*.10)) 5px,
-      rgba(255,255,255, calc(.02 + var(--wood-grain-contrast)*.06)) 5px,
-      rgba(255,255,255, calc(.02 + var(--wood-grain-contrast)*.06)) 10px
-    ),
-    /* 年輪 */
-    repeating-linear-gradient(0deg,
-      rgba(0,0,0, calc(.012 + var(--wood-grain-contrast)*.03)) 0,
-      rgba(0,0,0, calc(.012 + var(--wood-grain-contrast)*.03)) 2px,
-      rgba(255,255,255, calc(.012 + var(--wood-grain-contrast)*.03)) 2px,
-      rgba(255,255,255, calc(.012 + var(--wood-grain-contrast)*.03)) 4px
-    ),
-    /* 結疤 */
-    radial-gradient(18px 12px at 28% 32%, rgba(0,0,0,.07), transparent 60%),
-    radial-gradient(14px 10px at 72% 64%, rgba(0,0,0,.07), transparent 60%);
-  border:1px solid #d2c2ad;
-  border-radius:14px;
-  box-shadow:0 10px 18px rgba(0,0,0,.10);
-
-  /* 上緣斜切 */
-  clip-path: polygon(0 10%, 12% 0, 88% 0, 100% 10%, 100% 100%, 0 100%);
-}
-
-/* 吊孔 */
-.tile::before{
-  content:"";
-  position:absolute; top:6px; left:50%; transform:translateX(-50%);
-  width:16px; height:16px; border-radius:50%;
-  background: radial-gradient(circle at 35% 35%, #fff 0 35%, #bbb 36% 60%, transparent 61%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.8), inset 0 -1px 0 rgba(0,0,0,.15);
-}
-
-/* 嫩芽 */
-.tile::after{
-  content:"";
-  position:absolute; top:-4px; right:14px; width:18px; height:12px; border-radius:0 18px 18px 18px / 0 12px 12px 12px;
-  background: linear-gradient(180deg,#7fcf7a,#58b35a);
-  box-shadow: 0 1px 0 rgba(255,255,255,.45), inset 0 -1px 0 rgba(0,0,0,.15);
-}
-
-/* 麻繩（更細、繞結） */
-.tile .rope{
-  position:absolute; top:-14px; left:50%; transform:translateX(-50%);
-  width:var(--rope-width); height:var(--rope-height);
-  background:
-    repeating-linear-gradient(90deg, #b77c3a 0 3px, #c98a45 3px 6px),
-    linear-gradient(180deg, rgba(255,255,255,.65), rgba(255,255,255,0) 55%),
-    linear-gradient(0deg, rgba(0,0,0,.12), transparent 60%);
-  border-radius:999px; filter:saturate(.9); box-shadow:0 2px var(--rope-shadow) rgba(0,0,0,.12);
-}
-.tile .knot{
-  position:absolute; top:-4px; left:50%; transform:translateX(-50%);
-  width:calc(var(--knot-size) * 1.05); height:var(--knot-size);
-  background:
-    radial-gradient(60% 80% at 35% 40%, rgba(255,255,255,.55), transparent 60%),
-    linear-gradient(180deg,#c88237,#a9652b);
-  border-radius:12px; box-shadow:0 2px 0 rgba(0,0,0,.08), 0 8px 14px rgba(0,0,0,.10);
-  border:1px solid rgba(0,0,0,.12);
-}
-
-/* 牌面內容 */
-.tile-name{ font-weight:800; text-align:center; margin-top:10px; }
-.tile-sep{ height:1px; background:rgba(0,0,0,.12); margin:6px 0; }
-.tile-date{ font-size:12px; opacity:.8; text-align:center; }
-.tile-snippet{
-  font-size:14px; line-height:1.6; text-align:left; word-break:break-word;
-  display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;
-  text-overflow:ellipsis; white-space:normal;
-}
-
-/* 檢視窗與底部送出 */
-.overlay{ position:fixed; inset:0; z-index:9999; display:none; align-items:center; justify-content:center; background:rgba(17,24,39,.35); backdrop-filter:blur(3px); }
-.overlay.show{ display:flex; }
-.dialog{ width:min(92vw,680px); max-height:82vh; background:var(--soft); border:1px solid var(--rim); border-radius:14px; padding:16px; box-shadow:0 18px 44px rgba(0,0,0,.18); overflow:auto; }
-.dialog h3{ margin:0 0 10px; font-size:18px; color:#6b5e52; text-align:center; -webkit-text-stroke:0; text-shadow:none; }
-.view-meta{ text-align:center; font-size:12px; opacity:.75; margin-bottom:8px; }
-.view-content{ background:#fff; border:1px solid #ddd; border-radius:12px; padding:12px; line-height:1.8; }
-.view-actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
-.view-actions button{ min-width:120px; height:var(--tool-h); border-radius:10px; border:1px solid var(--rim); background:#fff; cursor:pointer; font-weight:700; }
-
-.footer-actions{ flex:0 0 auto; display:flex; justify-content:center; align-items:center; padding:14px 0 16px; }
-.primary{ min-width:var(--btn-w); height:var(--btn-h); padding:0 20px; background:#fff; border:1px solid var(--rim); border-radius:var(--radius-md); font-weight:700; cursor:pointer; box-shadow:var(--shadow-2); }
-.primary:active{ transform:translateY(1px) scale(.99); }
-
-footer{ position:fixed; left:0; right:0; bottom:var(--footer-gap); text-align:center; color:#6b5e52; font-size:12px; opacity:.9; pointer-events:none; z-index:5; }
-
-#sigOverlay .dialog{ width:min(92vw,520px); }
-#pad{ width:100%; height:260px; background:#fff; border:1px solid #ddd; border-radius:12px; touch-action:none; }
-.dlg-actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
-.dlg-actions button{ width:120px; height:var(--tool-h); border-radius:10px; border:1px solid var(--rim); background:#fff; cursor:pointer; font-weight:700; }
-</style>
-
-<body>
-  <img class="bg-photo" src="./assets/favors.png" alt="">
-
-  <div class="panel">
-    <div class="titlebar">
-      <h2>❤️同心祈願❤️</h2>
-
-      <div class="bar">
-        <div class="bar-inner" id="barInner">
-          <div class="rolebar">
-            <button type="button" class="role-btn active" id="roleAll">全部</button>
-            <button type="button" class="role-btn" id="roleMale">男方</button>
-            <button type="button" class="role-btn" id="roleFemale">女方</button>
-          </div>
-
-          <p id="status">📥 還在等待，待送出資料</p>
-
-          <div class="toolbar" role="toolbar" aria-label="文字工具">
-            <button class="tool-btn" id="btnBold"      type="button" title="粗體">粗體</button>
-            <button class="tool-btn" id="btnItalic"    type="button" title="斜體">斜體</button>
-            <button class="tool-btn" id="btnUnderline" type="button" title="底線">底線</button>
-            <select id="colorPick" class="tool-select" title="字體顏色">
-              <option value="" selected>顏色</option>
-              <option value="#a21caf">小紫</option>
-              <option value="#dc2626">小紅</option>
-              <option value="#2563eb">小藍</option>
-              <option value="#059669">小綠</option>
-              <option value="#d97706">小橘</option>
-              <option value="#6b7280">小灰</option>
-            </select>
-            <button class="tool-btn" id="btnBigger"    type="button" title="放大">放大</button>
-            <button class="tool-btn" id="btnSmaller"   type="button" title="縮小">縮小</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="stage">
-      <div class="card" id="card">
-        <!-- 左 1/3：黃底 -->
-        <section class="left-wrap">
-          <div class="left-content">
-            <div class="chip" id="chipBride" title="新人"><span id="brideLabel">Dear —</span></div>
-
-            <div class="editor" id="editor" contenteditable="true" aria-label="祈願內容" data-empty>
-              寫下並獻上最誠摯的祝福…💝
-            </div>
-
-            <div class="left-actions">
-              <button id="btnEdit"  type="button">修改</button>
-              <button id="btnSend"  type="button">送出</button>
-              <div class="chip" id="chipSign" title="點此簽名">
-                <span class="hint">簽名畫押</span>
-                <img id="signThumb" alt="signature preview" />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- 右 2/3：粉底祝福牆 -->
-        <section class="wall-wrap">
-          <div class="wall" id="wall"></div>
-        </section>
-      </div>
-    </div>
-
-    <div class="footer-actions">
-      <button id="btnSubmit" class="primary" type="button">送出滿滿祝福</button>
-    </div>
-  </div>
-
-  <footer>© Copyright 2025 MY‘s System</footer>
-
-  <!-- 檢視窗（僅關閉） -->
-  <div id="viewOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="viewTitle">
-    <div class="dialog">
-      <h3 id="viewTitle">祝福內容</h3>
-      <div class="view-meta" id="viewMeta"></div>
-      <div id="viewContent" class="view-content"></div>
-      <div class="view-actions">
-        <button id="viewClose" type="button">關閉</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 簽名 Modal -->
-  <div id="sigOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="sigTitle">
-    <div class="dialog">
-      <h3 id="sigTitle">請於下方畫押唷😈</h3>
-      <canvas id="pad"></canvas>
-      <div class="dlg-actions">
-        <button id="sigClear"  type="button">清除</button>
-        <button id="sigCancel" type="button">取消</button>
-        <button id="sigOK"     type="button">確定</button>
-      </div>
-    </div>
-  </div>
-
-<script>
-/* ====== 基本設定（請放你的值） ====== */
-const LIFF_ID='2008149060-m5pDXW6a'; // 你的 LIFF
-const WEBHOOK='https://script.google.com/macros/s/AKfycbynvgsNT0U91vmqdNJgMq--H5vc_BnIW5pvR3pz1qVKC-A8U1zpS14dxDFRoWl6KHnz/exec'; // 你的 GAS
-const TIMEOUT_MS=20000;
-
-/* 狀態列 */
-function setStatus(m){
-  const el=document.getElementById('status');
-  el.textContent=m; el.classList.remove('ok','busy','err');
-  if(/成功|已載入|就緒|完成|鎖定|可以/.test(m)) el.classList.add('ok');
-  else if(/送出中|等待|處理/.test(m)) el.classList.add('busy');
-  else if(/失敗|逾時|無法|錯誤/.test(m)) el.classList.add('err');
-}
-
-/* LIFF / Profile / 角色名 */
-let lineId='',displayName='',pictureUrl='', myLastRow=null, roleCode='', manName='', womanName='';
-async function initLIFF(){
-  if(typeof liff==='undefined'){ setStatus('未載入LIFF SDK，可先測樣式'); await initialLoadWithoutLIFF(); return; }
+/* ---------- LINE Profile 取得（用於永久保留頭貼/暱稱） ---------- */
+function fetchUserProfile_(channelToken, userId){
+  if(!channelToken || !userId) return { displayName:'', pictureUrl:'' };
+  const url = 'https://api.line.me/v2/bot/profile/' + encodeURIComponent(userId);
+  const opt = { method:'get', headers:{ Authorization:'Bearer '+channelToken }, muteHttpExceptions:true };
   try{
-    setStatus('⏳ 正在初始化，請稍後...');
-    await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser:true });
-    if(!liff.isLoggedIn()){ liff.login({ scope:['openid','profile'] }); return; }
-    if(liff.ready) await liff.ready;
-    let prof=null, idt=null;
-    try{ prof=await liff.getProfile(); }catch(_){}
-    try{ idt=liff.getDecodedIDToken(); }catch(_){}
-    lineId=(prof&&prof.userId)||(idt&&idt.sub)||'';
-    displayName=(prof&&prof.displayName)||(idt&&(idt.name||idt.nickname))||'';
-    pictureUrl=(prof&&prof.pictureUrl)||'';
-
-    // 取得角色與新郎/新娘姓名；更新標籤
-    await fetchRoleAndNames();
-
-    // 取得自己最近一筆（自動帶入、預設鎖定、簽名復原）
-    await preloadMyLatest();
-
-    // 載入牆
-    await refreshWall();
-    setStatus('✅ 初始化完成，可以填寫囉');
-  }catch(e){
-    setStatus('❌ 初始化失敗：' + (e && e.message ? e.message : '未知錯誤'));
-  }
-}
-async function initialLoadWithoutLIFF(){
-  await fetchRoleAndNames(); // 可能拿不到 lineId，但 API 會保護
-  await refreshWall();
-}
-
-/* 角色與姓名：userRole */
-async function fetchRoleAndNames(){
-  try{
-    const url = WEBHOOK+`?action=userRole&lineId=${encodeURIComponent(lineId||'')}`;
-    const j = await fetchJSON(url,{method:'GET',cache:'no-store'});
-    if(j && j.ok){
-      roleCode = String(j.role||'');
-      manName = String(j.man||'');
-      womanName = String(j.woman||'');
-      const nameLabel = String(j.nameLabel|| (manName&&womanName? `${manName} & ${womanName}` : '—'));
-      document.getElementById('brideLabel').textContent = nameLabel || '—';
+    const r = UrlFetchApp.fetch(url,opt);
+    if(r.getResponseCode()===200){
+      const j = JSON.parse(r.getContentText()||'{}');
+      return {
+        displayName: String(j.displayName||''),
+        pictureUrl : String(j.pictureUrl||'')
+      };
     }
   }catch(_){}
+  return { displayName:'', pictureUrl:'' };
 }
 
-/* 自己最近一筆（帶回內容、簽名狀態、row） */
-async function preloadMyLatest(){
-  if(!lineId) return;
-  try{
-    const j = await fetchJSON(WEBHOOK+`?action=getLatestByLineId&lineId=${encodeURIComponent(lineId)}`,{method:'GET',cache:'no-store'});
-    if(j && j.ok && j.item){
-      const it=j.item;
-      if(it.contentHTML){
-        editor.innerHTML = it.contentHTML;
-        editor.removeAttribute('data-empty');
-        lockEditor(); // 預設鎖定
-      }
-      if(it.signature){
-        const chip=document.getElementById('chipSign'); const img=document.getElementById('signThumb');
-        img.src = it.signatureType==='drive' ? it.signature : it.signature; // drive URL 或 base64 都可顯示
-        chip.classList.add('has-img');
-        chip.classList.add('locked'); // 已送出時禁止換簽
-      }
-      myLastRow = Number(it.row||0) || null;
-    }
-  }catch(_){}
+/* ---------- Spreadsheet helpers ---------- */
+function openMain_(){ return SpreadsheetApp.openById(SPREADSHEET_ID_MAIN); }
+function openPublic_(){ return SpreadsheetApp.openById(SPREADSHEET_ID_PUBLIC); }
+
+function ensureHeaderAtRow1_(sh, expectedHeader){
+  const last=sh.getLastRow();
+  if(last===0){ sh.getRange(1,1,1,expectedHeader.length).setValues([expectedHeader]); return; }
+  const vals=sh.getRange(1,1,1,expectedHeader.length).getValues()[0];
+  const same=expectedHeader.every((h,i)=>String(vals[i]||'').toLowerCase()===String(h).toLowerCase());
+  if(!same){ sh.getRange(1,1,1,expectedHeader.length).setValues([expectedHeader]); }
+}
+function ensureLogs_(ss){
+  let sh=ss.getSheetByName(SHEET_LOGS); if(!sh) sh=ss.insertSheet(SHEET_LOGS);
+  /* >>> 表頭依你指定的新順序 <<< */
+  const header = ['time','lineId','pictureUrl','這是親友(男方或女方)','displayName','instruments','notes','message'];
+  ensureHeaderAtRow1_(sh, header);
+  return sh;
 }
 
-/* 工具列（沿用） */
-const editor=document.getElementById('editor');
-function btnExec(cmd){ if(editor.hasAttribute('data-empty')||editor.classList.contains('locked')) return; document.execCommand(cmd,false,null); editor.focus(); }
-document.getElementById('btnBold').addEventListener('click',()=>btnExec('bold'));
-document.getElementById('btnItalic').addEventListener('click',()=>btnExec('italic'));
-document.getElementById('btnUnderline').addEventListener('click',()=>btnExec('underline'));
-document.getElementById('colorPick').addEventListener('change',e=>{
-  const v=e.target.value; if(!editor.hasAttribute('data-empty') && !editor.classList.contains('locked') && v){ document.execCommand('foreColor',false,v); editor.focus(); }
-  e.target.blur();
-});
-function wrapSelectionWithClass(cls){
-  if(editor.hasAttribute('data-empty')||editor.classList.contains('locked')) return false;
-  const sel=window.getSelection(); if(!sel.rangeCount) return false;
-  const r=sel.getRangeAt(0); if(r.collapsed) return false;
-  const span=document.createElement('span'); span.className=cls;
-  try{ r.surroundContents(span);}catch(_){ const f=r.extractContents(); span.appendChild(f); r.insertNode(span); }
-  const s2=window.getSelection(); s2.removeAllRanges(); const nr=document.createRange(); nr.setStartAfter(span); nr.collapse(true); s2.addRange(nr);
-  editor.focus(); return true;
+/* ---------- logs 操作（依新欄位順序） ---------- */
+function findLogRowByLineId_(sh, lineId){
+  const last=sh.getLastRow(); if(last<=HEADER_ROWS) return -1;
+  const vals=sh.getRange(HEADER_ROWS+1,2,last-HEADER_ROWS,1).getValues(); // B 欄 lineId
+  for(let i=0;i<vals.length;i++){ if(String(vals[i][0]||'')===String(lineId)) return i+HEADER_ROWS+1; }
+  return -1;
 }
-let globalScale=1;
-function setGlobalScale(sc){ globalScale=Math.max(0.7,Math.min(1.7,sc)); editor.style.setProperty('--editor-zoom',globalScale+'rem'); }
-function stepBigger(){ if(!wrapSelectionWithClass('fs-up-1')) setGlobalScale(globalScale+0.06); }
-function stepSmaller(){ if(!wrapSelectionWithClass('fs-down-1')) setGlobalScale(globalScale-0.06); }
-document.getElementById('btnBigger').addEventListener('click',stepBigger);
-document.getElementById('btnSmaller').addEventListener('click',stepSmaller);
-
-/* placeholder */
-const PLACEHOLDER='寫下並獻上最誠摯的祝福…💝';
-function showPlaceholder(){ editor.setAttribute('data-empty',''); editor.textContent=PLACEHOLDER; }
-editor.addEventListener('focus',()=>{ if(editor.hasAttribute('data-empty')){ editor.textContent=''; editor.removeAttribute('data-empty'); }});
-editor.addEventListener('blur',()=>{ if(!editor.textContent.trim()) showPlaceholder(); });
-
-/* 簽名 */
-const sigOverlay=document.getElementById('sigOverlay');
-const pad=document.getElementById('pad'); const ctx=pad.getContext('2d');
-let drawing=false,lastX=0,lastY=0,signatureDataURL='';
-function fitCanvas(){ const dpr=Math.max(1,window.devicePixelRatio||1),w=pad.clientWidth,h=pad.clientHeight; pad.width=w*dpr; pad.height=h*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); ctx.lineCap='round'; ctx.lineJoin='round'; ctx.lineWidth=3; ctx.strokeStyle='#111'; ctx.clearRect(0,0,w,h); }
-function openSign(){ if(document.getElementById('chipSign').classList.contains('locked')) return; sigOverlay.classList.add('show'); setTimeout(fitCanvas,40); }
-function closeSign(){ sigOverlay.classList.remove('show'); }
-function pos(e){ const r=pad.getBoundingClientRect(); return {x:(e.touches?e.touches[0].clientX:e.clientX)-r.left, y:(e.touches?e.touches[0].clientY:e.clientY)-r.top}; }
-function start(e){ drawing=true; const p=pos(e); lastX=p.x; lastY=p.y; e.preventDefault(); }
-function move(e){ if(!drawing) return; const p=pos(e); ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke(); lastX=p.x; lastY=p.y; e.preventDefault(); }
-function end(){ drawing=false; }
-pad.addEventListener('mousedown',start); pad.addEventListener('mousemove',move); pad.addEventListener('mouseup',end); pad.addEventListener('mouseleave',end);
-pad.addEventListener('touchstart',start,{passive:false}); pad.addEventListener('touchmove',move,{passive:false}); pad.addEventListener('touchend',end);
-document.getElementById('chipSign').addEventListener('click',openSign);
-document.getElementById('sigClear').addEventListener('click',fitCanvas);
-document.getElementById('sigCancel').addEventListener('click',closeSign);
-document.getElementById('sigOK').addEventListener('click',()=>{
-  signatureDataURL=pad.toDataURL('image/png');
-  const chip=document.getElementById('chipSign'); const img=document.getElementById('signThumb');
-  img.src=signatureDataURL; chip.classList.add('has-img');
-  closeSign();
-});
-
-/* 祝福牆 */
-const wallEl=document.getElementById('wall');
-let currentRole='all';
-async function fetchJSON(url, opt){
-  const r=await fetch(url,opt); const ct=(r.headers.get('content-type')||'').toLowerCase();
-  const t=await (ct.includes('application/json')? r.json(): r.text()); return t;
-}
-function escapeHTML(s){ return String(s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
-function formatDateTime(s){ if(!s) return ''; const t=String(s).replace('T',' '); return t.slice(0,19); }
-function tileTemplate(item){
-  const date=formatDateTime(item.time||''); const snippet=(item.preview||'').trim()||'—';
-  return `<div class="tile" data-row="${item.row||''}" data-owner="${item.lineId||''}">
-    <div class="rope"></div><div class="knot"></div>
-    <div class="tile-name">${escapeHTML(item.displayName||'—')}</div>
-    <div class="tile-sep"></div>
-    <div class="tile-date">${escapeHTML(date)}</div>
-    <div class="tile-sep"></div>
-    <div class="tile-snippet">${escapeHTML(snippet)}</div>
-  </div>`;
-}
-async function refreshWall(){
-  try{
-    const url=WEBHOOK+`?action=listblessings&role=${encodeURIComponent(currentRole)}`;
-    const j=await fetchJSON(url,{method:'GET',cache:'no-store'});
-    if(j && j.ok){
-      const items=j.items||[];
-      wallEl.innerHTML=items.map(tileTemplate).join('')||'';
-      if(lineId){
-        const mine=items.filter(it=>String(it.lineId||'')===String(lineId));
-        myLastRow = mine.length ? Math.max(...mine.map(it=>Number(it.row||0))) : (myLastRow||null);
-      }
-      bindTileClicks();
-    }
-  }catch(e){}
-}
-function bindTileClicks(){ wallEl.querySelectorAll('.tile').forEach(tile=>{ tile.addEventListener('click', ()=>openView(tile)); }); }
-
-/* 檢視窗（看全文） */
-const viewOverlay=document.getElementById('viewOverlay');
-const viewMeta=document.getElementById('viewMeta');
-const viewContent=document.getElementById('viewContent');
-const btnViewClose=document.getElementById('viewClose');
-btnViewClose.addEventListener('click',()=>{ viewOverlay.classList.remove('show'); });
-async function openView(tileEl){
-  const row=tileEl.getAttribute('data-row');
-  try{
-    const j=await fetchJSON(WEBHOOK+`?action=getBlessingDetail&id=${encodeURIComponent(row)}`,{method:'GET',cache:'no-store'});
-    if(j&&j.ok&&j.item){
-      const it=j.item; const date=formatDateTime(it.time||'');
-      viewMeta.textContent=`${it.displayName||'—'} ｜ ${date}`; viewContent.innerHTML=it.contentHTML||'';
-      viewOverlay.classList.add('show');
-    }
-  }catch(e){}
-}
-
-/* 角色切換 */
-function setRole(role){
-  currentRole=role; document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));
-  if(role==='all') document.getElementById('roleAll').classList.add('active');
-  if(role==='male') document.getElementById('roleMale').classList.add('active');
-  if(role==='female') document.getElementById('roleFemale').classList.add('active');
-  refreshWall();
-}
-document.getElementById('roleAll').addEventListener('click',()=>setRole('all'));
-document.getElementById('roleMale').addEventListener('click',()=>setRole('male'));
-document.getElementById('roleFemale').addEventListener('click',()=>setRole('female'));
-
-/* 編輯鎖定控制 */
-function lockEditor(){ editor.classList.add('locked'); editor.setAttribute('contenteditable','false'); }
-function unlockEditor(){ editor.classList.remove('locked'); editor.setAttribute('contenteditable','true'); editor.focus(); }
-function lockSignature(){ document.getElementById('chipSign').classList.add('locked'); }
-document.getElementById('btnEdit').addEventListener('click',()=>{ unlockEditor(); });
-
-/* 送出 / 更新（未簽名不得送出） */
-function hasSignature(){ return document.getElementById('chipSign').classList.contains('has-img'); }
-async function sendOrUpdate(){
-  if(editor.hasAttribute('data-empty') || !editor.textContent.trim()){
-    alert('欸，不可能不祝福我們吧🖕️'); return;
-  }
-  if(!hasSignature()){
-    alert('欸，沒有畫押不准離開✍️'); return;
-  }
-  const text=editor.innerHTML.trim();
-
-  try{
-    const ping=await fetch(WEBHOOK+'?action=ping',{method:'GET',cache:'no-store'});
-    const t=await ping.text().catch(()=> ''); if(String(t).trim().toLowerCase()!=='ok'){ setStatus('⚠️ 後端未回應正常，嘗試無效請回到官方LINE呼叫管理員'); return; }
-  }catch(_){ setStatus('⚠️ 無法連線到後端，嘗試無效請回到官方LINE呼叫管理員'); return; }
-
-  setStatus('⏳ 送出中…');
-
-  let payload = myLastRow
-    ? { action:'updateBlessing', row:Number(myLastRow), lineId, contentHTML:text }
-    : { action:'createBlessing', lineId, displayName, pictureUrl, contentHTML:text, signaturePNG:signatureDataURL||'', extra:{} };
-
-  try{
-    const r=await fetch(WEBHOOK,{ method:'POST', headers:{'Content-Type':'text/plain;charset=UTF-8'}, body:JSON.stringify(payload) });
-    const j=await r.json().catch(()=>null);
-
-    if(j && j.ok){
-      setStatus(myLastRow ? '✅ 已更新並鎖定' : '✅ 已送出並鎖定');
-      lockEditor(); lockSignature();
-      await refreshWall();
-      // 若剛 create 成功，抓自己的最新一筆設 myLastRow
-      if(!myLastRow) await preloadMyLatest();
-    }else if(j && j.error==='deadline_passed'){
-      setStatus('⛔ 已到截止日，無法送出及編輯'); lockEditor(); lockSignature();
-    }else{
-      setStatus('❌ 送出失敗，請稍後再試');
-    }
-  }catch(e){
-    setStatus('❌ 送出失敗 ' + (e && e.message ? e.message : '未知錯誤'));
+/* 僅在提供非空值時才覆蓋，永久保留歷史；新順序：A=time, B=lineId, C=pictureUrl, D=role, E=displayName, F=instruments, G=notes, H=message */
+function bindLineIdEnsureRow_(ss, lineId, displayName, pictureUrl){
+  const sh = ensureLogs_(ss);
+  const r = findLogRowByLineId_(sh, lineId);
+  if(r === -1){
+    sh.appendRow([ nowStr(), lineId, String(pictureUrl||''), '', String(displayName||''), '', '', '' ]);
+  }else{
+    const row = sh.getRange(r, 1, 1, 8).getValues()[0];
+    row[0] = nowStr();
+    row[1] = lineId;
+    /* 只有在傳入非空時，才覆蓋既有值，避免退出/回來後被清空 */
+    row[2] = String(pictureUrl||'')  ? String(pictureUrl)  : String(row[2]||''); // pictureUrl → C
+    // row[3] (=role) 不在這裡覆蓋，交由 setRole_ 控制
+    row[4] = String(displayName||'') ? String(displayName) : String(row[4]||''); // displayName → E
+    sh.getRange(r, 1, 1, 8).setValues([row]);
   }
 }
-document.getElementById('btnSend').addEventListener('click',sendOrUpdate);
-document.getElementById('btnSubmit').addEventListener('click',sendOrUpdate);
+function alreadySubmitted_(sh,lineId){
+  const r=findLogRowByLineId_(sh,lineId); if(r===-1) return false;
+  const e=String(sh.getRange(r,6).getValue()||'').trim(); // F=instruments
+  const f=String(sh.getRange(r,7).getValue()||'').trim(); // G=notes
+  return !!(e||f);
+}
+function getRole_(sh,lineId){
+  const r=findLogRowByLineId_(sh,lineId); if(r===-1) return '';
+  return String(sh.getRange(r,4).getValue()||'').trim(); // D=role
+}
+function setRole_(sh,lineId,role){
+  const r=findLogRowByLineId_(sh,lineId); if(r===-1) return;
+  sh.getRange(r,4).setValue(String(role||'')); // D=role
+}
+function isFirstInteraction_(sh, lineId){
+  const r = findLogRowByLineId_(sh, lineId);
+  if(r === -1) return true;
+  const role = String(sh.getRange(r,4).getValue()||'').trim(); // D
+  const e=String(sh.getRange(r,6).getValue()||'').trim();      // F
+  const f=String(sh.getRange(r,7).getValue()||'').trim();      // G
+  return !role && !e && !f;
+}
 
-/* 啟動 */
-window.addEventListener('DOMContentLoaded', ()=>{
-  // 預設淡淡 placeholder
-  if(!editor.textContent.trim()) editor.setAttribute('data-empty','');
-  if(window.liff) initLIFF(); else { setStatus('📥 預覽模式'); initialLoadWithoutLIFF(); }
-});
-</script>
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-</body>
-</html>
+/* ---------- 截止判斷 ---------- */
+function getGlobalDeadline_(){
+  // 轉為台北時區當日 23:59:59
+  const d = new Date(GLOBAL_DEADLINE_ISO+'T23:59:59+08:00');
+  return d;
+}
+function isExpired_(){
+  return new Date() > getGlobalDeadline_();
+}
+
+/* ---------- HTTP 入口 ---------- */
+function doGet(e){
+  const p=e?.parameter||{}; const action=String(p.action||'').toLowerCase();
+  if(action==='ping') return T('ok');
+  if(action==='config') return J({ok:true});
+  return T('ok');
+}
+function doPost(e){
+  let body={}; try{ body=JSON.parse(e?.postData?.contents||'{}'); }catch(_){ body={}; }
+  if(body && Array.isArray(body.events)) return handleLineWebhook_(body);
+  return handleLiffSubmit_(body);
+}
+
+/* ---------- 狀態判斷（LINE 端先擋） ---------- */
+function respondByState_(channelToken, replyToken, shLogs, lineId){
+  if(!channelToken) return;
+  const submitted = alreadySubmitted_(shLogs, lineId);
+  const expired   = isExpired_();
+
+  if(!submitted && !expired){
+    replyFlex_(channelToken, replyToken, buildCard_Entrance_());
+  }else if(submitted){
+    replyFlex_(channelToken, replyToken, buildCard_Submitted_());
+  }else if(expired){
+    replyFlex_(channelToken, replyToken, buildCard_Expired_());
+  }
+}
+
+/* ---------- Webhook ---------- */
+function handleLineWebhook_(body){
+  const events=body.events||[];
+  const ssM=openMain_(); const ssP=openPublic_();
+  const shM=ensureLogs_(ssM);
+  const shP=ensureLogs_(ssP);
+  const channelToken=(PropertiesService.getScriptProperties().getProperty('CHANNEL_TOKEN')||'').trim();
+
+  events.forEach(ev=>{
+    try{
+      const userId = ev.source?.userId || '';
+      if(!userId) return;
+
+      /* follow：第一時間就抓一次 profile，永久保留；回歡迎音檔（維持原樣） */
+      if(ev.type==='follow'){
+        if(channelToken){
+          const prof = fetchUserProfile_(channelToken, userId);
+          bindLineIdEnsureRow_(ssM, userId, prof.displayName, prof.pictureUrl);
+          bindLineIdEnsureRow_(ssP, userId, prof.displayName, prof.pictureUrl);
+          replyAudio_(channelToken, ev.replyToken, WELCOME_AUDIO_URL, WELCOME_AUDIO_MS);
+        }
+        return;
+      }
+
+      /* postback：角色綁定，完成後也要按狀態判斷阻擋（不是一律入口卡）
+         ★★★ 同步寫入主本與副本的 D 欄（這是親友） ★★★ */
+      if(ev.type==='postback'){
+        const data = String(ev.postback?.data||'');
+        if(/role=male/.test(data)){        setRole_(shM, userId, ROLE_MALE_FRIEND);   setRole_(shP, userId, ROLE_MALE_FRIEND); }
+        else if(/role=female/.test(data)){ setRole_(shM, userId, ROLE_FEMALE_FRIEND); setRole_(shP, userId, ROLE_FEMALE_FRIEND); }
+
+        if(channelToken) respondByState_(channelToken, ev.replyToken, shM, userId);
+        return;
+      }
+
+      /* message（文字）：入口關鍵字才回卡片；同時補抓 profile（若缺） */
+      if(ev.type==='message' && ev.message?.type==='text'){
+        const rawInput=String(ev.message.text||'').trim();
+        const isPortal = KWS_PORTAL.some(k=>rawInput.includes(k));
+
+        // 建立 / 補齊使用者列
+        if(channelToken){
+          const prof = fetchUserProfile_(channelToken, userId);
+          bindLineIdEnsureRow_(ssM, userId, prof.displayName, prof.pictureUrl);
+          bindLineIdEnsureRow_(ssP, userId, prof.displayName, prof.pictureUrl);
+        }else{
+          bindLineIdEnsureRow_(ssM, userId, '', '');
+          bindLineIdEnsureRow_(ssP, userId, '', '');
+        }
+
+        // 指令「開始」維持原邏輯
+        if(rawInput==='開始'){
+          if(channelToken) replyMulti_(channelToken, ev.replyToken, [ buildCard_Reminder_(), buildCard_Entrance_() ]);
+          return;
+        }
+
+        // 未綁定且首次互動 / 入口關鍵字 → 先做身分二選一
+        const isBound  = !!getRole_(shM,userId);
+        if(!isBound && (isPortal || isFirstInteraction_(shM, userId))){
+          if(channelToken) replyFlex_(channelToken, ev.replyToken, buildCard_RoleSelect_());
+          return;
+        }
+
+        // 入口關鍵字 → 依狀態阻擋（已填 or 過期），否則給入口卡
+        if(isPortal){
+          respondByState_(channelToken, ev.replyToken, shM, userId);
+          return;
+        }
+      }
+    }catch(_){}
+  });
+  return J({status:'ok'});
+}
+
+/* ---------- LIFF 送單（與前端 payload 對齊；雙重保護 duplicate/deadline） ----------
+   ★★★ 依新欄位順序寫入：A=time, B=lineId, C=pictureUrl, D=role, E=displayName, F=instruments, G=notes, H=message ★★★ */
+function handleLiffSubmit_(body){
+  const ssM=openMain_(); const ssP=openPublic_();
+  const shM=ensureLogs_(ssM); const shP=ensureLogs_(ssP);
+
+  const lineId=String(body.lineId||'').trim();
+  const displayName=String(body.displayName||'').trim();
+  const pictureUrl=String(body.pictureUrl||'').trim();
+  const instruments=String(body.instrumentsCSV||'').trim();
+  const notes=String(body.notesCSV||'').trim();
+  const msg=String(body.extraMessage||'').trim();
+  if(!lineId) return J({ok:false, error:'missing_line_id'});
+
+  // 先確保 row 存在並補齊頭貼/暱稱（僅非空覆蓋）
+  bindLineIdEnsureRow_(ssM, lineId, displayName, pictureUrl);
+  bindLineIdEnsureRow_(ssP, lineId, displayName, pictureUrl);
+
+  // 截止保護
+  if(isExpired_()) return J({ok:false, error:'deadline_passed'});
+
+  // 重覆保護
+  if(alreadySubmitted_(shM, lineId)) return J({ok:false, error:'duplicate'});
+
+  // 取得角色（分別從主本/副本）
+  const roleM = getRole_(shM, lineId);
+  const roleP = getRole_(shP, lineId);
+
+  // 正常寫入（同時寫主本/副本；新順序）
+  const rM=findLogRowByLineId_(shM,lineId);
+  if(rM===-1){
+    shM.appendRow([ nowStr(), lineId, pictureUrl, roleM, displayName, instruments, notes, msg ]);
+  }else{
+    shM.getRange(rM,1,1,8).setValues([[ nowStr(), lineId, pictureUrl, roleM, displayName, instruments, notes, msg ]]);
+  }
+
+  const rP=findLogRowByLineId_(shP,lineId);
+  if(rP===-1){
+    shP.appendRow([ nowStr(), lineId, pictureUrl, roleP, displayName, instruments, notes, msg ]);
+  }else{
+    shP.getRange(rP,1,1,8).setValues([[ nowStr(), lineId, pictureUrl, roleP, displayName, instruments, notes, msg ]]);
+  }
+
+  return J({ok:true});
+}
