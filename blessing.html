@@ -360,8 +360,7 @@ function updateBrideLabelByUIRole(){
   const label =
     activeId === 'roleMale'   ? (manName || '—') :
     activeId === 'roleFemale' ? (womanName || '—') :
-    // ★ 調整點：全部時顯示「B 或 C」（不是 B & C）
-    (manName && womanName ? `${manName} 或 ${womanName}` : (manName || womanName || '—'));
+    [manName, womanName].filter(Boolean).join(' & ') || '—';
   $('#brideLabel').textContent = `Dear ${label}`;
 }
 
@@ -517,7 +516,8 @@ async function refreshWall(){
     const role=document.querySelector('.role-btn.active')?.id?.replace('role','').toLowerCase()||'all';
     const j=await (await fetch(WEBHOOK+`?action=listblessings&role=${role}&_t=${Date.now()}`, {cache:'no-store'})).json();
     if(j?.ok){
-      wallEl.innerHTML=(j.items||[]).map(tileTemplate).join('');
+      /* ★ 唯一調整：反轉，讓「最新在最上面」 */
+      wallEl.innerHTML=(j.items||[]).reverse().map(tileTemplate).join('');
       bindTileClicks();
     }
   }catch(_){}
