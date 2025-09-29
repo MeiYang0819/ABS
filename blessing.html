@@ -28,7 +28,7 @@
   --tile-w:180px; --tile-h:156px;
 
   /* ✅ 繩條/繩結（更細、外凸） */
-  --rope-width:6px;   /* ← 你要「細一點點」 */
+  --rope-width:6px;
   --rope-height:44px;
   --knot-size:18px;
 }
@@ -174,7 +174,7 @@ h2{
     linear-gradient(0deg,rgba(0,0,0,.12),transparent 60%);
   border-radius:999px;filter:saturate(.95);
   box-shadow:0 4px 10px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.55), inset 0 -1px 0 rgba(0,0,0,.10);
-  z-index:3; /* ← 讓繩子確實外凸在木牌之上 */
+  z-index:3;
 }
 .tile .knot{
   position:absolute;top:-14px;left:50%;transform:translateX(-50%);
@@ -182,7 +182,7 @@ h2{
   background:linear-gradient(180deg,#cc8a3d,#a9652b);
   border-radius:14px;border:1px solid rgba(0,0,0,.12);
   box-shadow:0 2px 0 rgba(0,0,0,.08), 0 12px 18px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.35), inset 0 -2px 0 rgba(0,0,0,.15);
-  z-index:4; /* ← 繩結也要外凸 */
+  z-index:4;
 }
 .tile .knot::before,.tile .knot::after{
   content:"";position:absolute;top:40%;width:54%;height:54%;
@@ -220,16 +220,15 @@ h2{
 .dlg-actions{display:flex;gap:10px;justify-content:center;margin-top:12px;}
 .dlg-actions button{width:120px;height:var(--tool-h);border-radius:10px;border:1px solid var(--rim);background:#fff;cursor:pointer;font-weight:700;}
 
-/* ✅ Footer 版權（維持你上版的固定左下角） */
-/* ★ 調整為置中（#4：只改定位） */
+/* ✅ Footer 版權（置中，上移一點） */
 footer.copyright{
-  position: fixed; left: 50%; transform: translateX(-50%); bottom: 8px;
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 22px;
   font-size: 12px; opacity: .75;
   -webkit-text-stroke: 0; text-shadow: none;
   z-index: 2;
 }
 
-/* ★ 讓底部送出鍵外觀與左側三顆一致（#7：純補充選擇器，不改你原 class） */
+/* ★ 讓底部送出鍵外觀與左側三顆一致（純補充選擇器，不改你原 class） */
 .footer-actions #btnSubmit{
   background:#fff;border:1px solid var(--rim);border-radius:10px;font-weight:800;box-shadow:var(--shadow-2);cursor:pointer;
   height: var(--tool-h); min-width: var(--btn-w);
@@ -343,7 +342,7 @@ footer.copyright{
 /* ===================== 前端設定（請確認） ===================== */
 /* ✅ 你的 LIFF 與 GAS WebApp Endpoint */
 const LIFF_ID='2008149060-m5pDXW6a';  // ← 你的 LIFF ID（同心祈願）
-const WEBHOOK='https://script.google.com/macros/s/AKfycbwr2R0gr8_Hbd8pad8lJSGD5HLJ_xCvmGfbB38_41imBcE2P6dzg8CP6gPGBwgMp5iT/exec'; // ← 你的 GAS 網址
+const WEBHOOK='https://script.google.com/macros/s/AKfycbyI8jV6hj-FZ2rdj0c0DvdAAmlg4pbb64IhtfA8mmkUO9mDh_xFuTH1g3lzcQKski6g/exec'; // ← 你的 GAS 網址
 
 /* ===================== DOM 快捷 ===================== */
 const $ = s => document.querySelector(s);
@@ -354,15 +353,16 @@ const img  = $('#signThumb');
 
 // === 新增：用於 Dear 標籤的資料（不影響其它流程/樣式） ===
 let manName = '', womanName = '', currentRoleCode = ''; // ROLE_MALE_FRIEND / ROLE_FEMALE_FRIEND / ''
-function updateBrideLabelByUIRole(){
-  // 依目前 UI 選中的角色鈕決定 Dear 顯示
-  const activeId = document.querySelector('.role-btn.active')?.id || 'roleAll';
-  const label =
-    activeId === 'roleMale'   ? (manName || '—') :
-    activeId === 'roleFemale' ? (womanName || '—') :
-    [manName, womanName].filter(Boolean).join(' & ') || '—';
-  $('#brideLabel').textContent = `Dear ${label}`;
+function activeRoleId(){ return document.querySelector('.role-btn.active')?.id || 'roleAll'; }
+function dearTextByActive(){
+  const id = activeRoleId();
+  if(id==='roleMale')   return manName    ? `Dear ${manName}`    : 'Dear —';
+  if(id==='roleFemale') return womanName  ? `Dear ${womanName}`  : 'Dear —';
+  // 全部：若兩邊都有就「A 或 B」，否則顯示有的那個
+  const both = [manName, womanName].filter(Boolean);
+  return both.length===2 ? `Dear ${manName} 或 ${womanName}` : (both[0] ? `Dear ${both[0]}` : 'Dear —');
 }
+function updateBrideLabelByUIRole(){ $('#brideLabel').textContent = dearTextByActive(); }
 
 function setStatus(m){ $('#status').textContent = m; }
 
@@ -373,7 +373,11 @@ async function initLIFF(){
   if(!window.liff){ await initialLoad(); return; }
   try{
     await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser:true });
-    if(!liff.isLoggedIn()){ liff.login(); return; }
+    if(!liff.isLoggedIn()){
+      // ★ 直接要求 scope，確保能拿到 lineId/displayName
+      liff.login({ scope: ['openid','profile'] });
+      return; // 登入後會回到本頁
+    }
     await liff.ready;
     const prof=await liff.getProfile().catch(()=>null);
     const idt =await liff.getDecodedIDToken().catch(()=>null);
@@ -381,7 +385,7 @@ async function initLIFF(){
     displayName = (prof && prof.displayName) || (idt && (idt.name||idt.nickname)) || '';
     pictureUrl  = (prof && prof.pictureUrl) || '';
   }catch(_){}
-  await fetchRoleAndNames();   // 角色 + A/B 名稱
+  await fetchRoleAndNames();   // 角色 + A/B 名稱（含：若女方親友→預設 Dear C）
   await preloadMyLatest();     // 載入自己最近一筆（若有）
   await refreshWall();         // 列表
 }
@@ -389,17 +393,26 @@ async function initLIFF(){
 /* 無 LIFF 也能先載入牆（匿名瀏覽） */
 async function initialLoad(){ await fetchRoleAndNames(); await refreshWall(); }
 
-/* ✅ 從 GAS 正確抓 nameLabel（action=userrole） */
+/* ✅ 從 GAS 正確抓 nameLabel（action=userrole）
+   ➜ 若回傳是女方親友（ROLE_FEMALE_FRIEND / 'female'），預設點亮「女方」，Dear 顯示成「Dear C」 */
 async function fetchRoleAndNames(){
   try{
     const url = WEBHOOK + `?action=userrole&lineId=${encodeURIComponent(lineId||'')}&_t=${Date.now()}`;
     const j = await (await fetch(url, {cache:'no-store'})).json();
     if(j?.ok){
-      // 存下新郎/新娘/角色代碼（不改其它流程）
       manName = String(j.man||'').trim();
       womanName = String(j.woman||'').trim();
-      currentRoleCode = String(j.role||'').trim(); // ROLE_MALE_FRIEND / ROLE_FEMALE_FRIEND / ''
-      // 依 UI 目前選中的角色鈕呈現 Dear
+      currentRoleCode = String(j.role||'').trim();
+
+      // ★ 根據角色自動切換 UI 的預設選擇，確保「Dear」對應正確
+      const isFemale = /ROLE_FEMALE_FRIEND|female/i.test(currentRoleCode);
+      const isMale   = /ROLE_MALE_FRIEND|male/i.test(currentRoleCode);
+
+      document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));
+      if(isFemale){ $('#roleFemale').classList.add('active'); } 
+      else if(isMale){ $('#roleMale').classList.add('active'); }
+      else { $('#roleAll').classList.add('active'); }
+
       updateBrideLabelByUIRole();
     }
   }catch(_){}
@@ -516,8 +529,7 @@ async function refreshWall(){
     const role=document.querySelector('.role-btn.active')?.id?.replace('role','').toLowerCase()||'all';
     const j=await (await fetch(WEBHOOK+`?action=listblessings&role=${role}&_t=${Date.now()}`, {cache:'no-store'})).json();
     if(j?.ok){
-      /* ★ 唯一調整：反轉，讓「最新在最上面」 */
-      wallEl.innerHTML=(j.items||[]).reverse().map(tileTemplate).join('');
+      wallEl.innerHTML=(j.items||[]).map(tileTemplate).join('');
       bindTileClicks();
     }
   }catch(_){}
@@ -555,10 +567,10 @@ async function sendOrUpdate(){
   if(!contentPlain){ alert('欸，不可能不祝福我們吧🖕️'); return; }
   if(!hasSignature()){ alert('欸，沒有畫押不准離開✍️'); return; }
 
-  // ★ 若尚未登入，提示並引導（#3）
+  // ★ 若尚未登入，提示並引導（與互動音符一致）
   if(!lineId){
     alert('請於 LINE App 內開啟並登入後再送出唷');
-    try{ if(window.liff && !liff.isLoggedIn()) liff.login(); }catch(_){}
+    try{ if(window.liff && !liff.isLoggedIn()) liff.login({ scope: ['openid','profile'] }); }catch(_){}
     return;
   }
 
