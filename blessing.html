@@ -1,614 +1,653 @@
 <!doctype html>
 <html lang="zh-Hant">
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>❤️同心祈願❤️</title>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🎵互動音符🎵</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
 
-<!-- ✅ 字體（維持你的配置） -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand:wght@400&family=Sacramento:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* ====================== 外觀樣式（你能改的我都有註記） ====================== */
+    /* ✅ 可更改：站內配色、欄寬、字級、陰影等 */
+    :root{
+      --brand:#D4BFAA;   /* ✅ 可更改：頁面主色 */
+      --title:#A68A7C;   /* ✅ 可更改：標題色 */
+      --neutral:#E4E4E4; /* ✅ 可更改：面板底色/邊框色 */
+      --soft:#F5F1EC;    /* ✅ 可更改：狀態列/鍵盤底色 */
+      --accent:#BFA5A0;  /* ✅ 可更改：重點文字顏色 */
+      --rim:#E4E4E4;     /* ✅ 可更改：輸入框邊框色 */
+      --ink:#0f172a;     /* ✅ 可更改：正文字色 */
 
-<style>
-:root{
-  /* ✅ 主題色：維持你的藍色主題 */
-  --brand-bg:#c9daf8;
-  --title:#A68A7C;  --ink:#0f172a; --accent:#A68A7C; --rim:#E4E4E4; --soft:#F5F1EC;
-  --panel-grad-from:#b7d2f6; --panel-grad-to:#cfe1fb;
+      --w-displayName: 220px; /* ✅ 可更改：暱稱欄寬（唯讀） */
+      --w-instrument:  96px;  /* ✅ 可更改：樂器選單寬 */
+      --w-lastNote:    160px; /* ✅ 可更改：三音顯示寬 */
+      --w-lastNote-m:  180px; /* ✅ 可更改：手機寬 */
 
-  --panel-maxw:1320px;
+      --label-w:88px; /* ✅ 可更改：左側標籤寬 */
+      --gap:10px;     /* ✅ 可更改：欄位間距 */
+      --kb-h:280px;   /* ✅ 可更改：樂器高度（piano/guitar 同步） */
+      --sep:2px;      /* ✅ 可更改：白鍵分隔線寬 */
 
-  --shadow-1:0 10px 26px rgba(0,0,0,.10);
-  --shadow-2:0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06);
+      --stroke:rgba(0,0,0,.18);   /* ✅ 可更改：字描邊 */
+      --glow:rgba(255,255,255,.65); /* ✅ 可更改：字高光 */
 
-  --editor-zoom:1rem; --toolbar-gap:8px; --h2-size:2.8rem;
-  --btn-w:184px; --btn-h:36px; --tool-h:36px;
+      --w-hintbtn: 160px; /* ✅ 可更改：備註按鈕寬 */
+      --hint-fz: 12px;    /* ✅ 可更改：備註字級 */
+      --hint-maxw: 520px; /* ✅ 可更改：備註最大寬 */
+    }
 
-  /* ✅ 木牌尺寸（維持） */
-  --tile-w:180px; --tile-h:156px;
+    *{
+      box-sizing:border-box;
+      font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif !important;
+      -webkit-text-stroke:.35px var(--stroke);
+      text-shadow:0 1px 0 var(--glow);
+    }
+    html,body{ margin:0; color:var(--ink); background:var(--brand); font-weight:700; }
+    #guideOverlay .dialog, #guideOverlay .dialog *{ font-weight:500 !important; -webkit-text-stroke:0 !important; text-shadow:none !important; }
 
-  /* ✅ 繩條/繩結（更細、外凸） */
-  --rope-width:6px;   /* ← 你要「細一點點」 */
-  --rope-height:44px;
-  --knot-size:18px;
-}
+    /* 容器與標題（外框/陰影/圓角） */
+    .bg-notes{ position:fixed; inset:0; width:100%; height:100%; object-fit:cover; opacity:.60; mix-blend-mode:multiply; filter:contrast(1.1); pointer-events:none; z-index:0; }
+    .panel{ position:relative; z-index:1; max-width:1060px; margin:22px auto; background:var(--neutral); border:1px solid var(--neutral);
+            border-radius:16px; padding:18px 18px 26px; box-shadow:0 10px 26px rgba(0,0,0,.10); backdrop-filter:blur(8px) saturate(115%); }
+    h2{ margin:4px 0 20px; text-align:center; font-size:2.8rem; font-weight:700; letter-spacing:1px; color:var(--title);
+        -webkit-text-stroke:.6px rgba(0,0,0,.12); text-shadow:0 3px 4px rgba(255,255,255,.75); }
 
-/* ✅ 背景圖（照你的要求恢復 favors.png?v=4） */
-.bg-notes{
-  position: fixed; inset: 0; width: 100%; height: 100%;
-  object-fit: cover; z-index: 0; pointer-events: none; user-select: none; opacity: .9;
-}
+    /* 表單列 */
+    .row{ display:flex; gap:var(--gap); align-items:center; flex-wrap:wrap; margin-top:10px; }
+    .row label{ width:var(--label-w); opacity:.92; white-space:nowrap; font-weight:700; -webkit-text-stroke:0; text-shadow:none; }
+    .row input,.row select,.row button{
+      height:38px; font-size:14px; background:#fff; padding:8px 10px; border:1px solid var(--rim); border-radius:10px;
+      -webkit-text-stroke:.25px rgba(0,0,0,.12); text-shadow:0 1px 0 rgba(255,255,255,.5);
+    }
+    .row input,.row select{ box-shadow: 0 2px 0 rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.04); }
 
-/* ✅ Layout 與面板（維持你的設定） */
-*{box-sizing:border-box;}
-html,body{
-  height:100%;margin:0;overflow:hidden;color:var(--ink);background:var(--brand-bg);
-  font-family:"Patrick Hand","Noto Sans TC",system-ui,-apple-system,sans-serif;
-  -webkit-text-stroke:.35px rgba(0,0,0,.18); text-shadow:0 1px 0 rgba(255,255,255,.65);
-}
-.panel{
-  position:relative;z-index:1;max-width:var(--panel-maxw);
-  height:calc(100vh - 110px);margin:26px auto;
-  background:linear-gradient(135deg,var(--panel-grad-from),var(--panel-grad-to));
-  border:1px solid var(--rim);border-radius:16px;box-shadow:var(--shadow-1);
-  display:flex;flex-direction:column;overflow:hidden;
-}
-h2{
-  position:relative;left:50%;transform:translateX(-50%);
-  margin:12px 0 6px;text-align:center;width:max-content;max-width:90%;
-  font-family:"Sacramento",cursive;font-weight:700;font-size:var(--h2-size);color:var(--title);
-  -webkit-text-stroke:.6px rgba(0,0,0,.12);text-shadow:0 3px 4px rgba(255,255,255,.75);
-}
-.bar{padding:6px 22px 8px;}
-.bar-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:12px;}
-.toolbar{display:flex;gap:var(--toolbar-gap);filter:drop-shadow(0 2px 0 rgba(0,0,0,.08));}
-.tool-btn,.tool-select{
-  min-width:64px;height:var(--tool-h);padding:0 12px;background:#fff;border:1px solid var(--rim);
-  border-radius:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:var(--shadow-2);
-}
-.tool-select{min-width:auto;padding:0 10px;}
-.tool-btn:active{transform:translateY(1px) scale(.99);}
-.rolebar{display:flex;gap:var(--toolbar-gap);}
-.role-btn{
-  min-width:64px;height:var(--tool-h);padding:0 12px;background:#fff;border:1px solid var(--rim);border-radius:12px;
-  font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-2);
-}
-.role-btn.active{outline:2px solid rgba(0,0,0,.15);}
-#status{
-  flex:1 1 auto;min-width:240px;background:#F5F1EC;border:1px solid #E4E4E4;border-radius:12px;
-  padding:8px 10px;font-size:14px;text-align:center;color:#A68A7C;font-weight:700;
-}
+    #displayName{ width:var(--w-displayName); } /* 暱稱唯讀 */
+    #instrument{  width:var(--w-instrument); }
+    #lastNote{ width:var(--w-lastNote); text-align:center; letter-spacing:.3px; }
+    #lastNote::placeholder{ text-align:center; }
 
-.stage{flex:1 1 auto;padding:14px 22px 0;display:flex;justify-content:center;align-items:flex-start;overflow:hidden;}
-.card{
-  position:relative;width:100%;max-width:1200px;border:1px solid rgba(0,0,0,.05);border-radius:16px;box-shadow:0 10px 26px rgba(0,0,0,.08);
-  padding:22px;height:100%;display:grid;grid-template-columns:1fr 2fr;gap:14px;background:#e6b8af; /* 右半粉牆的外底色（保留） */
-}
+    @media (min-width: 861px){ .align-to-email{ margin-left: 0; } }
 
-/* ✅ 左側輸入面板（不動你的結構、只維持樣式） */
-.left-wrap{
-  position:relative;background:linear-gradient(180deg, rgba(255,242,204,.98), rgba(255,242,204,.92));
-  border-radius:16px;border:1px solid rgba(0,0,0,.05);padding:12px;overflow:hidden;
-}
-.left-content{position:relative;height:100%;}
+    /* 按鈕 */
+    .row button{ width:120px; cursor:pointer; font-weight:700; transition: transform .08s ease, box-shadow .08s ease, filter .08s ease;
+                 box-shadow: 0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06); }
+    .btn-compact{ width:60px !important; } /* ✅ 可更改：縮版按鈕寬 */
+    #hintBtn{ width: var(--w-hintbtn) !important; } /* 備註按鈕寬 */
 
-/* ✅ 新人 chip（Dear A/B） */
-.chip{
-  position:absolute;min-width:160px;height:var(--tool-h);background:#fff;border:1px solid var(--rim);border-radius:10px;
-  box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;gap:8px;padding:0 10px;user-select:none;
-}
-#chipBride{top:10px;left:10px;}
-#brideLabel{font-weight:800;line-height:1;}
+    .row button:disabled{ opacity:.55; cursor:not-allowed; }
+    .row button:active, .row button.pressed{ transform: translateY(1px) scale(.99); box-shadow: 0 1px 0 rgba(0,0,0,.18), 0 1px 4px rgba(0,0,0,.06); filter: brightness(.98); }
 
-/* ✅ 編輯器（仍可局部加粗/底線，但入庫均轉純文字） */
-.editor{
-  position:absolute;top:calc(10px + var(--tool-h) + 16px);right:10px;bottom:calc(10px + 36px + 10px);left:10px;
-  overflow:auto;line-height:1.8;outline:none;background:transparent;border-radius:12px;padding:14px;font-size:var(--editor-zoom);
-  border:1px dashed rgba(0,0,0,.12);
-}
-.editor[data-empty]{opacity:1;color:rgba(15,23,42,.28);-webkit-text-stroke:0;text-shadow:none;font-style:italic;}
-.editor.locked{pointer-events:none;opacity:.85;}
+    /* 狀態列（文案保持你要的四種） */
+    #status{
+      background: var(--soft); border:1px solid var(--neutral); border-radius:12px; padding:10px; margin-top:10px; font-size:14px; white-space:pre-wrap;
+      text-align:center; color: var(--accent) !important; font-weight:700; -webkit-text-stroke:.35px rgba(0,0,0,.10);
+      text-shadow:0 1px 0 rgba(255,255,255,.85), 0 3px 6px rgba(0,0,0,.04);
+    }
+    #status.ok,#status.busy,#status.err{ color: var(--accent) !important; font-weight:700; -webkit-text-stroke:.35px rgba(0,0,0,.10);
+                                         text-shadow:0 1px 0 rgba(255,255,255,.85), 0 3px 6px rgba(0,0,0,.04); }
 
-/* ✅ 左下方三顆（保留） */
-.left-actions{position:absolute;left:10px;right:10px;bottom:10px;height:36px;display:flex;gap:10px;}
-.left-actions>*{flex:1 1 0;height:100%;}
-.left-actions button{
-  background:#fff;border:1px solid var(--rim);border-radius:10px;font-weight:800;box-shadow:var(--shadow-2);cursor:pointer;
-}
-.left-actions button:active{transform:translateY(1px) scale(.99);}
+    /* 備註小浮層 */
+    .actions-inline{ display:flex; gap:var(--gap); position:relative; }
+    .hint-popover{ position:absolute; right:0; top:44px; z-index:50; max-width: var(--hint-maxw); min-width: 260px; padding:10px 12px; font-size:var(--hint-fz);
+                   line-height:1.45; color:var(--accent); background:#fff; border:1px solid var(--accent); border-radius:12px;
+                   box-shadow:0 8px 24px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.06); display:none; white-space:normal; --arrow-x: calc(100% - 24px); }
+    .hint-popover.show{ display:block; }
+    .hint-popover::before{ content:""; position:absolute; left:var(--arrow-x); top:-8px; transform:translateX(-50%); width:0; height:0;
+      border-left:8px solid transparent; border-right:8px solid transparent; border-bottom:8px solid var(--accent); }
+    .hint-popover::after{ content:""; position:absolute; left:var(--arrow-x); top:-7px; transform:translateX(-50%); width:0; height:0;
+      border-left:7px solid transparent; border-right:7px solid transparent; border-bottom:7px solid #fff; }
 
-/* ✅ 簽名 chip（舊樣式） */
-#chipSign{
-  position:static;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;border:1px solid var(--rim);
-  border-radius:10px;box-shadow:var(--shadow-2);padding:0 8px;
-}
-#chipSign .hint{font-weight:900;color:rgba(15,23,42,.35);}
-#chipSign.locked{pointer-events:none;opacity:.9;}
-#signThumb{display:none;width:100%;height:70%;object-fit:contain;}
-#chipSign.has-img #signThumb{display:block;}
-#chipSign.has-img .hint{display:none;}
+    /* 鍵盤容器 */
+    .kb-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; background:var(--soft); border:1px solid var(--rim); border-radius:14px; margin-top:14px; }
+    #keyboard{ position:relative; height:var(--kb-h); user-select:none; -webkit-user-select:none; touch-action: pan-x pan-y; }
 
-/* ✅ 右側祝福牆（粉色系） */
-.wall-wrap{
-  background:linear-gradient(180deg,#f9e5ee,#f6dce7);
-  border-radius:16px;border:1px solid rgba(0,0,0,.05);padding:12px;overflow:auto;
-}
-.wall{min-height:280px;display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--tile-w),1fr));gap:14px;align-content:start;padding:2px;overflow:visible;}
+    /* ========== 鋼琴外觀（維持你的原樣式） ========== */
+    .white{
+      position:absolute; bottom:0; height:100%;
+      background:linear-gradient(#ffffff,#eceef3 72%,#d9dde5);
+      border-radius:0 0 12px 12px;
+      box-shadow:inset 0 -12px 16px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.9), 0 1px 0 rgba(0,0,0,.04);
+    }
+    .white::after{ content:""; position:absolute; top:0; bottom:0; right:0; width:var(--sep); background:linear-gradient(transparent,#cfd3dc 50%,transparent); }
+    .white:first-child::before{ content:""; position:absolute; top:0; bottom:0; left:0; width:var(--sep); background:linear-gradient(transparent,#cfd3dc 50%,transparent); }
+    .white.active{ filter:brightness(1.06); }
 
-/* ✅ 木牌容器（不裁切，讓繩結能凸出） */
-.tile{position:relative;width:100%;height:var(--tile-h);cursor:pointer;overflow:visible;}
+    .black{
+      position:absolute; bottom:38%; height:62%;
+      background:linear-gradient(#2d2f36,#0e0f13);
+      border:1px solid #0b0d11; border-top:none; border-radius:0 0 10px 10px;
+      z-index:5; box-shadow:inset 0 -6px 10px rgba(0,0,0,.45), 0 3px 10px rgba(0,0,0,.35);
+      transform: translateX(-50%);
+    }
+    .black.active{ filter:brightness(1.22); }
 
-/* ✅ 木牌面板（咖啡色木框 + 木紋 + 斜角） */
-.tile-plate{
-  position:absolute; inset:0; padding:14px 12px 12px; display:flex; flex-direction:column; gap:6px;
-  background:
-    linear-gradient(180deg,#f1e3cf,#e5d1b8),
-    repeating-linear-gradient(14deg, rgba(0,0,0,.05) 0 4px, rgba(255,255,255,.04) 4px 9px),
-    repeating-linear-gradient(0deg,  rgba(0,0,0,.035) 0 2px, rgba(255,255,255,.035) 2px 4px),
-    radial-gradient(16px 12px at 28% 36%, rgba(0,0,0,.06), transparent 60%),
-    radial-gradient(14px 10px at 72% 62%, rgba(0,0,0,.06), transparent 60%);
-  border:3px solid transparent;
-  border-image: repeating-linear-gradient(15deg,#8f6a3a 0 6px,#a67942 6px 12px,#7c5430 12px 18px) 8 round; /* 咖啡色木框 */
-  border-radius:14px;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.28), inset 0 -1.5px 0 rgba(0,0,0,.12), 0 10px 18px rgba(0,0,0,.10);
-  clip-path:polygon(0 12%, 12% 0, 88% 0, 100% 12%, 100% 100%, 0 100%);
-}
-.tile-plate::before{
-  content:"";position:absolute;top:4px;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;
-  background:radial-gradient(circle at 35% 35%, #fff 0 35%, #bbb 36% 60%, transparent 61%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), inset 0 -1px 0 rgba(0,0,0,.15);
-}
-/* 右上小貼紙（保留趣味） */
-.tile-plate::after{
-  content:"";position:absolute;top:-6px;right:12px;width:18px;height:12px;border-radius:0 18px 18px 18px / 0 12px 12px 12px;
-  background:linear-gradient(180deg,#7fcf7a,#58b35a);box-shadow:0 1px 0 rgba(255,255,255,.45), inset 0 -1px 0 rgba(0,0,0,.15);
-}
+    /* ========== 吉他外觀（採你提供的視覺：粗弦在下方） ========== */
+    .fretboard{
+      position:relative; display:grid; grid-template-columns: repeat(13, 1fr);
+      width:100%; height:var(--kb-h);
+      background:linear-gradient(180deg,#6b4f2e 0%, #5b4429 50%, #533c24 100%);
+      border-radius:12px; box-shadow:inset 0 10px 20px rgba(0,0,0,.25), inset 0 -8px 16px rgba(0,0,0,.2);
+    }
+    .head{ position:absolute; left:0; top:0; bottom:0; width:86px; z-index:2; background:linear-gradient(180deg, rgba(0,0,0,.12), transparent 40%),linear-gradient(180deg,#7a5534 0%, #6b4f2e 55%, #5a3f24 100%); box-shadow: inset -8px 0 16px rgba(0,0,0,.18); border-radius:12px 0 0 12px; pointer-events:none; }
+    .nut{ position:absolute; left:86px; top:0; bottom:0; width:8px; z-index:3; background:linear-gradient(180deg,#e5e1d6,#c9c5ba); box-shadow: inset -1px 0 0 rgba(0,0,0,.35), inset 1px 0 0 rgba(255,255,255,.6); border-right:2px solid rgba(120,120,120,.5); pointer-events:none; }
+    .bridge{ position:absolute; right:0; top:0; bottom:0; width:10px; z-index:2; background:linear-gradient(180deg,#b9b6ad,#8f8c83); box-shadow: inset 1px 0 0 rgba(255,255,255,.5), inset -1px 0 0 rgba(0,0,0,.25); pointer-events:none; border-left:1px solid rgba(0,0,0,.18); }
+    .fret-col{ position:relative; background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02)); box-shadow: inset -2px 0 0 rgba(255,255,255,.18), inset -4px 0 0 rgba(0,0,0,.28); }
 
-/* ✅ 繩＋結（更細＋外凸） */
-.tile .rope{
-  position:absolute;top:-20px;left:50%;transform:translateX(-50%);
-  width:var(--rope-width);height:var(--rope-height);
-  background:
-    repeating-linear-gradient(90deg,#b77c3a 0 3px,#c98a45 3px 6px),
-    linear-gradient(180deg,rgba(255,255,255,.65),rgba(255,255,255,0) 55%),
-    linear-gradient(0deg,rgba(0,0,0,.12),transparent 60%);
-  border-radius:999px;filter:saturate(.95);
-  box-shadow:0 4px 10px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.55), inset 0 -1px 0 rgba(0,0,0,.10);
-  z-index:3; /* ← 讓繩子確實外凸在木牌之上 */
-}
-.tile .knot{
-  position:absolute;top:-14px;left:50%;transform:translateX(-50%);
-  width:calc(var(--knot-size) * 1.25);height:calc(var(--knot-size) * .88);
-  background:linear-gradient(180deg,#cc8a3d,#a9652b);
-  border-radius:14px;border:1px solid rgba(0,0,0,.12);
-  box-shadow:0 2px 0 rgba(0,0,0,.08), 0 12px 18px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.35), inset 0 -2px 0 rgba(0,0,0,.15);
-  z-index:4; /* ← 繩結也要外凸 */
-}
-.tile .knot::before,.tile .knot::after{
-  content:"";position:absolute;top:40%;width:54%;height:54%;
-  background:linear-gradient(180deg,#d09045,#b17233); border-radius:999px;
-  box-shadow:inset 0 2px 2px rgba(255,255,255,.38), 0 4px 6px rgba(0,0,0,.10);
-}
-.tile .knot::before{left:-14px;transform:rotate(-28deg);}
-.tile .knot::after{right:-14px;transform:rotate(28deg);}
+    /* 弦＋高光（粗→細：底部到頂部） */
+    .string{ --sw:2px; position:absolute; left:94px; right:0; height:0; z-index:3; border-top: var(--sw) solid transparent; transform-origin:center; filter:drop-shadow(0 1px 0 rgba(0,0,0,.18)); background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.45) 50%, rgba(255,255,255,0) 100%); background-size:160px 1px; background-repeat:no-repeat; background-position:-160px 0; }
+    .string::before{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5); height: var(--sw); background: repeating-linear-gradient(90deg, #caa56b 0 2.4px, #906a3d 2.4px 3.1px), repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 2.4px, rgba(0,0,0,.10) 2.4px 3.1px), linear-gradient(180deg, rgba(255,255,255,.70), rgba(255,255,255,.15) 55%, rgba(0,0,0,.18) 100%); border-radius:999px; opacity:.98; pointer-events:none; }
+    .string::after{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5 + 0.2px); height: calc(var(--sw) * .25); background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0)); pointer-events:none; border-radius:999px; opacity:.9; }
+    .string[data-s="2"]{ --sw:2.5px; }
+    .string[data-s="3"]{ --sw:3px; }
+    .string[data-s="4"]{ --sw:3.5px; }
+    .string[data-s="5"]{ --sw:4px; }
 
-/* ✅ 牌面文字（維持） */
-.tile-name{font-weight:800;text-align:center;margin-top:8px;}
-.tile-sep{height:1px;background:linear-gradient(90deg, rgba(0,0,0,.18), rgba(0,0,0,.06) 40%, rgba(0,0,0,.18));opacity:.7;margin:6px 0;}
-.tile-date{font-size:12px;opacity:.8;text-align:center;}
-.tile-snippet{
-  font-size:14px;line-height:1.6;text-align:left;word-break:break-word;
-  display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;
-}
+    /* 弦在琴頭區 */
+    .head-line{ --sw:2px; position:absolute; left:0; width:86px; height:0; z-index:2; border-top: var(--sw) solid transparent; filter:drop-shadow(0 1px 0 rgba(0,0,0,.06)); pointer-events:none; }
+    .head-line::before{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5); height: var(--sw); background: repeating-linear-gradient(90deg, #caa56b 0 2.4px, #906a3d 2.4px 3.1px), repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 2.4px, rgba(0,0,0,.10) 2.4px 3.1px), linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0)); border-radius:999px; opacity:.98; }
+    .head-line::after{ content:""; position:absolute; left:0; right:0; top: calc(var(--sw) * -0.5 + 0.2px); height: calc(var(--sw) * .25); background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0)); border-radius:999px; opacity:.9; }
+    .head-line[data-s="2"]{ --sw:2.5px; }
+    .head-line[data-s="3"]{ --sw:3px; }
+    .head-line[data-s="4"]{ --sw:3.5px; }
+    .head-line[data-s="5"]{ --sw:4px; }
 
-/* ✅ 檢視窗（明細） */
-.overlay{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:rgba(17,24,39,.35);backdrop-filter:blur(3px);}
-.overlay.show{display:flex;}
-.dialog{
-  width:min(92vw,680px);max-height:82vh;background:#F5F1EC;border:1px solid var(--rim);border-radius:14px;padding:16px;
-  box-shadow:0 18px 44px rgba(0,0,0,.18);overflow:auto;
-}
-.dialog h3{margin:0 0 10px;font-size:18px;color:#6b5e52;text-align:center;-webkit-text-stroke:0;text-shadow:none;}
-.view-meta{text-align:center;font-size:12px;opacity:.75;margin-bottom:8px;}
-.view-content{background:#fff;border:1px solid #ddd;border-radius:12px;padding:12px;line-height:1.8;white-space:pre-wrap;}
-.view-actions{display:flex;gap:10px;justify-content:center;margin-top:12px;}
-.view-actions button{min-width:120px;height:var(--tool-h);border-radius:10px;border:1px solid var(--rim);background:#fff;cursor:pointer;font-weight:700;}
+    /* 可點擊行（每弦一列），含震動動畫 */
+    .hit-row{ position:absolute; left:0; right:0; height:28px; transform:translateY(-50%); background:transparent; cursor:pointer; z-index:4; }
+    @media (pointer:coarse){ .hit-row{ height:34px; } }
+    .string.vibrate{ animation: vibrCurve 360ms ease-out, shine 360ms ease-out; }
+    @keyframes vibrCurve{ 0%{transform:translateY(0)} 10%{transform:translateY(-3.2px)} 20%{transform:translateY(0)} 30%{transform:translateY(2.6px)} 45%{transform:translateY(0)} 60%{transform:translateY(-1.8px)} 75%{transform:translateY(0.6px)} 100%{transform:translateY(0)} }
+    @keyframes shine{ 0%{ background-position:-160px 0; opacity:.95 } 100%{ background-position:160px 0; opacity:.96 } }
 
-/* ✅ 簽名對話框（舊樣式，保留） */
-#sigOverlay .dialog{width:min(92vw,520px);}
-#pad{width:100%;height:260px;background:#fff;border:1px solid #ddd;border-radius:12px;touch-action:none;display:block;}
-.dlg-actions{display:flex;gap:10px;justify-content:center;margin-top:12px;}
-.dlg-actions button{width:120px;height:var(--tool-h);border-radius:10px;border:1px solid var(--rim);background:#fff;cursor:pointer;font-weight:700;}
+    /* Dialog / Footer */
+    .overlay{ position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; background:rgba(17,24,39,.35); backdrop-filter:blur(3px); pointer-events:auto; }
+    .overlay.hidden{ display:none; }
+    .dialog{ min-width:300px; max-width:92vw; background:var(--soft); border:1px solid var(--neutral); border-radius:14px; padding:18px;
+             box-shadow:0 18px 44px rgba(0,0,0,.18); text-align:center; pointer-events:auto; }
+    .dialog h3{ margin:0 0 8px; font-size:18px; color:#6b5e52; }
+    .dialog .actions{ display:flex; gap:10px; justify-content:center; margin-top:12px; }
+    .dialog button{ width:120px; height:38px; border-radius:10px; border:1px solid var(--rim); background:#fff; cursor:pointer; font-weight:700;
+                    /* 放大彈窗按鈕字：了解／取消／確定 */ font-size:16px; }
+    .dialog button.primary{ background:#fff; }
 
-/* ✅ Footer 版權（維持你上版的固定左下角） */
-/* ★ 調整為置中，並微上移（只改定位，不動樣式其他字） */
-footer.copyright{
-  position: fixed; left: 50%; transform: translateX(-50%); bottom: 16px;
-  font-size: 12px; opacity: .75;
-  -webkit-text-stroke: 0; text-shadow: none;
-  z-index: 2;
-}
+    #lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:transparent; }
+    footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
 
-/* ★ 讓底部送出鍵外觀與左側三顆一致（#7：純補充選擇器，不改你原 class） */
-.footer-actions #btnSubmit{
-  background:#fff;border:1px solid var(--rim);border-radius:10px;font-weight:800;box-shadow:var(--shadow-2);cursor:pointer;
-  height: var(--tool-h); min-width: var(--btn-w);
-}
-.footer-actions #btnSubmit:active{ transform:translateY(1px) scale(.99); }
-</style>
+    @media (orientation:portrait){
+      .row-line2,.row-line3{ width:100%; gap:12px; }
+      .pair{ display:flex; align-items:center; gap:var(--gap); width:100%; }
+      .actions-inline{ display:flex; gap:var(--gap); }
+      .row-line2 .pair, .row-line3 .pair, .row-line3 .actions-inline{ flex:0 0 100%; }
+      .align-to-email{ margin-left:0 !important; }
+      #lastNote{ width:var(--w-lastNote-m); }
+    }
+  </style>
+</head>
 
 <body>
-  <!-- ✅ 背景圖（恢復） -->
-  <img class="bg-notes" src="./assets/favors.png?v=4" alt="">
-
+  <img class="bg-notes" src="./assets/notes.png" alt="">
   <div class="panel">
-    <h2>❤️同心祈願❤️</h2>
+    <h2>🎵互動音符🎵</h2>
 
-    <div class="bar">
-      <div class="bar-inner">
-        <!-- ✅ 角色過濾（保留你的三鍵） -->
-        <div class="rolebar">
-          <button type="button" class="role-btn active" id="roleAll">全部</button>
-          <button type="button" class="role-btn" id="roleMale">男方</button>
-          <button type="button" class="role-btn" id="roleFemale">女方</button>
-        </div>
-
-        <p id="status">初始化 LIFF…</p>
-
-        <!-- ✅ 工具列（仍然只影響前端視覺，儲存為純文字） -->
-        <div class="toolbar" role="toolbar" aria-label="文字工具">
-          <button class="tool-btn" id="btnBold"      type="button">粗體</button>
-          <button class="tool-btn" id="btnItalic"    type="button">斜體</button>
-          <button class="tool-btn" id="btnUnderline" type="button">底線</button>
-          <select id="colorPick" class="tool-select" title="字體顏色">
-            <option value="" selected>顏色</option>
-            <option value="#a21caf">小紫</option>
-            <option value="#dc2626">小紅</option>
-            <option value="#2563eb">小藍</option>
-            <option value="#059669">小綠</option>
-            <option value="#d97706">小橘</option>
-            <option value="#6b7280">小灰</option>
-          </select>
-          <button class="tool-btn" id="btnBigger"    type="button">放大</button>
-          <button class="tool-btn" id="btnSmaller"   type="button">縮小</button>
+    <div class="row row-line2">
+      <div class="pair">
+        <label for="displayName">偶的暱稱：</label>
+        <input id="displayName" readonly aria-readonly="true" placeholder="等待載入…" />
+      </div>
+      <div class="pair">
+        <label for="instrument">樂器轉換：</label>
+        <select id="instrument">
+          <option value="piano" selected>鋼琴</option>
+          <option value="guitar">吉他</option>
+        </select>
+      </div>
+      <div class="pair">
+        <label for="lastNote" class="align-to-email">音符紀錄：</label>
+        <input id="lastNote" placeholder="— , — , —" readonly />
+      </div>
+      <div class="actions-inline">
+        <button id="resetBtn" type="button" class="btn-compact">重設</button>
+        <button id="lockBtn"  type="button" class="btn-compact" disabled>鎖定</button>
+        <button id="hintBtn"  type="button" class="btn-compact" aria-expanded="false" aria-controls="hintPopover" title="點我查看備註">先點我查看好咪🥺</button>
+        <div id="hintPopover" class="hint-popover" role="note" aria-live="polite">
+          按「鎖定」後請稍候，本人有缺陷導致速度較慢🥲<br>確認送出成功，下方「狀態列」會立即通知您溜🎉
         </div>
       </div>
     </div>
 
-    <div class="stage">
-      <div class="card" id="card">
-        <!-- ✅ 左：輸入 -->
-        <section class="left-wrap">
-          <div class="left-content">
-            <div class="chip" id="chipBride" title="新人"><span id="brideLabel">Dear —</span></div>
+    <p id="status">尚未初始化</p>
+    <div class="kb-wrap"><div id="keyboard"></div></div>
+  </div>
 
-            <div class="editor" id="editor" contenteditable="true" aria-label="祈願內容" data-empty>
-              寫下並獻上最誠摯的祝福…💝
-            </div>
-
-            <div class="left-actions">
-              <button id="btnEdit"  type="button">修改</button>
-              <button id="btnSend"  type="button">送出</button>
-
-              <!-- ✅ 簽名（畫押） -->
-              <div class="chip" id="chipSign" title="畫押簽名">
-                <span class="hint">畫押簽名</span>
-                <img id="signThumb" alt="signature preview" />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ✅ 右：祝福牆 -->
-        <section class="wall-wrap">
-          <div class="wall" id="wall"></div>
-        </section>
-      </div>
-    </div>
-
-    <div class="footer-actions" style="display:flex;justify-content:center;align-items:center;padding:14px 0 16px;">
-      <button id="btnSubmit" class="primary" type="button">送出滿滿祝福</button>
+  <!-- 操作說明 -->
+  <div id="guideOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+    <div class="dialog">
+      <h3 id="guideTitle">📍操作說明📍</h3>
+      <p>🔻可選擇鋼琴或吉他中的三個音階</p><p>↓</p>
+      <p>🔻三個音階確認後，一定要按鎖定</p><p>↓</p>
+      <p>🔻鎖定完成後，會有通知是否成功</p><p>↓</p>
+      <p>🔺若成功即可退出介面；反之再試</p><p>↓</p>
+      <p>❗️沒按鎖定就是沒有送出就是彈個寂寞</p>
+      <div class="actions"><button id="guideOk" class="primary">了解</button></div>
     </div>
   </div>
 
-  <!-- ✅ 版權（維持不動） -->
-  <footer class="copyright">
-    © Copyright 2025 MY‘s System Version:b1.0.227
-  </footer>
-
-  <!-- ✅ 檢視窗（明細） -->
-  <div id="viewOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="viewTitle">
+  <!-- 啟音 -->
+  <div id="unlockOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="unlockTitle">
     <div class="dialog">
-      <h3 id="viewTitle">祝福內容</h3>
-      <div class="view-meta" id="viewMeta"></div>
-      <div id="viewContent" class="view-content"></div>
-      <div class="view-actions"><button id="viewClose" type="button">關閉</button></div>
-    </div>
-  </div>
-
-  <!-- ✅ 簽名 Modal（舊樣式） -->
-  <div id="sigOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="sigTitle">
-    <div class="dialog">
-      <h3 id="sigTitle">請於下方畫押唷😈</h3>
-      <canvas id="pad"></canvas>
-      <div class="dlg-actions">
-        <button id="sigClear"  type="button">清除</button>
-        <button id="sigCancel" type="button">取消</button>
-        <button id="sigOK"     type="button">確定</button>
+      <h3 id="unlockTitle">啟用聲音</h3>
+      <p class="ios-hint">iPhone請確保側邊「靜音鍵」有開啟響鈴模式</p>
+      <div class="actions">
+        <button id="cancelUnlock">取消</button>
+        <button id="confirmUnlock" class="primary">確定</button>
       </div>
     </div>
   </div>
 
-<script>
-/* ===================== 前端設定（請確認） ===================== */
-/* ✅ 你的 LIFF 與 GAS WebApp Endpoint */
-const LIFF_ID='2008149060-m5pDXW6a';  // ← 你的 LIFF ID（同心祈願）
-const WEBHOOK='https://script.google.com/macros/s/AKfycbwr2R0gr8_Hbd8pad8lJSGD5HLJ_xCvmGfbB38_41imBcE2P6dzg8CP6gPGBwgMp5iT/exec'; // ← 你的 GAS 網址
+  <div id="lockScreen" aria-hidden="true"></div>
+  <footer>© Copyright 2025 MY‘s System</footer>
 
-/* ===================== DOM 快捷 ===================== */
-const $ = s => document.querySelector(s);
-const editor = $('#editor');
-const wallEl = $('#wall');
-const chip = $('#chipSign');
-const img  = $('#signThumb');
+  <!-- ====================== 外部腳本（CDN） ====================== -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
 
-// === 新增：用於 Dear 標籤的資料（不影響其它流程/樣式） ===
-let manName = '', womanName = '', currentRoleCode = ''; // ROLE_MALE_FRIEND / ROLE_FEMALE_FRIEND / ''
-function updateBrideLabelByUIRole(){
-  // 依目前 UI 選中的角色鈕決定 Dear 顯示
-  const activeId = document.querySelector('.role-btn.active')?.id || 'roleAll';
-  const label =
-    activeId === 'roleMale'   ? (manName || '—') :
-    activeId === 'roleFemale' ? (womanName || '—') :
-    [manName, womanName].filter(Boolean).join(' & ') || '—';
-  $('#brideLabel').textContent = `Dear ${label}`;
-}
+  <script>
+    /* ====================== 前端設定（請填） ====================== */
+    /* ✅ 可更改：LIFF ID 與後端網址 */
+    const LIFF_ID = '2008149060-ZGVdAvGo';  // ← 你的 LIFF ID
+    const WEBHOOK = 'https://script.google.com/macros/s/AKfycbwr2R0gr8_Hbd8pad8lJSGD5HLJ_xCvmGfbB38_41imBcE2P6dzg8CP6gPGBwgMp5iT/exec'; // ← 你的 GAS 網址
 
-function setStatus(m){ $('#status').textContent = m; }
+    /* ===== 提醒（僅註解，幫你記得要去 GAS 也更新） =====
+       // ✅ 主本/副本 試算表 ID（兩本結構相同）
+       // const SPREADSHEET_ID_MAIN   = '1loTbnXfQ90AN3tGUdpEsR3AGZUFHvaijBSctOUSZQFs';
+       // const SPREADSHEET_ID_PUBLIC = '18hxRoLU_TFV6Dc4fNAxQFEv9VAYoSbeVZvfIZ17MHPQ';
+       // ✅ LIFF 頁面網址（按鈕訊息會開這個網址）
+       // const LIFF_URL = 'https://meiyang0819.github.io/SSS/line.html';
+    ============================================================== */
 
-/* ===================== LIFF init & 角色/姓名 ===================== */
-let lineId='',displayName='',pictureUrl='',myLastRow=null;
+    /* ✅ 可更改：逾時毫秒（提高到 40 秒，降低假性逾時） */
+    const TIMEOUT_MS = 40000;
 
-async function initLIFF(){
-  try{
-    await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser:true });
-    if(!liff.isLoggedIn()){
-      setStatus('登入中…');
-      liff.login({ scope:['openid','profile'] });
-      return;
+    /* （預留）一段話：會一併送到後端 logs G 欄（目前不顯示輸入框，之後你要用再接UI） */
+    let extraMessage = ''; // ✅ 可更改：之後若做輸入框，改寫這個變數即可一併送出
+
+    const $ = s => document.querySelector(s);
+
+    /* 狀態列（固定四種語意） */
+    function setStatus(m){
+      const el = $('#status');
+      el.textContent = m;
+      el.classList.remove('ok','busy','err');
+      if(/已送出成功/.test(m)) el.classList.add('ok');
+      else if(/忙碌|等待|送出中|處理中/i.test(m)) el.classList.add('busy');
+      else if(/已填寫過|截止|失敗|逾時|not found|無法|超時|網路/i.test(m)) el.classList.add('err');
     }
-    await liff.ready;
-    const prof=await liff.getProfile().catch(()=>null);
-    const idt =await liff.getDecodedIDToken().catch(()=>null);
-    lineId      = (prof && prof.userId) || (idt && idt.sub) || '';
-    displayName = (prof && prof.displayName) || (idt && (idt.name||idt.nickname)) || '';
-    pictureUrl  = (prof && prof.pictureUrl) || '';
-  }catch(_){}
-  setStatus('已就緒'); // ✅ 保持你原本文案語氣
-  await fetchRoleAndNames();   // 角色 + A/B 名稱
-  await preloadMyLatest();     // 載入自己最近一筆（若有）
-  await refreshWall();         // 列表
-}
 
-/* 無 LIFF 也能先載入牆（匿名瀏覽） */
-async function initialLoad(){ setStatus('已就緒'); await fetchRoleAndNames(); await refreshWall(); }
+    /* ====================== 音訊與選音 ====================== */
+    let audioCtx=null, sampler=null, samplerReady=false, unlocked=false, hardLocked=false;
+    let currentInstrument='piano';
+    let selectedNotes=[], selectedInsts=[];
 
-/* ✅ 從 GAS 正確抓 nameLabel（action=userrole） */
-async function fetchRoleAndNames(){
-  try{
-    const url = WEBHOOK + `?action=userrole&lineId=${encodeURIComponent(lineId||'')}&_t=${Date.now()}`;
-    const j = await (await fetch(url, {cache:'no-store'})).json();
-    if(j?.ok){
-      // 存下新郎/新娘/角色代碼（不改其它流程）
-      manName = String(j.man||'').trim();
-      womanName = String(j.woman||'').trim();
-      currentRoleCode = String(j.role||'').trim(); // ROLE_MALE_FRIEND / ROLE_FEMALE_FRIEND / ''
+    /* ✅ 可更改：音色檔路徑與檔名表 */
+    const PIANO_BASE = new URL('./piano/', location.href).href;   // ✅ 可更改
+    const GUITAR_BASE = new URL('./guitar/', location.href).href; // ✅ 可更改
+    const PIANO_URLS = {'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3','C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3','C4':'C4.mp3','D#4':'Ds4.mp3','F#4':'Fs4.mp3','A4':'A4.mp3','C5':'C5.mp3'};
+    /* ✅ 可更改：吉他若有多採樣可補齊對映，沒有就以開放弦近似 */
+    const GUITAR_URLS = {'E2':'E2.wav','A2':'A2.wav','D3':'D3.wav','G3':'G3.wav','B3':'B3.wav','E4':'E4.wav'};
 
-      // ★ 依使用者綁定自動選角色鍵（只有未綁定才停在「全部」）
-      const btns = document.querySelectorAll('.role-btn');
-      btns.forEach(b=>b.classList.remove('active'));
-      if(currentRoleCode==='MALE_FRIEND') $('#roleMale').classList.add('active');
-      else if(currentRoleCode==='FEMALE_FRIEND') $('#roleFemale').classList.add('active');
-      else $('#roleAll').classList.add('active');
+    /* 鋼琴白鍵序列與黑鍵對應 */
+    const WHITE=["C3","D3","E3","F3","G3","A3","B3","C4","D4","E4","F4","G4","A4","B4"];
+    const BLACK_AFTER={ 'C':'C#','D':'D#','F':'F#','G':'G#','A':'A#' };
+    const MIN_WHITE_PX=64, TOTAL_WHITE=WHITE.length;
 
-      // 依 UI 目前選中的角色鈕呈現 Dear
-      updateBrideLabelByUIRole();
+    /* 吉他音名計算（採你原本：最粗弦在畫面底部） */
+    const TUNING_MIDI = [40,45,50,55,59,64]; // E2 A2 D3 G3 B3 E4（由粗到細）
+    const NOTE_NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+
+    function unlockAudioInit(){
+      const Ctx=window.webkitAudioContext||window.AudioContext;
+      if(!audioCtx) audioCtx=new Ctx({latencyHint:'interactive'});
+      Tone.setContext(new Tone.Context(audioCtx));
     }
-  }catch(_){}
-}
+    async function unlockAudio(){
+      try{
+        unlockAudioInit();
+        if(audioCtx.state!=='running') await audioCtx.resume();
+        await Tone.start();
+        loadSampler(currentInstrument);
+        unlocked=true;
+        $('#unlockOverlay').classList.add('hidden');
+      }catch(e){ setStatus('❌ 啟用失敗，請通知管理員'); } // ★ 修正：加引號
+    }
+    function loadSampler(inst='piano'){
+      sampler?.dispose?.(); sampler=null; samplerReady=false;
+      let urls=PIANO_URLS, base=PIANO_BASE, label='🎹 ';
+      if(inst==='guitar'){ urls=GUITAR_URLS; base=GUITAR_BASE; label='🎸 '; }
+      setStatus(label+'載入中…');
+      try{
+        sampler=new Tone.Sampler({ urls, release:1, baseUrl:base, onload:()=>{ samplerReady=true; setStatus(label+'已載入 ✅'); } }).toDestination();
+      }catch(e){ setStatus('❌ 音色初始化失敗，請通知管理員'); } // ★ 修正：補結尾引號
+    }
 
-/* ===================== 簽名預覽（成功才顯示縮圖） ===================== */
-function setSignaturePreview(url, lock=false){
-  chip.classList.remove('has-img');
-  img.removeAttribute('src');
-  if(!url){ lock ? chip.classList.add('locked') : chip.classList.remove('locked'); return; }
+    /* 播音 + 三音紀錄 */
+    function trigger(note){
+      if(hardLocked) return;
+      if(!samplerReady){ setStatus('⏳ 音色載入中…'); return; }
+      sampler.triggerAttackRelease(note,'8n');
+      if(selectedNotes.length<3){ selectedNotes.push(note); selectedInsts.push(currentInstrument); }
+      else { selectedNotes[2]=note; selectedInsts[2]=currentInstrument; }
+      refreshNotesDisplay(); validateLockBtn();
+    }
+    function refreshNotesDisplay(){ $('#lastNote').value = [selectedNotes[0]||'—', selectedNotes[1]||'—', selectedNotes[2]||'—'].join(' , '); }
+    function validateLockBtn(){ $('#lockBtn').disabled = !(selectedNotes.length===3); }
 
-  const test = new Image();
-  test.onload = () => {
-    img.src = url;
-    chip.classList.add('has-img');
-    lock ? chip.classList.add('locked') : chip.classList.remove('locked');
-  };
-  test.onerror = () => {
-    chip.classList.remove('has-img');
-    chip.classList.remove('locked');
-  };
-  test.src = url;
-}
+    /* ========== 鋼琴繪製 ========== */
+    function renderPiano(){
+      const kb=$('#keyboard'); kb.innerHTML=''; kb.className=''; sizePiano();
+      const keyW=100/TOTAL_WHITE;
+      WHITE.forEach((note,i)=>{
+        const w=document.createElement('div'); w.className='white'; w.dataset.note=note;
+        w.style.left=(i*keyW)+'%'; w.style.width=keyW+'%';
+        w.addEventListener('pointerdown', ()=>{ if(hardLocked) return; if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; } trigger(note); w.classList.add('active'); });
+        w.addEventListener('pointerup', ()=>w.classList.remove('active'));
+        kb.appendChild(w);
+      });
+      WHITE.forEach((note,i)=>{
+        const l=note[0], sharp = BLACK_AFTER[l]? (BLACK_AFTER[l]+note.slice(1)) : null;
+        if(!sharp || (l==='A' && i===TOTAL_WHITE-1)) return;
+        const b=document.createElement('div'); b.className='black'; b.dataset.note=sharp;
+        const blackWidthPct = keyW*0.62; b.style.width = blackWidthPct+'%'; b.style.left=((i+1)*keyW)+'%';
+        b.addEventListener('pointerdown', ()=>{ if(hardLocked) return; if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; } trigger(sharp); b.classList.add('active'); });
+        b.addEventListener('pointerup', ()=>b.classList.remove('active'));
+        kb.appendChild(b);
+      });
+    }
+    function sizePiano(){
+      const wrap=document.querySelector('.kb-wrap');
+      const kb=document.querySelector('#keyboard');
+      const wrapW=wrap.clientWidth;
+      const sep=parseInt(getComputedStyle(kb).getPropertyValue('--sep')||'2',10);
+      const minW=WHITE.length*(MIN_WHITE_PX+sep);
+      kb.style.width=(wrapW>=minW?wrapW-1:minW)+'px';
+      kb.style.height='var(--kb-h)';
+    }
 
-/* ===================== 自己最近一筆（載入即鎖） ===================== */
-/* ✅ 路由小寫：getlatestbylineid */
-async function preloadMyLatest(){
-  if(!lineId) return;
-  try{
-    const j=await (await fetch(WEBHOOK+`?action=getlatestbylineid&lineId=${encodeURIComponent(lineId)}&_t=${Date.now()}`, {cache:'no-store'})).json();
-    if(j?.ok && j.item){
-      const it=j.item;
-      if(it.contentHTML){
-        editor.textContent = it.contentHTML;     // 顯示純文字
-        editor.removeAttribute('data-empty');
-        lockEditor();
+    /* ========== 吉他繪製（照你的版本：粗弦在下方） ========== */
+    function renderGuitar(){
+      const kb=$('#keyboard'); kb.innerHTML=''; kb.className='fretboard'; kb.style.height='var(--kb-h)';
+
+      // 頭、上枕、橋
+      const head=document.createElement('div'); head.className='head'; kb.appendChild(head);
+      const nut =document.createElement('div');  nut.className='nut';  kb.appendChild(nut);
+      const bridge=document.createElement('div'); bridge.className='bridge'; kb.appendChild(bridge);
+
+      // 6 條弦（由上→下為細→粗；我們的點擊邏輯會把 index 轉為 5-idx 取音高，確保「粗弦在下方」）
+      for(let s=0;s<6;s++){
+        const y=(s+1)*(100/7);
+        const str=document.createElement('div'); str.className='string'; str.dataset.s=String(s); str.style.top = `${y}%`; kb.appendChild(str);
+        const hline=document.createElement('div'); hline.className='head-line'; hline.dataset.s=String(s); hline.style.top = `${y}%`; kb.appendChild(hline);
       }
-      if(it.signature){ setSignaturePreview(it.signature, true); }
-      myLastRow = Number(it.row||0) || null;
+
+      // 13 個欄位（0~12 品）
+      for(let f=1; f<=13; f++){
+        const col=document.createElement('div'); col.className='fret-col';
+
+        // 每欄 6 條點擊列
+        for(let s=0; s<6; s++){
+          const y=(s+1)*(100/7);
+          const hit=document.createElement('div'); hit.className='hit-row'; hit.style.top = `${y}%`; col.appendChild(hit);
+        }
+
+        // 品記號
+        if([4,6,8,10].includes(f)){
+          const dot=document.createElement('div');
+          dot.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#dbc6a4;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.35);pointer-events:none;';
+          col.appendChild(dot);
+        }else if(f===13){
+          const dot1=document.createElement('div'); dot1.style.cssText='position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;background:#dbc6a4;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.35);pointer-events:none;';
+          const dot2=document.createElement('div'); dot2.style.cssText='position:absolute;left:50%;top:62%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;background:#dbc6a4;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.35);pointer-events:none;';
+          col.appendChild(dot1); col.appendChild(dot2);
+        }
+
+        col.addEventListener('pointerdown',(ev)=>{
+          if(hardLocked) return;
+          if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; }
+          const rect = col.getBoundingClientRect();
+          const y = ev.clientY - rect.top;
+          const slot = rect.height/7;
+          let idx = Math.round(y/slot - 1); // 0=最上細弦, 5=最下粗弦（視覺）
+          idx = Math.max(0, Math.min(5, idx));
+
+          if(f<=12){
+            const midi = TUNING_MIDI[5-idx] + f; // 轉為音高索引：5-idx 才是 E2..E4
+            const note = NOTE_NAMES[midi % 12] + (Math.floor(midi/12) - 1);
+            trigger(note);
+          }
+
+          const target = kb.querySelector(`.string[data-s="${idx}"]`);
+          if(target){
+            target.classList.remove('vibrate'); void target.offsetWidth; target.classList.add('vibrate');
+            setTimeout(()=>target.classList.remove('vibrate'), 380);
+          }
+        });
+
+        kb.appendChild(col);
+      }
     }
-  }catch(_){}
-}
 
-/* ===================== 工具列（視覺，儲存仍純文字） ===================== */
-function exec(cmd){ if(editor.hasAttribute('data-empty')||editor.classList.contains('locked')) return; document.execCommand(cmd,false,null); editor.focus(); }
-$('#btnBold').onclick=()=>exec('bold');
-$('#btnItalic').onclick=()=>exec('italic');
-$('#btnUnderline').onclick=()=>exec('underline');
-$('#colorPick').onchange=e=>{ e.target.blur(); }; // 顏色僅視覺，入庫不帶樣式
-let globalScale=1; function setScale(s){globalScale=Math.max(.7,Math.min(1.7,s)); editor.style.setProperty('--editor-zoom',globalScale+'rem');}
-$('#btnBigger').onclick=()=>setScale(globalScale+.06);
-$('#btnSmaller').onclick=()=>setScale(globalScale-.06);
+    /* 尺寸變更時重繪 */
+    window.addEventListener('resize', ()=>{ if(currentInstrument==='piano') sizePiano(); });
+    window.addEventListener('orientationchange', ()=>{ if(currentInstrument==='piano') sizePiano(); });
 
-const PLACEHOLDER='寫下並獻上最誠摯的祝福…💝';
-editor.addEventListener('focus',()=>{ if(editor.hasAttribute('data-empty')){ editor.textContent=''; editor.removeAttribute('data-empty'); }});
-editor.addEventListener('blur',()=>{ if(!editor.textContent.trim()){ editor.setAttribute('data-empty',''); editor.textContent=PLACEHOLDER; }});
+    /* 樂器切換 */
+    $('#instrument').addEventListener('change', ()=>{
+      if(hardLocked) return;
+      currentInstrument=$('#instrument').value;
+      loadSampler(currentInstrument);
+      if(currentInstrument==='guitar') renderGuitar(); else renderPiano();
+      validateLockBtn();
+    });
 
-/* ===================== 簽名（舊樣式＋完整事件） ===================== */
-const sigOverlay = $('#sigOverlay');
-const pad = $('#pad');
-const ctx = pad.getContext('2d');
-let drawing=false,lastX=0,lastY=0,signatureDataURL='';
+    /* 重設一顆：從尾端退一格 */
+    $('#resetBtn').addEventListener('click', ()=>{
+      if(hardLocked) return;
+      if(selectedNotes.length>0){ selectedNotes.pop(); selectedInsts.pop(); refreshNotesDisplay(); validateLockBtn(); }
+    });
 
-function fitCanvas(){
-  const dpr=Math.max(1,devicePixelRatio||1),w=pad.clientWidth,h=pad.clientHeight;
-  pad.width=w*dpr; pad.height=h*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
-  ctx.lineCap='round'; ctx.lineJoin='round'; ctx.lineWidth=3; ctx.strokeStyle='#111';
-  ctx.clearRect(0,0,w,h);
-}
-function pos(e){ const r=pad.getBoundingClientRect(); const p=e.touches?e.touches[0]:e; return {x:p.clientX-r.left, y:p.clientY-r.top}; }
-function start(e){ drawing=true; const p=pos(e); lastX=p.x; lastY=p.y; e.preventDefault(); }
-function move(e){ if(!drawing)return; const p=pos(e); ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke(); lastX=p.x; lastY=p.y; e.preventDefault(); }
-function end(){ drawing=false; }
-
-/* 只有在未鎖定時可以打開簽名板 */
-chip.addEventListener('click',()=>{ if(chip.classList.contains('locked')) return; sigOverlay.classList.add('show'); setTimeout(fitCanvas,40); });
-$('#sigClear').onclick=fitCanvas;
-$('#sigCancel').onclick=()=>sigOverlay.classList.remove('show');
-$('#sigOK').onclick=()=>{
-  signatureDataURL=pad.toDataURL('image/png');
-  setSignaturePreview(signatureDataURL, false);   // 成功才顯示縮圖
-  sigOverlay.classList.remove('show');
-};
-
-/* 筆劃事件 */
-pad.addEventListener('mousedown',start);
-pad.addEventListener('mousemove',move);
-pad.addEventListener('mouseup',end);
-pad.addEventListener('mouseleave',end);
-pad.addEventListener('touchstart',start,{passive:false});
-pad.addEventListener('touchmove',move,{passive:false});
-pad.addEventListener('touchend',end);
-
-/* ===================== 祝福牆 ===================== */
-function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
-function fmt(s){return s?String(s).replace('T',' ').slice(0,19):'';}
-
-function tileTemplate(it){
-  return `<div class="tile" data-row="${it.row||''}" data-owner="${it.lineId||''}">
-    <div class="rope"></div><div class="knot"></div>
-    <div class="tile-plate">
-      <div class="tile-name">${escapeHTML(it.displayName||'—')}</div>
-      <div class="tile-sep"></div>
-      <div class="tile-date">${escapeHTML(fmt(it.time))}</div>
-      <div class="tile-sep"></div>
-      <div class="tile-snippet">${escapeHTML((it.preview||'').trim()||'—')}</div>
-    </div>
-  </div>`;
-}
-
-/* ✅ 路由小寫：listblessings */
-async function refreshWall(){
-  try{
-    const role=document.querySelector('.role-btn.active')?.id?.replace('role','').toLowerCase()||'all';
-    const j=await (await fetch(WEBHOOK+`?action=listblessings&role=${role}&_t=${Date.now()}`, {cache:'no-store'})).json();
-    if(j?.ok){
-      wallEl.innerHTML=(j.items||[]).map(tileTemplate).join('');
-      bindTileClicks();
+    /* 備註小浮層 */
+    const hintBtn=$('#hintBtn'), hintPop=$('#hintPopover');
+    function positionArrow(){
+      const popRect=hintPop.getBoundingClientRect(), btnRect=hintBtn.getBoundingClientRect();
+      const x=(btnRect.left+btnRect.width/2)-popRect.left;
+      const clamped=Math.max(16, Math.min(popRect.width-16, x));
+      hintPop.style.setProperty('--arrow-x', clamped+'px');
     }
-  }catch(_){}
-}
+    function closeHint(){ hintPop.classList.remove('show'); hintBtn.setAttribute('aria-expanded','false'); }
+    hintBtn.addEventListener('click', (e)=>{
+      const showing=hintPop.classList.toggle('show');
+      hintBtn.setAttribute('aria-expanded', showing?'true':'false');
+      if(showing){ positionArrow(); }
+      e.stopPropagation();
+    });
+    document.addEventListener('click', (e)=>{
+      if(!hintPop.classList.contains('show')) return;
+      const within=hintPop.contains(e.target)||hintBtn.contains(e.target);
+      if(!within) closeHint();
+    });
+    window.addEventListener('resize', ()=>{ if(hintPop.classList.contains('show')) positionArrow(); });
+    window.addEventListener('orientationchange', ()=>{ setTimeout(()=>{ if(hintPop.classList.contains('show')) positionArrow(); }, 250); });
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeHint(); });
 
-/* ✅ 路由小寫：getblessingdetail */
-function bindTileClicks(){ document.querySelectorAll('.tile').forEach(t=>t.addEventListener('click',()=>openView(t))); }
-async function openView(el){
-  const row=el.getAttribute('data-row');
-  const j=await (await fetch(WEBHOOK+`?action=getblessingdetail&id=${encodeURIComponent(row)}&_t=${Date.now()}`, {cache:'no-store'})).json();
-  if(j?.ok&&j.item){
-    $('#viewMeta').textContent=`${j.item.displayName||'—'} ｜ ${fmt(j.item.time)}`;
-    const vc=$('#viewContent');
-    vc.textContent = j.item.contentHTML || '';  // 純文字顯示
-    $('#viewOverlay').classList.add('show');
-  }
-}
-$('#viewClose').onclick=()=>$('#viewOverlay').classList.remove('show');
+    /* ====================== 鎖定送出 ====================== */
+    let lineId='', displayName='', pictureUrl='';
+    $('#lockBtn').addEventListener('click', async ()=>{
+      if(hardLocked) return;
+      if(selectedNotes.length!==3){ alert('請彈滿 3 個音再鎖定'); return; }
 
-/* ★ 角色鍵：維持原行為＋同步 Dear 標籤 */
-$('#roleAll').onclick   =()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));$('#roleAll').classList.add('active');  updateBrideLabelByUIRole(); refreshWall();};
-$('#roleMale').onclick  =()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));$('#roleMale').classList.add('active'); updateBrideLabelByUIRole(); refreshWall();};
-$('#roleFemale').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));$('#roleFemale').classList.add('active');updateBrideLabelByUIRole(); refreshWall();};
+      /* --- 先快速 ping 一下 GAS 是否可達 --- */
+      try {
+        const ping = await fetch(WEBHOOK + '?action=ping', { method:'GET', cache:'no-store' });
+        const t = await ping.text().catch(()=> '');
+        if (String(t).trim().toLowerCase() !== 'ok') {
+          setStatus('⚠️ 後端未回應正常，請通知管理員檢查GAS部署與權限');
+          return;
+        }
+      } catch (_) {
+        setStatus('⚠️ 無法連到後端，請通知管理員檢查GASURL/權限/網路');
+        return;
+      }
 
-/* ===================== 送出 / 更新（純文字入庫） ===================== */
-function lockEditor(){editor.classList.add('locked');editor.setAttribute('contenteditable','false');}
-function unlockEditor(){editor.classList.remove('locked');editor.setAttribute('contenteditable','true');editor.focus();}
-$('#btnEdit').onclick=()=>unlockEditor();
+      setStatus('⏳ 送出中…');
+      const payload = {
+        action: 'submitNotes',                    // ★ 後端對齊（GAS 會 toLowerCase）
+        lineId, displayName, pictureUrl,          // ★ logs B,C,D
+        instrumentsCSV: selectedInsts.join(','),  // ★ logs E
+        notesCSV:       selectedNotes.join(','),  // ★ logs F
+        extraMessage                              // ★ 預留：logs G
+      };
 
-function hasSignature(){return chip.classList.contains('has-img');}
+      const controller=new AbortController();
+      const timer=setTimeout(()=>controller.abort(), TIMEOUT_MS);
 
-/* ✅ 路由小寫：createblessing / updateblessing */
-async function sendOrUpdate(){
-  const contentPlain=(editor.hasAttribute('data-empty')?'':editor.textContent).trim(); // 純文字
-  if(!contentPlain){ alert('欸，不可能不祝福我們吧🖕️'); return; }
-  if(!hasSignature()){ alert('欸，沒有畫押不准離開✍️'); return; }
+      try{
+        const r=await fetch(WEBHOOK + '?_t=' + Date.now(),{
+          method:'POST',
+          headers:{'Content-Type':'text/plain;charset=UTF-8'},
+          body: JSON.stringify(payload),
+          keepalive: true,
+          signal: controller.signal
+        });
+        clearTimeout(timer);
 
-  // ★ 若尚未登入，提示並引導（保留）
-  if(!lineId){
-    alert('請於 LINE App 內開啟並登入後再送出唷');
-    try{ if(window.liff && !liff.isLoggedIn()) liff.login(); }catch(_){}
-    return;
-  }
+        const ct = (r.headers.get('content-type')||'').toLowerCase();
+        let j = null;
+        if(ct.includes('application/json')){
+          j = await r.json().catch(()=>null);
+        }else{
+          const t = await r.text().catch(()=> '');
+          if(/^\s*\{/.test(t)){ try{ j = JSON.parse(t); }catch(_){} }
+          if(!j && r.ok) j = { ok:true };
+        }
 
-  const payload = myLastRow
-    ? {action:'updateblessing',row:Number(myLastRow),lineId,contentHTML:contentPlain}
-    : {action:'createblessing',lineId,displayName,pictureUrl,contentHTML:contentPlain,signaturePNG:signatureDataURL||'',extra:{}};
+        if(j && j.ok){
+          setStatus('✅ 已送出成功，可退安囉');
+          enterHardLock();
+        }else{
+          const err = String(j?.error||'');
+          if(err==='duplicate') setStatus('已填寫過了，想要更換音階請洽管理員呢🙏');
+          else if(err==='deadline_passed') setStatus('已過截止日，但還可在這玩耍唷👣');
+          else if(err==='busy') setStatus('⚠️ 系統忙碌或鎖等待，稍後再試🌀');
+          else setStatus(`⚠️ 送出失敗，請通知管理員檢查GAS部署與權限`);
+        }
+      }catch(e){
+        clearTimeout(timer);
+        try {
+          setStatus('⏳ 網路閃斷，嘗試重送中…');
+          const r2 = await fetch(WEBHOOK + '?_t=' + Date.now(), {
+            method:'POST',
+            headers:{'Content-Type':'text/plain;charset=UTF-8'},
+            body: JSON.stringify(payload),
+            keepalive: true,
+            cache: 'no-store'
+          });
 
-  const r=await fetch(WEBHOOK,{
-    method:'POST',
-    headers:{'Content-Type':'text/plain;charset=UTF-8'}, /* text/plain 可避開預檢（保留你的習慣） */
-    body:JSON.stringify(payload),
-    cache:'no-store'
-  });
-  const j=await r.json().catch(()=>null);
+          const ct2 = (r2.headers.get('content-type')||'').toLowerCase();
+          let j2 = null;
+          if (ct2.includes('application/json')) j2 = await r2.json().catch(()=>null);
+          else {
+            const t2 = await r2.text().catch(()=> '');
+            if (/^\s*\{/.test(t2)) { try{ j2 = JSON.parse(t2); }catch(_){} }
+            if (!j2 && r2.ok) j2 = { ok:true };
+          }
+          if (j2 && j2.ok) {
+            setStatus('✅ 已送出成功，可退安囉');
+            enterHardLock();
+          } else {
+            const err = String(j2?.error||'');
+            if(err==='duplicate') setStatus('已填寫過了，想要更換音階請洽管理員呢🙏');
+            else if(err==='deadline_passed') setStatus('已過截止日，但還可在這玩耍唷👣');
+            else if(err==='busy') setStatus('⚠️ 系統忙碌或鎖等待，稍後再試🌀');
+            else setStatus(`⚠️ 送出失敗，請通知管理員檢查GAS部署與權限`);
+          }
 
-  if(j?.ok){
-    lockEditor(); await refreshWall(); if(!myLastRow) await preloadMyLatest();
-    setStatus(myLastRow?'✅ 已更新並鎖定完成，於截止日前都可修改唷':'✅ 已送出並鎖定完成，於截止日前都可修改唷');
-    chip.classList.add('locked'); // 送出後鎖簽名
-  } else if(j?.error==='deadline_passed'){
-    setStatus('⛔ 已到截止日，無法編輯及送出'); lockEditor();
-  } else {
-    setStatus('❌ 送出失敗，稍後再試');
-  }
-}
-$('#btnSend').onclick=sendOrUpdate;
-$('#btnSubmit').onclick=sendOrUpdate;
+        } catch (e2) {
+          setStatus('⚠️ 網路異常或連線中斷，請確認網路後再試一次');
+        }
+      }
+    });
 
-/* ===================== 啟動 ===================== */
-window.addEventListener('DOMContentLoaded',()=>{
-  if(!editor.textContent.trim()){
-    editor.setAttribute('data-empty','');
-    editor.textContent='寫下並獻上最誠摯的祝福…💝';
-  }
-  if(window.liff) initLIFF(); else initialLoad();
-});
-</script>
+    function enterHardLock(){
+      hardLocked=true;
+      $('#displayName').disabled=true;
+      $('#instrument').disabled=true;
+      $('#resetBtn').disabled=true;
+      $('#lockBtn').disabled=true;
+      $('#lockScreen').style.display='block';
+    }
 
-<!-- ✅ LIFF SDK（放在文末，與你原本相同） -->
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    /* ====================== 對話框流程 ====================== */
+    ['click','touchend'].forEach(evt=>{
+      document.addEventListener(evt,(e)=>{
+        const t=e.target;
+        if(t.id==='guideOk'){
+          document.getElementById('guideOverlay').classList.add('hidden');
+          document.getElementById('unlockOverlay').classList.remove('hidden');
+          e.preventDefault();
+        }else if(t.id==='cancelUnlock'){
+          document.getElementById('unlockOverlay').classList.add('hidden');
+          e.preventDefault();
+        }else if(t.id==='confirmUnlock'){
+          unlockAudio();
+          document.getElementById('unlockOverlay').classList.add('hidden');
+          e.preventDefault();
+        }
+      }, {passive:true});
+    });
+
+    /* ========= 小工具：去掉暱稱前面跑出來的「:」或「：」 ========= */
+    function sanitizeName(name){
+      return String(name||'').replace(/^[\s:：]+/, ''); // 去前導空白/半形冒號/全形冒號
+    }
+
+    /* ====================== 初始化（畫面 / LIFF / Profile） ====================== */
+    async function init(){
+      renderPiano();                 // 預設先畫鋼琴
+      setStatus('⏳ 等待啟用聲音…');
+      validateLockBtn();
+      $('#guideOverlay').classList.remove('hidden');
+
+      try{
+        setStatus('初始化 LIFF…');
+        await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser: true });
+
+        if(!liff.isLoggedIn()){
+          // ✅ 要求 openid + profile scope，避免取不到 userId / displayName
+          liff.login({ scope: ['openid','profile'] });
+          return; // 會重新導回本頁
+        }
+        if(liff.ready){ await liff.ready; } // 某些瀏覽器需要等 ready
+
+        let prof = null, idt = null;
+        try{ prof = await liff.getProfile(); }catch(_){}
+        try{ idt  = liff.getDecodedIDToken(); }catch(_){}
+
+        // 兩條路都試：getProfile 與 ID Token
+        lineId      = (prof && prof.userId) || (idt && idt.sub) || '';
+        displayName = sanitizeName( (prof && prof.displayName) || (idt && (idt.name || idt.nickname)) || '' );
+        pictureUrl  = (prof && prof.pictureUrl) || '';
+
+        if(!lineId){
+          setStatus('⚠️ 無法取得ID，請於LineApp內開啟此連結重試');
+          return;
+        }
+        $('#displayName').value = displayName || '（匿名）';
+        setStatus('已就緒');
+      }catch(e){
+        setStatus('❌ LIFF初始化失敗'); // ★ 修正：補結尾引號
+      }
+    }
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
 </body>
 </html>
