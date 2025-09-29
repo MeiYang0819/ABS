@@ -221,12 +221,20 @@ h2{
 .dlg-actions button{width:120px;height:var(--tool-h);border-radius:10px;border:1px solid var(--rim);background:#fff;cursor:pointer;font-weight:700;}
 
 /* ✅ Footer 版權（維持你上版的固定左下角） */
+/* ★ 調整為置中（#4：只改定位） */
 footer.copyright{
-  position: fixed; left: 12px; bottom: 8px;
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 8px;
   font-size: 12px; opacity: .75;
   -webkit-text-stroke: 0; text-shadow: none;
   z-index: 2;
 }
+
+/* ★ 讓底部送出鍵外觀與左側三顆一致（#7：純補充選擇器，不改你原 class） */
+.footer-actions #btnSubmit{
+  background:#fff;border:1px solid var(--rim);border-radius:10px;font-weight:800;box-shadow:var(--shadow-2);cursor:pointer;
+  height: var(--tool-h); min-width: var(--btn-w);
+}
+.footer-actions #btnSubmit:active{ transform:translateY(1px) scale(.99); }
 </style>
 
 <body>
@@ -335,7 +343,7 @@ footer.copyright{
 /* ===================== 前端設定（請確認） ===================== */
 /* ✅ 你的 LIFF 與 GAS WebApp Endpoint */
 const LIFF_ID='2008149060-m5pDXW6a';  // ← 你的 LIFF ID（同心祈願）
-const WEBHOOK='https://script.google.com/macros/s/AKfycbw1jtTjz02HxunWyPC74vaaveFO7SUOTZedxtNPuL9a22dIgj0O4pHzZbkDK-9reeQp/exec'; // ← 你的 GAS 網址
+const WEBHOOK='https://script.google.com/macros/s/AKfycbxZw_ipLRSDa-c3fJFFwSHlmXQcw-jZUPuNvbDOPdUNDXgYhuCWa1QVISJs8WG70J_N/exec'; // ← 你的 GAS 網址
 
 /* ===================== DOM 快捷 ===================== */
 const $ = s => document.querySelector(s);
@@ -343,6 +351,18 @@ const editor = $('#editor');
 const wallEl = $('#wall');
 const chip = $('#chipSign');
 const img  = $('#signThumb');
+
+// === 新增：用於 Dear 標籤的資料（不影響其它流程/樣式） ===
+let manName = '', womanName = '', currentRoleCode = ''; // ROLE_MALE_FRIEND / ROLE_FEMALE_FRIEND / ''
+function updateBrideLabelByUIRole(){
+  // 依目前 UI 選中的角色鈕決定 Dear 顯示
+  const activeId = document.querySelector('.role-btn.active')?.id || 'roleAll';
+  const label =
+    activeId === 'roleMale'   ? (manName || '—') :
+    activeId === 'roleFemale' ? (womanName || '—') :
+    [manName, womanName].filter(Boolean).join(' & ') || '—';
+  $('#brideLabel').textContent = `Dear ${label}`;
+}
 
 function setStatus(m){ $('#status').textContent = m; }
 
@@ -372,9 +392,16 @@ async function initialLoad(){ await fetchRoleAndNames(); await refreshWall(); }
 /* ✅ 從 GAS 正確抓 nameLabel（action=userrole） */
 async function fetchRoleAndNames(){
   try{
-    const url = WEBHOOK + `?action=userrole&lineId=${encodeURIComponent(lineId||'')}`;
-    const j = await (await fetch(url)).json();
-    if(j?.ok){ $('#brideLabel').textContent = j.nameLabel ? `Dear ${j.nameLabel}` : 'Dear —'; }
+    const url = WEBHOOK + `?action=userrole&lineId=${encodeURIComponent(lineId||'')}&_t=${Date.now()}`;
+    const j = await (await fetch(url, {cache:'no-store'})).json();
+    if(j?.ok){
+      // 存下新郎/新娘/角色代碼（不改其它流程）
+      manName = String(j.man||'').trim();
+      womanName = String(j.woman||'').trim();
+      currentRoleCode = String(j.role||'').trim(); // ROLE_MALE_FRIEND / ROLE_FEMALE_FRIEND / ''
+      // 依 UI 目前選中的角色鈕呈現 Dear
+      updateBrideLabelByUIRole();
+    }
   }catch(_){}
 }
 
@@ -402,7 +429,7 @@ function setSignaturePreview(url, lock=false){
 async function preloadMyLatest(){
   if(!lineId) return;
   try{
-    const j=await (await fetch(WEBHOOK+`?action=getlatestbylineid&lineId=${encodeURIComponent(lineId)}`)).json();
+    const j=await (await fetch(WEBHOOK+`?action=getlatestbylineid&lineId=${encodeURIComponent(lineId)}&_t=${Date.now()}`, {cache:'no-store'})).json();
     if(j?.ok && j.item){
       const it=j.item;
       if(it.contentHTML){
@@ -487,7 +514,7 @@ function tileTemplate(it){
 async function refreshWall(){
   try{
     const role=document.querySelector('.role-btn.active')?.id?.replace('role','').toLowerCase()||'all';
-    const j=await (await fetch(WEBHOOK+`?action=listblessings&role=${role}`)).json();
+    const j=await (await fetch(WEBHOOK+`?action=listblessings&role=${role}&_t=${Date.now()}`, {cache:'no-store'})).json();
     if(j?.ok){
       wallEl.innerHTML=(j.items||[]).map(tileTemplate).join('');
       bindTileClicks();
@@ -499,7 +526,7 @@ async function refreshWall(){
 function bindTileClicks(){ document.querySelectorAll('.tile').forEach(t=>t.addEventListener('click',()=>openView(t))); }
 async function openView(el){
   const row=el.getAttribute('data-row');
-  const j=await (await fetch(WEBHOOK+`?action=getblessingdetail&id=${encodeURIComponent(row)}`)).json();
+  const j=await (await fetch(WEBHOOK+`?action=getblessingdetail&id=${encodeURIComponent(row)}&_t=${Date.now()}`, {cache:'no-store'})).json();
   if(j?.ok&&j.item){
     $('#viewMeta').textContent=`${j.item.displayName||'—'} ｜ ${fmt(j.item.time)}`;
     const vc=$('#viewContent');
@@ -509,9 +536,10 @@ async function openView(el){
 }
 $('#viewClose').onclick=()=>$('#viewOverlay').classList.remove('show');
 
-$('#roleAll').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));$('#roleAll').classList.add('active');refreshWall();};
-$('#roleMale').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));$('#roleMale').classList.add('active');refreshWall();};
-$('#roleFemale').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));$('#roleFemale').classList.add('active');refreshWall();};
+/* ★ 角色鍵：維持原行為＋同步 Dear 標籤 */
+$('#roleAll').onclick   =()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));$('#roleAll').classList.add('active');  updateBrideLabelByUIRole(); refreshWall();};
+$('#roleMale').onclick  =()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));$('#roleMale').classList.add('active'); updateBrideLabelByUIRole(); refreshWall();};
+$('#roleFemale').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));$('#roleFemale').classList.add('active');updateBrideLabelByUIRole(); refreshWall();};
 
 /* ===================== 送出 / 更新（純文字入庫） ===================== */
 function lockEditor(){editor.classList.add('locked');editor.setAttribute('contenteditable','false');}
@@ -525,6 +553,13 @@ async function sendOrUpdate(){
   const contentPlain=(editor.hasAttribute('data-empty')?'':editor.textContent).trim(); // 純文字
   if(!contentPlain){ alert('欸，不可能不祝福我們吧🖕️'); return; }
   if(!hasSignature()){ alert('欸，沒有畫押不准離開✍️'); return; }
+
+  // ★ 若尚未登入，提示並引導（#3）
+  if(!lineId){
+    alert('請於 LINE App 內開啟並登入後再送出唷');
+    try{ if(window.liff && !liff.isLoggedIn()) liff.login(); }catch(_){}
+    return;
+  }
 
   const payload = myLastRow
     ? {action:'updateblessing',row:Number(myLastRow),lineId,contentHTML:contentPlain}
