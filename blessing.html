@@ -190,7 +190,7 @@ footer.copyright{
           <button type="button" class="role-btn" id="roleFemale">女方</button>
         </div>
 
-        <p id="status">📥 還在等待，待送出資料</p>
+        <p id="status">✅ 已就緒，可以填寫囉！建議使用電腦操作會更棒</p>
 
         <div class="toolbar" role="toolbar" aria-label="文字工具">
           <button class="tool-btn" id="btnBold"      type="button">粗體</button>
@@ -225,7 +225,7 @@ footer.copyright{
             <div class="left-actions">
               <button id="btnEdit"  type="button">修改</button>
               <button id="btnSend"  type="button">送出</button>
-              <div class="chip" id="chipSign" title="點此簽名">
+              <div class="chip" id="chipSign" title="畫押簽名">
                 <span class="hint">畫押簽名</span>
                 <img id="signThumb" alt="signature preview" />
               </div>
@@ -437,11 +437,11 @@ async function sendOrUpdate(){
   const j=await r.json().catch(()=>null);
   if(j?.ok){
     lockEditor(); await refreshWall(); if(!myLastRow) await preloadMyLatest();
-    setStatus(myLastRow?'✅ 已更新並鎖定':'✅ 已送出並鎖定');
+    setStatus(myLastRow?'✅ 已更新並鎖定完成，於截止日前都可修改唷':'✅ 已送出並鎖定完成，於截止日前都可修改唷');
     // 送出後即鎖（和你原本行為一致）
     chip.classList.add('locked');
   } else if(j?.error==='deadline_passed'){
-    setStatus('⛔ 已到截止日，無法送出及編輯'); lockEditor();
+    setStatus('⛔ 已到截止日，無法編輯及送出'); lockEditor();
   } else setStatus('❌ 送出失敗，稍後再試');
 }
 document.getElementById('btnSend').onclick=sendOrUpdate;
