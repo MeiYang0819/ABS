@@ -221,9 +221,9 @@ h2{
 .dlg-actions button{width:120px;height:var(--tool-h);border-radius:10px;border:1px solid var(--rim);background:#fff;cursor:pointer;font-weight:700;}
 
 /* ✅ Footer 版權（維持你上版的固定左下角） */
-/* ★ 調整為置中（#4：只改定位） */
+/* ★ 調整為置中，並微上移（只改定位，不動樣式其他字） */
 footer.copyright{
-  position: fixed; left: 50%; transform: translateX(-50%); bottom: 8px;
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 16px;
   font-size: 12px; opacity: .75;
   -webkit-text-stroke: 0; text-shadow: none;
   z-index: 2;
@@ -253,7 +253,7 @@ footer.copyright{
           <button type="button" class="role-btn" id="roleFemale">女方</button>
         </div>
 
-        <p id="status">✅ 已就緒，可以填寫囉！建議使用電腦操作會更棒</p>
+        <p id="status">初始化 LIFF…</p>
 
         <!-- ✅ 工具列（仍然只影響前端視覺，儲存為純文字） -->
         <div class="toolbar" role="toolbar" aria-label="文字工具">
@@ -343,7 +343,7 @@ footer.copyright{
 /* ===================== 前端設定（請確認） ===================== */
 /* ✅ 你的 LIFF 與 GAS WebApp Endpoint */
 const LIFF_ID='2008149060-m5pDXW6a';  // ← 你的 LIFF ID（同心祈願）
-const WEBHOOK='https://script.google.com/macros/s/AKfycbxZw_ipLRSDa-c3fJFFwSHlmXQcw-jZUPuNvbDOPdUNDXgYhuCWa1QVISJs8WG70J_N/exec'; // ← 你的 GAS 網址
+const WEBHOOK='https://script.google.com/macros/s/AKfycbwr2R0gr8_Hbd8pad8lJSGD5HLJ_xCvmGfbB38_41imBcE2P6dzg8CP6gPGBwgMp5iT/exec'; // ← 你的 GAS 網址
 
 /* ===================== DOM 快捷 ===================== */
 const $ = s => document.querySelector(s);
@@ -370,10 +370,13 @@ function setStatus(m){ $('#status').textContent = m; }
 let lineId='',displayName='',pictureUrl='',myLastRow=null;
 
 async function initLIFF(){
-  if(!window.liff){ await initialLoad(); return; }
   try{
     await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser:true });
-    if(!liff.isLoggedIn()){ liff.login(); return; }
+    if(!liff.isLoggedIn()){
+      setStatus('登入中…');
+      liff.login({ scope:['openid','profile'] });
+      return;
+    }
     await liff.ready;
     const prof=await liff.getProfile().catch(()=>null);
     const idt =await liff.getDecodedIDToken().catch(()=>null);
@@ -381,13 +384,14 @@ async function initLIFF(){
     displayName = (prof && prof.displayName) || (idt && (idt.name||idt.nickname)) || '';
     pictureUrl  = (prof && prof.pictureUrl) || '';
   }catch(_){}
+  setStatus('已就緒'); // ✅ 保持你原本文案語氣
   await fetchRoleAndNames();   // 角色 + A/B 名稱
   await preloadMyLatest();     // 載入自己最近一筆（若有）
   await refreshWall();         // 列表
 }
 
 /* 無 LIFF 也能先載入牆（匿名瀏覽） */
-async function initialLoad(){ await fetchRoleAndNames(); await refreshWall(); }
+async function initialLoad(){ setStatus('已就緒'); await fetchRoleAndNames(); await refreshWall(); }
 
 /* ✅ 從 GAS 正確抓 nameLabel（action=userrole） */
 async function fetchRoleAndNames(){
@@ -399,6 +403,14 @@ async function fetchRoleAndNames(){
       manName = String(j.man||'').trim();
       womanName = String(j.woman||'').trim();
       currentRoleCode = String(j.role||'').trim(); // ROLE_MALE_FRIEND / ROLE_FEMALE_FRIEND / ''
+
+      // ★ 依使用者綁定自動選角色鍵（只有未綁定才停在「全部」）
+      const btns = document.querySelectorAll('.role-btn');
+      btns.forEach(b=>b.classList.remove('active'));
+      if(currentRoleCode==='MALE_FRIEND') $('#roleMale').classList.add('active');
+      else if(currentRoleCode==='FEMALE_FRIEND') $('#roleFemale').classList.add('active');
+      else $('#roleAll').classList.add('active');
+
       // 依 UI 目前選中的角色鈕呈現 Dear
       updateBrideLabelByUIRole();
     }
@@ -554,7 +566,7 @@ async function sendOrUpdate(){
   if(!contentPlain){ alert('欸，不可能不祝福我們吧🖕️'); return; }
   if(!hasSignature()){ alert('欸，沒有畫押不准離開✍️'); return; }
 
-  // ★ 若尚未登入，提示並引導（#3）
+  // ★ 若尚未登入，提示並引導（保留）
   if(!lineId){
     alert('請於 LINE App 內開啟並登入後再送出唷');
     try{ if(window.liff && !liff.isLoggedIn()) liff.login(); }catch(_){}
@@ -568,7 +580,8 @@ async function sendOrUpdate(){
   const r=await fetch(WEBHOOK,{
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=UTF-8'}, /* text/plain 可避開預檢（保留你的習慣） */
-    body:JSON.stringify(payload)
+    body:JSON.stringify(payload),
+    cache:'no-store'
   });
   const j=await r.json().catch(()=>null);
 
