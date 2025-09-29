@@ -256,7 +256,7 @@
     /* ====================== 前端設定（請填） ====================== */
     /* ✅ 可更改：LIFF ID 與後端網址 */
     const LIFF_ID = '2008149060-ZGVdAvGo';  // ← 你的 LIFF ID
-    const WEBHOOK = 'https://script.google.com/macros/s/AKfycbyI8jV6hj-FZ2rdj0c0DvdAAmlg4pbb64IhtfA8mmkUO9mDh_xFuTH1g3lzcQKski6g/exec'; // ← 你的 GAS 網址
+    const WEBHOOK = 'https://script.google.com/macros/s/AKfycby-yPxuPhS9hk-uLLSEZRuEfHqw1r16ND6c_6D2GzoN0XEnu-cWg1DIw_-i2G50YM2t/exec'; // ← 你的 GAS 網址
 
     /* ===== 提醒（僅註解，幫你記得要去 GAS 也更新） =====
        // ✅ 主本/副本 試算表 ID（兩本結構相同）
@@ -535,8 +535,8 @@
           enterHardLock();
         }else{
           const err = String(j?.error||'');
-          if(err==='duplicate') setStatus('已填寫過了，想要更換音階請洽管理員呢🙏');
-          else if(err==='deadline_passed') setStatus('已過截止日，但還可在這玩耍唷👣');
+          if(err==='duplicate') setStatus('⚠️ 已填寫過了，想要更換音階請洽管理員呢🙏');
+          else if(err==='deadline_passed') setStatus('❌ 已過截止日，但還可在這玩耍唷👣');
           else if(err==='busy') setStatus('⚠️ 系統忙碌或鎖等待，稍後再試🌀');
           else setStatus(`⚠️ 送出失敗，請通知管理員檢查GAS部署與權限`);
         }
@@ -565,8 +565,8 @@
             enterHardLock();
           } else {
             const err = String(j2?.error||'');
-            if(err==='duplicate') setStatus('已填寫過了，想要更換音階請洽管理員呢🙏');
-            else if(err==='deadline_passed') setStatus('已過截止日，但還可在這玩耍唷👣');
+            if(err==='duplicate') setStatus('⚠️ 已填寫過了，想要更換音階請洽管理員呢🙏');
+            else if(err==='deadline_passed') setStatus('❌ 已過截止日，但還可在這玩耍唷👣');
             else if(err==='busy') setStatus('⚠️ 系統忙碌或鎖等待，稍後再試🌀');
             else setStatus(`⚠️ 送出失敗，請通知管理員檢查GAS部署與權限`);
           }
@@ -644,7 +644,7 @@
         $('#displayName').value = displayName || '（匿名）';
         setStatus('已就緒');
       }catch(e){
-        setStatus('❌ LIFF初始化失敗'); // ★ 修正：補結尾引號
+        setStatus('❌ LIFF初始化失敗，請通知管理員'); // ★ 修正：補結尾引號
       }
     }
     window.addEventListener('DOMContentLoaded', init);
