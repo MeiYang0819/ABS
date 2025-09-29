@@ -318,7 +318,7 @@
         loadSampler(currentInstrument);
         unlocked=true;
         $('#unlockOverlay').classList.add('hidden');
-      }catch(e){ setStatus('啟用失敗：'+e.message); }
+      }catch(e){ setStatus(❌ 啟用失敗，請通知管理員); }
     }
     function loadSampler(inst='piano'){
       sampler?.dispose?.(); sampler=null; samplerReady=false;
@@ -327,13 +327,13 @@
       setStatus(label+'載入中…');
       try{
         sampler=new Tone.Sampler({ urls, release:1, baseUrl:base, onload:()=>{ samplerReady=true; setStatus(label+'已載入 ✅'); } }).toDestination();
-      }catch(e){ setStatus('❌ 音色初始化失敗：'+e.message); }
+      }catch(e){ setStatus('❌ 音色初始化失敗，請通知管理員}
     }
 
     /* 播音 + 三音紀錄 */
     function trigger(note){
       if(hardLocked) return;
-      if(!samplerReady){ setStatus('音色載入中…'); return; }
+      if(!samplerReady){ setStatus('⏳ 音色載入中…'); return; }
       sampler.triggerAttackRelease(note,'8n');
       if(selectedNotes.length<3){ selectedNotes.push(note); selectedInsts.push(currentInstrument); }
       else { selectedNotes[2]=note; selectedInsts[2]=currentInstrument; }
@@ -491,11 +491,11 @@
         const ping = await fetch(WEBHOOK + '?action=ping', { method:'GET', cache:'no-store' });
         const t = await ping.text().catch(()=> '');
         if (String(t).trim().toLowerCase() !== 'ok') {
-          setStatus('⚠️ 後端未回應正常（ping='+t+'），請檢查 GAS 部署與權限');
+          setStatus('⚠️ 後端未回應正常，請通知管理員檢查GAS部署與權限');
           return;
         }
       } catch (_) {
-        setStatus('⚠️ 無法連到後端（ping 失敗），請檢查 GAS URL/權限/網路');
+        setStatus('⚠️ 無法連到後端，請通知管理員檢查GASURL/權限/網路');
         return;
       }
 
@@ -545,7 +545,7 @@
           else if(err==='busy') setStatus('⚠️ 系統忙碌或鎖等待，稍後再試🌀');
           else {
             const ctDebug = (r.headers.get('content-type')||'');
-            setStatus(`⚠️ 送出失敗（HTTP ${r.status}）\ncontent-type=${ctDebug}\n請檢查 GAS 部署與權限`);
+            setStatus(`⚠️ 送出失敗，請通知管理員檢查GAS部署與權限`);
           }
         }
       }catch(e){
@@ -553,13 +553,13 @@
         clearTimeout(timer);
 
         if (e && (e.name === 'AbortError' || /abort/i.test(String(e)))) {
-          setStatus('⚠️ 送出逾時，請再按一次鎖定（若仍逾時，請關閉重開或稍後再試）');
+          setStatus('⚠️ 送出逾時，請再按一次鎖定，若仍逾時，請關閉重開或稍後再試');
           return;
         }
 
         // 僅在「網路錯誤」時重試一次（不帶 signal，避免被第一次的 abort 影響）
         try {
-          setStatus('網路閃斷，嘗試重送中…');
+          setStatus('⏳ 網路閃斷，嘗試重送中…');
           const r2 = await fetch(WEBHOOK + '?_t=' + Date.now(), {
             method:'POST',
             headers:{'Content-Type':'text/plain;charset=UTF-8'},
@@ -588,7 +588,7 @@
             else if(err==='busy') setStatus('⚠️ 系統忙碌或鎖等待，稍後再試🌀');
             else {
               const ctDebug = (r2.headers.get('content-type')||'');
-              setStatus(`⚠️ 送出失敗（HTTP ${r2.status}）\ncontent-type=${ctDebug}\n請檢查 GAS 部署與權限`);
+              setStatus(`⚠️ 送出失敗，請通知管理員檢查GAS部署與權限`);
             }
           }
 
@@ -634,7 +634,7 @@
     /* ====================== 初始化（畫面 / LIFF / Profile） ====================== */
     async function init(){
       renderPiano();                 // 預設先畫鋼琴
-      setStatus('等待啟用聲音…');
+      setStatus('⏳ 等待啟用聲音…');
       validateLockBtn();
       $('#guideOverlay').classList.remove('hidden');
 
@@ -659,13 +659,13 @@
         pictureUrl  = (prof && prof.pictureUrl) || '';
 
         if(!lineId){
-          setStatus('請於 LINE App 內開啟此連結重試（無法取得 LINE ID）');
+          setStatus('⚠️ 無法取得ID，請於LineApp內開啟此連結重試');
           return;
         }
         $('#displayName').value = displayName || '（匿名）';
         setStatus('已就緒');
       }catch(e){
-        setStatus('LIFF 初始化失敗：'+e.message);
+        setStatus('❌ LIFF初始化失敗);
       }
     }
     window.addEventListener('DOMContentLoaded', init);
