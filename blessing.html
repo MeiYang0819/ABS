@@ -1,17 +1,17 @@
-<!doctype html> 
+<!doctype html>
 <html lang="zh-Hant">
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>❤️同心祈願❤️</title>
 
-<!-- ✅ 字體（維持你的配置） -->
+<!-- 字體 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand:wght@400&family=Sacramento:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
 :root{
-  /* ✅ 主題色：維持你的藍色主題 */
+  /* 主題色（維持你的藍色主題） */
   --brand-bg:#c9daf8;
   --title:#A68A7C;  --ink:#0f172a; --accent:#A68A7C; --rim:#E4E4E4; --soft:#F5F1EC;
   --panel-grad-from:#b7d2f6; --panel-grad-to:#cfe1fb;
@@ -24,22 +24,22 @@
   --editor-zoom:1rem; --toolbar-gap:8px; --h2-size:2.8rem;
   --btn-w:184px; --btn-h:36px; --tool-h:36px;
 
-  /* ✅ 木牌尺寸（維持） */
+  /* 木牌尺寸（維持） */
   --tile-w:180px; --tile-h:156px;
 
-  /* ✅ 繩條/繩結（更細、外凸） */
+  /* 繩條/繩結（更細、外凸） */
   --rope-width:6px;
   --rope-height:44px;
   --knot-size:18px;
 }
 
-/* ✅ 背景圖（照你的要求恢復 favors.png?v=4） */
+/* 背景圖（維持 favors.png?v=4） */
 .bg-notes{
   position: fixed; inset: 0; width: 100%; height: 100%;
   object-fit: cover; z-index: 0; pointer-events: none; user-select: none; opacity: .9;
 }
 
-/* ✅ Layout 與面板（維持你的設定） */
+/* Layout 與面板（維持你的設定） */
 *{box-sizing:border-box;}
 html,body{
   height:100%;margin:0;overflow:hidden;color:var(--ink);background:var(--brand-bg);
@@ -85,14 +85,14 @@ h2{
   padding:22px;height:100%;display:grid;grid-template-columns:1fr 2fr;gap:14px;background:#e6b8af; /* 右半粉牆的外底色（保留） */
 }
 
-/* ✅ 左側輸入面板（不動你的結構、只維持樣式） */
+/* 左側輸入面板（不動你的結構、只維持樣式） */
 .left-wrap{
   position:relative;background:linear-gradient(180deg, rgba(255,242,204,.98), rgba(255,242,204,.92));
   border-radius:16px;border:1px solid rgba(0,0,0,.05);padding:12px;overflow:hidden;
 }
 .left-content{position:relative;height:100%;}
 
-/* ✅ 新人 chip（Dear A/B） */
+/* 新人 chip（Dear A/B） */
 .chip{
   position:absolute;min-width:160px;height:var(--tool-h);background:#fff;border:1px solid var(--rim);border-radius:10px;
   box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;gap:8px;padding:0 10px;user-select:none;
@@ -100,7 +100,7 @@ h2{
 #chipBride{top:10px;left:10px;}
 #brideLabel{font-weight:800;line-height:1;}
 
-/* ✅ 編輯器（仍可局部加粗/底線，但入庫均轉純文字） */
+/* 編輯器（仍可局部加粗/底線，但入庫均轉純文字） */
 .editor{
   position:absolute;top:calc(10px + var(--tool-h) + 16px);right:10px;bottom:calc(10px + 36px + 10px);left:10px;
   overflow:auto;line-height:1.8;outline:none;background:transparent;border-radius:12px;padding:14px;font-size:var(--editor-zoom);
@@ -109,7 +109,7 @@ h2{
 .editor[data-empty]{opacity:1;color:rgba(15,23,42,.28);-webkit-text-stroke:0;text-shadow:none;font-style:italic;}
 .editor.locked{pointer-events:none;opacity:.85;}
 
-/* ✅ 左下方三顆（保留） */
+/* 左下方三顆（保留） */
 .left-actions{position:absolute;left:10px;right:10px;bottom:10px;height:36px;display:flex;gap:10px;}
 .left-actions>*{flex:1 1 0;height:100%;}
 .left-actions button{
@@ -117,7 +117,7 @@ h2{
 }
 .left-actions button:active{transform:translateY(1px) scale(.99);}
 
-/* ✅ 簽名 chip（舊樣式） */
+/* 簽名 chip（舊樣式） */
 #chipSign{
   position:static;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;border:1px solid var(--rim);
   border-radius:10px;box-shadow:var(--shadow-2);padding:0 8px;
@@ -128,17 +128,17 @@ h2{
 #chipSign.has-img #signThumb{display:block;}
 #chipSign.has-img .hint{display:none;}
 
-/* ✅ 右側祝福牆（粉色系） */
+/* 右側祝福牆（粉色系） */
 .wall-wrap{
   background:linear-gradient(180deg,#f9e5ee,#f6dce7);
   border-radius:16px;border:1px solid rgba(0,0,0,.05);padding:12px;overflow:auto;
 }
 .wall{min-height:280px;display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--tile-w),1fr));gap:14px;align-content:start;padding:2px;overflow:visible;}
 
-/* ✅ 木牌容器（不裁切，讓繩結能凸出） */
+/* 木牌容器（不裁切，讓繩結能凸出） */
 .tile{position:relative;width:100%;height:var(--tile-h);cursor:pointer;overflow:visible;}
 
-/* ✅ 木牌面板（咖啡色木框 + 木紋 + 斜角） */
+/* 木牌面板（木框+木紋+斜角） */
 .tile-plate{
   position:absolute; inset:0; padding:14px 12px 12px; display:flex; flex-direction:column; gap:6px;
   background:
@@ -148,7 +148,7 @@ h2{
     radial-gradient(16px 12px at 28% 36%, rgba(0,0,0,.06), transparent 60%),
     radial-gradient(14px 10px at 72% 62%, rgba(0,0,0,.06), transparent 60%);
   border:3px solid transparent;
-  border-image: repeating-linear-gradient(15deg,#8f6a3a 0 6px,#a67942 6px 12px,#7c5430 12px 18px) 8 round; /* 咖啡色木框 */
+  border-image: repeating-linear-gradient(15deg,#8f6a3a 0 6px,#a67942 6px 12px,#7c5430 12px 18px) 8 round;
   border-radius:14px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.28), inset 0 -1.5px 0 rgba(0,0,0,.12), 0 10px 18px rgba(0,0,0,.10);
   clip-path:polygon(0 12%, 12% 0, 88% 0, 100% 12%, 100% 100%, 0 100%);
@@ -164,7 +164,7 @@ h2{
   background:linear-gradient(180deg,#7fcf7a,#58b35a);box-shadow:0 1px 0 rgba(255,255,255,.45), inset 0 -1px 0 rgba(0,0,0,.15);
 }
 
-/* ✅ 繩＋結（更細＋外凸） */
+/* 繩＋結（更細＋外凸） */
 .tile .rope{
   position:absolute;top:-20px;left:50%;transform:translateX(-50%);
   width:var(--rope-width);height:var(--rope-height);
@@ -192,7 +192,7 @@ h2{
 .tile .knot::before{left:-14px;transform:rotate(-28deg);}
 .tile .knot::after{right:-14px;transform:rotate(28deg);}
 
-/* ✅ 牌面文字（維持） */
+/* 牌面文字（維持） */
 .tile-name{font-weight:800;text-align:center;margin-top:8px;}
 .tile-sep{height:1px;background:linear-gradient(90deg, rgba(0,0,0,.18), rgba(0,0,0,.06) 40%, rgba(0,0,0,.18));opacity:.7;margin:6px 0;}
 .tile-date{font-size:12px;opacity:.8;text-align:center;}
@@ -201,7 +201,7 @@ h2{
   display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;
 }
 
-/* ✅ 檢視窗（明細） */
+/* 檢視窗（明細） */
 .overlay{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:rgba(17,24,39,.35);backdrop-filter:blur(3px);}
 .overlay.show{display:flex;}
 .dialog{
@@ -214,21 +214,21 @@ h2{
 .view-actions{display:flex;gap:10px;justify-content:center;margin-top:12px;}
 .view-actions button{min-width:120px;height:var(--tool-h);border-radius:10px;border:1px solid var(--rim);background:#fff;cursor:pointer;font-weight:700;}
 
-/* ✅ 簽名對話框（舊樣式，保留） */
+/* 簽名對話框（舊樣式，保留） */
 #sigOverlay .dialog{width:min(92vw,520px);}
 #pad{width:100%;height:260px;background:#fff;border:1px solid #ddd;border-radius:12px;touch-action:none;display:block;}
 .dlg-actions{display:flex;gap:10px;justify-content:center;margin-top:12px;}
 .dlg-actions button{width:120px;height:var(--tool-h);border-radius:10px;border:1px solid var(--rim);background:#fff;cursor:pointer;font-weight:700;}
 
-/* ✅ Footer 版權（置中，上移一點） */
+/* Footer 版權（上移一點） */
 footer.copyright{
-  position: fixed; left: 50%; transform: translateX(-50%); bottom: 22px;
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 42px;
   font-size: 12px; opacity: .75;
   -webkit-text-stroke: 0; text-shadow: none;
   z-index: 2;
 }
 
-/* ★ 讓底部送出鍵外觀與左側三顆一致（純補充選擇器，不改你原 class） */
+/* 讓底部送出鍵外觀與左側三顆一致（純補充選擇器，不改你原 class） */
 .footer-actions #btnSubmit{
   background:#fff;border:1px solid var(--rim);border-radius:10px;font-weight:800;box-shadow:var(--shadow-2);cursor:pointer;
   height: var(--tool-h); min-width: var(--btn-w);
@@ -237,7 +237,7 @@ footer.copyright{
 </style>
 
 <body>
-  <!-- ✅ 背景圖（恢復） -->
+  <!-- 背景圖 -->
   <img class="bg-notes" src="./assets/favors.png?v=4" alt="">
 
   <div class="panel">
@@ -245,21 +245,22 @@ footer.copyright{
 
     <div class="bar">
       <div class="bar-inner">
-        <!-- ✅ 角色過濾（保留你的三鍵） -->
+        <!-- 角色過濾 -->
         <div class="rolebar">
           <button type="button" class="role-btn active" id="roleAll">全部</button>
           <button type="button" class="role-btn" id="roleMale">男方</button>
           <button type="button" class="role-btn" id="roleFemale">女方</button>
         </div>
 
-        <p id="status">✅ 已就緒，可以填寫囉！建議使用電腦操作會更棒</p>
+        <!-- 初始顯示改為「初始化中」；待拿到 lineId 後才顯示已就緒 -->
+        <p id="status">⏳ 初始化中，請稍候…</p>
 
-        <!-- ✅ 工具列（仍然只影響前端視覺，儲存為純文字） -->
+        <!-- 工具列（視覺，儲存為純文字） -->
         <div class="toolbar" role="toolbar" aria-label="文字工具">
           <button class="tool-btn" id="btnBold"      type="button">粗體</button>
           <button class="tool-btn" id="btnItalic"    type="button">斜體</button>
           <button class="tool-btn" id="btnUnderline" type="button">底線</button>
-          <select id="colorPick" class="tool-select" title="字體顏色">
+          <select id="colorPick" class="tool-select" title="字體顏色" disabled>
             <option value="" selected>顏色</option>
             <option value="#a21caf">小紫</option>
             <option value="#dc2626">小紅</option>
@@ -268,15 +269,15 @@ footer.copyright{
             <option value="#d97706">小橘</option>
             <option value="#6b7280">小灰</option>
           </select>
-          <button class="tool-btn" id="btnBigger"    type="button">放大</button>
-          <button class="tool-btn" id="btnSmaller"   type="button">縮小</button>
+          <button class="tool-btn" id="btnBigger"    type="button" disabled>放大</button>
+          <button class="tool-btn" id="btnSmaller"   type="button" disabled>縮小</button>
         </div>
       </div>
     </div>
 
     <div class="stage">
       <div class="card" id="card">
-        <!-- ✅ 左：輸入 -->
+        <!-- 左：輸入 -->
         <section class="left-wrap">
           <div class="left-content">
             <div class="chip" id="chipBride" title="新人"><span id="brideLabel">Dear —</span></div>
@@ -286,10 +287,10 @@ footer.copyright{
             </div>
 
             <div class="left-actions">
-              <button id="btnEdit"  type="button">修改</button>
-              <button id="btnSend"  type="button">送出</button>
+              <button id="btnEdit"  type="button" disabled>修改</button>
+              <button id="btnSend"  type="button" disabled>送出</button>
 
-              <!-- ✅ 簽名（畫押） -->
+              <!-- 簽名（畫押） -->
               <div class="chip" id="chipSign" title="畫押簽名">
                 <span class="hint">畫押簽名</span>
                 <img id="signThumb" alt="signature preview" />
@@ -298,7 +299,7 @@ footer.copyright{
           </div>
         </section>
 
-        <!-- ✅ 右：祝福牆 -->
+        <!-- 右：祝福牆 -->
         <section class="wall-wrap">
           <div class="wall" id="wall"></div>
         </section>
@@ -306,16 +307,16 @@ footer.copyright{
     </div>
 
     <div class="footer-actions" style="display:flex;justify-content:center;align-items:center;padding:14px 0 16px;">
-      <button id="btnSubmit" class="primary" type="button">送出滿滿祝福</button>
+      <button id="btnSubmit" class="primary" type="button" disabled>送出滿滿祝福</button>
     </div>
   </div>
 
-  <!-- ✅ 版權（維持不動） -->
+  <!-- 版權（上移） -->
   <footer class="copyright">
     © Copyright 2025 MY‘s System Version:b1.0.227
   </footer>
 
-  <!-- ✅ 檢視窗（明細） -->
+  <!-- 檢視窗（明細） -->
   <div id="viewOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="viewTitle">
     <div class="dialog">
       <h3 id="viewTitle">祝福內容</h3>
@@ -325,7 +326,7 @@ footer.copyright{
     </div>
   </div>
 
-  <!-- ✅ 簽名 Modal（舊樣式） -->
+  <!-- 簽名 Modal -->
   <div id="sigOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="sigTitle">
     <div class="dialog">
       <h3 id="sigTitle">請於下方畫押唷😈</h3>
@@ -339,10 +340,9 @@ footer.copyright{
   </div>
 
 <script>
-/* ===================== 前端設定（請確認） ===================== */
-/* ✅ 你的 LIFF 與 GAS WebApp Endpoint */
-const LIFF_ID='2008149060-m5pDXW6a';  // ← 你的 LIFF ID（同心祈願）
-const WEBHOOK='https://script.google.com/macros/s/AKfycbxH_0NJkDLFjmwq5jYMGIScbnwrfQZIraNOhMleu9LSia_imVU2zah_XyMwtWx7NtoX/exec'; // ← 你的 GAS 網址
+/* ===================== 前端設定（保持你的值） ===================== */
+const LIFF_ID='2008149060-m5pDXW6a';  // 你的 LIFF ID（同心祈願）
+const WEBHOOK='https://script.google.com/macros/s/AKfycbxH_0NJkDLFjmwq5jYMGIScbnwrfQZIraNOhMleu9LSia_imVU2zah_XyMwtWx7NtoX/exec'; // 你的 GAS
 
 /* ===================== DOM 快捷 ===================== */
 const $ = s => document.querySelector(s);
@@ -350,51 +350,51 @@ const editor = $('#editor');
 const wallEl = $('#wall');
 const chip = $('#chipSign');
 const img  = $('#signThumb');
+const btnBold=$('#btnBold'), btnItalic=$('#btnItalic'), btnUnderline=$('#btnUnderline');
+const btnBigger=$('#btnBigger'), btnSmaller=$('#btnSmaller'), colorPick=$('#colorPick');
+const btnEdit=$('#btnEdit'), btnSend=$('#btnSend'), btnSubmit=$('#btnSubmit');
 
-// === 新增：用於 Dear 標籤的資料（不影響其它流程/樣式） ===
-let manName = '', womanName = '', currentRoleCode = ''; // ROLE_MALE_FRIEND / ROLE_FEMALE_FRIEND / ''
-function activeRoleId(){ return document.querySelector('.role-btn.active')?.id || 'roleAll'; }
-function dearTextByActive(){
-  const id = activeRoleId();
-  if(id==='roleMale')   return manName    ? `Dear ${manName}`    : 'Dear —';
-  if(id==='roleFemale') return womanName  ? `Dear ${womanName}`  : 'Dear —';
-  // 全部：若兩邊都有就「A 或 B」，否則顯示有的那個
-  const both = [manName, womanName].filter(Boolean);
-  return both.length===2 ? `Dear ${manName} 或 ${womanName}` : (both[0] ? `Dear ${both[0]}` : 'Dear —');
+/* 新人標籤（Dear …） */
+let manName = '', womanName = '';
+function updateBrideLabelByRole(role){
+  // role: '' | 'MALE_FRIEND' | 'FEMALE_FRIEND'
+  let label = '—';
+  if(role==='MALE_FRIEND'   && manName)   label = manName;
+  else if(role==='FEMALE_FRIEND' && womanName) label = womanName;
+  else if(manName || womanName) label = [manName, womanName].filter(Boolean).join(' & ');
+  $('#brideLabel').textContent = `Dear ${label}`;
 }
-function updateBrideLabelByUIRole(){ $('#brideLabel').textContent = dearTextByActive(); }
 
 function setStatus(m){ $('#status').textContent = m; }
 
-/* ===================== LIFF init & 角色/姓名 ===================== */
+/* ===================== LIFF / 身分 ===================== */
 let lineId='',displayName='',pictureUrl='',myLastRow=null;
 
-async function initLIFF(){
-  if(!window.liff){ await initialLoad(); return; }
-  try{
-    await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser:true });
-    if(!liff.isLoggedIn()){
-      // ★ 直接要求 scope，確保能拿到 lineId/displayName
-      liff.login({ scope: ['openid','profile'] });
-      return; // 登入後會回到本頁
-    }
-    await liff.ready;
-    const prof=await liff.getProfile().catch(()=>null);
-    const idt =await liff.getDecodedIDToken().catch(()=>null);
-    lineId      = (prof && prof.userId) || (idt && idt.sub) || '';
-    displayName = (prof && prof.displayName) || (idt && (idt.name||idt.nickname)) || '';
-    pictureUrl  = (prof && prof.pictureUrl) || '';
-  }catch(_){}
-  await fetchRoleAndNames();   // 角色 + A/B 名稱（含：若女方親友→預設 Dear C）
-  await preloadMyLatest();     // 載入自己最近一筆（若有）
-  await refreshWall();         // 列表
+async function ensureLiffLoginAndProfile(){
+  // 1) init
+  await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser: true });
+  if (liff.ready) await liff.ready;
+
+  // 2) 若未登入，導向登入（回來後再跑）
+  if (!liff.isLoggedIn()) {
+    setStatus('🔐 準備登入 LINE…');
+    liff.login({ scope: ['openid','profile'] });
+    return false; // 這次流程結束，回跳後會再進來
+  }
+
+  // 3) 取 Profile 與 ID Token（雙路徑）
+  let prof=null, idt=null;
+  try{ prof = await liff.getProfile(); }catch(_){}
+  try{ idt  = liff.getDecodedIDToken(); }catch(_){}
+
+  lineId      = (prof && prof.userId) || (idt && idt.sub) || '';
+  displayName = (prof && prof.displayName) || (idt && (idt.name||idt.nickname)) || '';
+  pictureUrl  = (prof && prof.pictureUrl) || '';
+
+  return !!lineId;
 }
 
-/* 無 LIFF 也能先載入牆（匿名瀏覽） */
-async function initialLoad(){ await fetchRoleAndNames(); await refreshWall(); }
-
-/* ✅ 從 GAS 正確抓 nameLabel（action=userrole）
-   ➜ 若回傳是女方親友（ROLE_FEMALE_FRIEND / 'female'），預設點亮「女方」，Dear 顯示成「Dear C」 */
+/* ===================== 角色/姓名（拿到 lineId 後再叫） ===================== */
 async function fetchRoleAndNames(){
   try{
     const url = WEBHOOK + `?action=userrole&lineId=${encodeURIComponent(lineId||'')}&_t=${Date.now()}`;
@@ -402,18 +402,7 @@ async function fetchRoleAndNames(){
     if(j?.ok){
       manName = String(j.man||'').trim();
       womanName = String(j.woman||'').trim();
-      currentRoleCode = String(j.role||'').trim();
-
-      // ★ 根據角色自動切換 UI 的預設選擇，確保「Dear」對應正確
-      const isFemale = /ROLE_FEMALE_FRIEND|female/i.test(currentRoleCode);
-      const isMale   = /ROLE_MALE_FRIEND|male/i.test(currentRoleCode);
-
-      document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));
-      if(isFemale){ $('#roleFemale').classList.add('active'); } 
-      else if(isMale){ $('#roleMale').classList.add('active'); }
-      else { $('#roleAll').classList.add('active'); }
-
-      updateBrideLabelByUIRole();
+      updateBrideLabelByRole(String(j.role||'').trim());
     }
   }catch(_){}
 }
@@ -438,7 +427,6 @@ function setSignaturePreview(url, lock=false){
 }
 
 /* ===================== 自己最近一筆（載入即鎖） ===================== */
-/* ✅ 路由小寫：getlatestbylineid */
 async function preloadMyLatest(){
   if(!lineId) return;
   try{
@@ -446,7 +434,8 @@ async function preloadMyLatest(){
     if(j?.ok && j.item){
       const it=j.item;
       if(it.contentHTML){
-        editor.textContent = it.contentHTML;     // 顯示純文字
+        // 此版後端存純文字，因此用 textContent 顯示
+        editor.textContent = it.contentHTML;
         editor.removeAttribute('data-empty');
         lockEditor();
       }
@@ -456,21 +445,21 @@ async function preloadMyLatest(){
   }catch(_){}
 }
 
-/* ===================== 工具列（視覺，儲存仍純文字） ===================== */
+/* ===================== 工具列（視覺，入庫純文字） ===================== */
 function exec(cmd){ if(editor.hasAttribute('data-empty')||editor.classList.contains('locked')) return; document.execCommand(cmd,false,null); editor.focus(); }
-$('#btnBold').onclick=()=>exec('bold');
-$('#btnItalic').onclick=()=>exec('italic');
-$('#btnUnderline').onclick=()=>exec('underline');
-$('#colorPick').onchange=e=>{ e.target.blur(); }; // 顏色僅視覺，入庫不帶樣式
+btnBold.onclick=()=>exec('bold');
+btnItalic.onclick=()=>exec('italic');
+btnUnderline.onclick=()=>exec('underline');
+colorPick.onchange=e=>{ e.target.blur(); }; // 顏色僅視覺
 let globalScale=1; function setScale(s){globalScale=Math.max(.7,Math.min(1.7,s)); editor.style.setProperty('--editor-zoom',globalScale+'rem');}
-$('#btnBigger').onclick=()=>setScale(globalScale+.06);
-$('#btnSmaller').onclick=()=>setScale(globalScale-.06);
+btnBigger.onclick=()=>setScale(globalScale+.06);
+btnSmaller.onclick=()=>setScale(globalScale-.06);
 
 const PLACEHOLDER='寫下並獻上最誠摯的祝福…💝';
 editor.addEventListener('focus',()=>{ if(editor.hasAttribute('data-empty')){ editor.textContent=''; editor.removeAttribute('data-empty'); }});
 editor.addEventListener('blur',()=>{ if(!editor.textContent.trim()){ editor.setAttribute('data-empty',''); editor.textContent=PLACEHOLDER; }});
 
-/* ===================== 簽名（舊樣式＋完整事件） ===================== */
+/* ===================== 簽名（舊樣式＋事件） ===================== */
 const sigOverlay = $('#sigOverlay');
 const pad = $('#pad');
 const ctx = pad.getContext('2d');
@@ -487,15 +476,11 @@ function start(e){ drawing=true; const p=pos(e); lastX=p.x; lastY=p.y; e.prevent
 function move(e){ if(!drawing)return; const p=pos(e); ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke(); lastX=p.x; lastY=p.y; e.preventDefault(); }
 function end(){ drawing=false; }
 
-/* 只有在未鎖定時可以打開簽名板 */
+/* 只有未鎖定時可打開簽名板 */
 chip.addEventListener('click',()=>{ if(chip.classList.contains('locked')) return; sigOverlay.classList.add('show'); setTimeout(fitCanvas,40); });
 $('#sigClear').onclick=fitCanvas;
 $('#sigCancel').onclick=()=>sigOverlay.classList.remove('show');
-$('#sigOK').onclick=()=>{
-  signatureDataURL=pad.toDataURL('image/png');
-  setSignaturePreview(signatureDataURL, false);   // 成功才顯示縮圖
-  sigOverlay.classList.remove('show');
-};
+$('#sigOK').onclick=()=>{ signatureDataURL=pad.toDataURL('image/png'); setSignaturePreview(signatureDataURL, false); sigOverlay.classList.remove('show'); };
 
 /* 筆劃事件 */
 pad.addEventListener('mousedown',start);
@@ -523,7 +508,7 @@ function tileTemplate(it){
   </div>`;
 }
 
-/* ✅ 路由小寫：listblessings */
+/* 路由：listblessings */
 async function refreshWall(){
   try{
     const role=document.querySelector('.role-btn.active')?.id?.replace('role','').toLowerCase()||'all';
@@ -535,7 +520,7 @@ async function refreshWall(){
   }catch(_){}
 }
 
-/* ✅ 路由小寫：getblessingdetail */
+/* 路由：getblessingdetail */
 function bindTileClicks(){ document.querySelectorAll('.tile').forEach(t=>t.addEventListener('click',()=>openView(t))); }
 async function openView(el){
   const row=el.getAttribute('data-row');
@@ -549,10 +534,10 @@ async function openView(el){
 }
 $('#viewClose').onclick=()=>$('#viewOverlay').classList.remove('show');
 
-/* ★ 角色鍵：維持原行為＋同步 Dear 標籤 */
-$('#roleAll').onclick   =()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));$('#roleAll').classList.add('active');  updateBrideLabelByUIRole(); refreshWall();};
-$('#roleMale').onclick  =()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));$('#roleMale').classList.add('active'); updateBrideLabelByUIRole(); refreshWall();};
-$('#roleFemale').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));$('#roleFemale').classList.add('active');updateBrideLabelByUIRole(); refreshWall();};
+/* 角色鍵：維持原行為 */
+$('#roleAll').onclick   =()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));$('#roleAll').classList.add('active');  refreshWall();};
+$('#roleMale').onclick  =()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));$('#roleMale').classList.add('active'); refreshWall();};
+$('#roleFemale').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));$('#roleFemale').classList.add('active'); refreshWall();};
 
 /* ===================== 送出 / 更新（純文字入庫） ===================== */
 function lockEditor(){editor.classList.add('locked');editor.setAttribute('contenteditable','false');}
@@ -561,54 +546,108 @@ $('#btnEdit').onclick=()=>unlockEditor();
 
 function hasSignature(){return chip.classList.contains('has-img');}
 
-/* ✅ 路由小寫：createblessing / updateblessing */
 async function sendOrUpdate(){
+  // 二次保險：沒有 lineId 就不送
+  if(!lineId){
+    setStatus('⚠️ 尚未取得身分，請於 LINE App 內開啟再送出');
+    try{ if(window.liff && !liff.isLoggedIn()) liff.login({ scope:['openid','profile'] }); }catch(_){}
+    return;
+  }
   const contentPlain=(editor.hasAttribute('data-empty')?'':editor.textContent).trim(); // 純文字
   if(!contentPlain){ alert('欸，不可能不祝福我們吧🖕️'); return; }
   if(!hasSignature()){ alert('欸，沒有畫押不准離開✍️'); return; }
-
-  // ★ 若尚未登入，提示並引導（與互動音符一致）
-  if(!lineId){
-    alert('請於 LINE App 內開啟並登入後再送出唷');
-    try{ if(window.liff && !liff.isLoggedIn()) liff.login({ scope: ['openid','profile'] }); }catch(_){}
-    return;
-  }
 
   const payload = myLastRow
     ? {action:'updateblessing',row:Number(myLastRow),lineId,contentHTML:contentPlain}
     : {action:'createblessing',lineId,displayName,pictureUrl,contentHTML:contentPlain,signaturePNG:signatureDataURL||'',extra:{}};
 
-  const r=await fetch(WEBHOOK,{
-    method:'POST',
-    headers:{'Content-Type':'text/plain;charset=UTF-8'}, /* text/plain 可避開預檢（保留你的習慣） */
-    body:JSON.stringify(payload)
-  });
-  const j=await r.json().catch(()=>null);
+  setStatus('⏳ 送出中…');
+  try{
+    const r=await fetch(WEBHOOK,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=UTF-8'},
+      body:JSON.stringify(payload)
+    });
+    const j=await r.json().catch(()=>null);
 
-  if(j?.ok){
-    lockEditor(); await refreshWall(); if(!myLastRow) await preloadMyLatest();
-    setStatus(myLastRow?'✅ 已更新並鎖定完成，於截止日前都可修改唷':'✅ 已送出並鎖定完成，於截止日前都可修改唷');
-    chip.classList.add('locked'); // 送出後鎖簽名
-  } else if(j?.error==='deadline_passed'){
-    setStatus('⛔ 已到截止日，無法編輯及送出'); lockEditor();
-  } else {
-    setStatus('❌ 送出失敗，稍後再試');
+    if(j?.ok){
+      lockEditor(); await refreshWall(); if(!myLastRow) await preloadMyLatest();
+      setStatus(myLastRow?'✅ 已更新並鎖定完成，於截止日前都可修改唷':'✅ 已送出並鎖定完成，於截止日前都可修改唷');
+      chip.classList.add('locked'); // 送出後鎖簽名
+    } else if(j?.error==='deadline_passed'){
+      setStatus('⛔ 已到截止日，無法編輯及送出'); lockEditor();
+    } else {
+      setStatus('❌ 送出失敗，稍後再試');
+    }
+  }catch(_){
+    setStatus('⚠️ 網路異常或連線中斷，請再試一次');
   }
 }
 $('#btnSend').onclick=sendOrUpdate;
 $('#btnSubmit').onclick=sendOrUpdate;
 
-/* ===================== 啟動 ===================== */
+/* ===================== 啟動流程 ===================== */
+function enableEditingUI(){
+  // 啟用工具列與按鈕
+  [btnBold,btnItalic,btnUnderline,btnBigger,btnSmaller,colorPick,btnEdit,btnSend,btnSubmit].forEach(el=>el.disabled=false);
+}
+function disableEditingUI(){
+  [btnBold,btnItalic,btnUnderline,btnBigger,btnSmaller,colorPick,btnEdit,btnSend,btnSubmit].forEach(el=>el.disabled=true);
+}
+
+async function initialLoadAnonymous(){
+  // 匿名也先把牆拉起來，Dear 先顯示 —
+  await refreshWall();
+}
+
+async function boot(){
+  // 初始 UI 關閉互動
+  disableEditingUI();
+  setStatus('⏳ 初始化中，請稍候…');
+
+  if(!window.liff){
+    // 沒有 LIFF（極少見），當作匿名載牆；送出會被 lineId 檢查擋掉
+    await initialLoadAnonymous();
+    setStatus('⚠️ LIFF 未載入，請於 LINE App 內開啟本頁');
+    return;
+  }
+
+  try{
+    const ok = await ensureLiffLoginAndProfile();
+    if(!ok){
+      // 已觸發 login，等回跳
+      return;
+    }
+    // 取得身分成功
+    setStatus('✅ 已就緒，可以填寫囉！建議使用電腦操作會更棒');
+
+    // Dear A/B：有 lineId 後再查
+    await fetchRoleAndNames();
+
+    // 載入自己最近一筆（若有）並鎖
+    await preloadMyLatest();
+
+    // 列表
+    await refreshWall();
+
+    // 啟用編輯 UI
+    enableEditingUI();
+
+  }catch(e){
+    setStatus('❌ LIFF 初始化失敗，請於 LINE App 內重新開啟');
+  }
+}
+
 window.addEventListener('DOMContentLoaded',()=>{
   if(!editor.textContent.trim()){
     editor.setAttribute('data-empty','');
     editor.textContent='寫下並獻上最誠摯的祝福…💝';
   }
-  if(window.liff) initLIFF(); else initialLoad();
+  boot();
 });
 </script>
 
-<!-- ✅ LIFF SDK（放在文末，與你原本相同） -->
+<!-- LIFF SDK（文末） -->
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </body>
 </html>
