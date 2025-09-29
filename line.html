@@ -256,7 +256,7 @@
     /* ====================== 前端設定（請填） ====================== */
     /* ✅ 可更改：LIFF ID 與後端網址 */
     const LIFF_ID = '2008149060-ZGVdAvGo';  // ← 你的 LIFF ID
-    const WEBHOOK = 'https://script.google.com/macros/s/AKfycbzg7KMqhdjyT08PEllGJKL1trUnvmqUJHauwoLnyCFkRJ_GnLFonzrOd_Bt3Tj8oN5R/exec'; // ← 你的 GAS 網址
+    const WEBHOOK = 'https://script.google.com/macros/s/AKfycbw1jtTjz02HxunWyPC74vaaveFO7SUOTZedxtNPuL9a22dIgj0O4pHzZbkDK-9reeQp/exec'; // ← 你的 GAS 網址
 
     /* ===== 提醒（僅註解，幫你記得要去 GAS 也更新） =====
        // ✅ 主本/副本 試算表 ID（兩本結構相同）
@@ -318,7 +318,7 @@
         loadSampler(currentInstrument);
         unlocked=true;
         $('#unlockOverlay').classList.add('hidden');
-      }catch(e){ setStatus(❌ 啟用失敗，請通知管理員); }
+      }catch(e){ setStatus('❌ 啟用失敗，請通知管理員'); } // ★ 修正：加引號
     }
     function loadSampler(inst='piano'){
       sampler?.dispose?.(); sampler=null; samplerReady=false;
@@ -327,7 +327,7 @@
       setStatus(label+'載入中…');
       try{
         sampler=new Tone.Sampler({ urls, release:1, baseUrl:base, onload:()=>{ samplerReady=true; setStatus(label+'已載入 ✅'); } }).toDestination();
-      }catch(e){ setStatus('❌ 音色初始化失敗，請通知管理員}
+      }catch(e){ setStatus('❌ 音色初始化失敗，請通知管理員'); } // ★ 修正：補結尾引號
     }
 
     /* 播音 + 三音紀錄 */
@@ -389,7 +389,7 @@
         const hline=document.createElement('div'); hline.className='head-line'; hline.dataset.s=String(s); hline.style.top = `${y}%`; kb.appendChild(hline);
       }
 
-      // 13 個欄位（0~12 品；我們畫 13 個分段，點在第 f 段即彈第 f 品）
+      // 13 個欄位（0~12 品）
       for(let f=1; f<=13; f++){
         const col=document.createElement('div'); col.className='fret-col';
 
@@ -399,7 +399,7 @@
           const hit=document.createElement('div'); hit.className='hit-row'; hit.style.top = `${y}%`; col.appendChild(hit);
         }
 
-        // 品記號（4,6,8,10 單點；13 雙點 = 第 12 品）
+        // 品記號
         if([4,6,8,10].includes(f)){
           const dot=document.createElement('div');
           dot.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#dbc6a4;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.35);pointer-events:none;';
@@ -410,7 +410,6 @@
           col.appendChild(dot1); col.appendChild(dot2);
         }
 
-        // 點擊事件：算出弦 index → 轉成 5-idx 取得對應開放弦，再 + f（最多 12 品）
         col.addEventListener('pointerdown',(ev)=>{
           if(hardLocked) return;
           if(!unlocked){ $('#unlockOverlay').classList.remove('hidden'); return; }
@@ -501,20 +500,17 @@
 
       setStatus('⏳ 送出中…');
       const payload = {
-        action: 'submitNotes',                    // ★ 後端對齊
+        action: 'submitNotes',                    // ★ 後端對齊（GAS 會 toLowerCase）
         lineId, displayName, pictureUrl,          // ★ logs B,C,D
         instrumentsCSV: selectedInsts.join(','),  // ★ logs E
         notesCSV:       selectedNotes.join(','),  // ★ logs F
         extraMessage                              // ★ 預留：logs G
       };
 
-      // 第一次送出：text/plain 避免預檢；加 cache-busting 與 keepalive
       const controller=new AbortController();
       const timer=setTimeout(()=>controller.abort(), TIMEOUT_MS);
 
-      let firstTried = false;
       try{
-        firstTried = true;
         const r=await fetch(WEBHOOK + '?_t=' + Date.now(),{
           method:'POST',
           headers:{'Content-Type':'text/plain;charset=UTF-8'},
@@ -531,9 +527,8 @@
         }else{
           const t = await r.text().catch(()=> '');
           if(/^\s*\{/.test(t)){ try{ j = JSON.parse(t); }catch(_){} }
-          if(!j && /(^|\b)ok(\b|$)/i.test(t)) j = { ok:true };
+          if(!j && r.ok) j = { ok:true };
         }
-        if(!j && r.ok){ j = { ok:true }; }
 
         if(j && j.ok){
           setStatus('✅ 已送出成功，可退安囉');
@@ -543,21 +538,10 @@
           if(err==='duplicate') setStatus('已填寫過了，想要更換音階請洽管理員呢🙏');
           else if(err==='deadline_passed') setStatus('已過截止日，但還可在這玩耍唷👣');
           else if(err==='busy') setStatus('⚠️ 系統忙碌或鎖等待，稍後再試🌀');
-          else {
-            const ctDebug = (r.headers.get('content-type')||'');
-            setStatus(`⚠️ 送出失敗，請通知管理員檢查GAS部署與權限`);
-          }
+          else setStatus(`⚠️ 送出失敗，請通知管理員檢查GAS部署與權限`);
         }
       }catch(e){
-        // 清掉第一次的計時器，避免殘留
         clearTimeout(timer);
-
-        if (e && (e.name === 'AbortError' || /abort/i.test(String(e)))) {
-          setStatus('⚠️ 送出逾時，請再按一次鎖定，若仍逾時，請關閉重開或稍後再試');
-          return;
-        }
-
-        // 僅在「網路錯誤」時重試一次（不帶 signal，避免被第一次的 abort 影響）
         try {
           setStatus('⏳ 網路閃斷，嘗試重送中…');
           const r2 = await fetch(WEBHOOK + '?_t=' + Date.now(), {
@@ -574,10 +558,8 @@
           else {
             const t2 = await r2.text().catch(()=> '');
             if (/^\s*\{/.test(t2)) { try{ j2 = JSON.parse(t2); }catch(_){} }
-            if (!j2 && /(^|\b)ok(\b|$)/i.test(t2)) j2 = { ok:true };
+            if (!j2 && r2.ok) j2 = { ok:true };
           }
-          if(!j2 && r2.ok) j2 = { ok:true };
-
           if (j2 && j2.ok) {
             setStatus('✅ 已送出成功，可退安囉');
             enterHardLock();
@@ -586,10 +568,7 @@
             if(err==='duplicate') setStatus('已填寫過了，想要更換音階請洽管理員呢🙏');
             else if(err==='deadline_passed') setStatus('已過截止日，但還可在這玩耍唷👣');
             else if(err==='busy') setStatus('⚠️ 系統忙碌或鎖等待，稍後再試🌀');
-            else {
-              const ctDebug = (r2.headers.get('content-type')||'');
-              setStatus(`⚠️ 送出失敗，請通知管理員檢查GAS部署與權限`);
-            }
+            else setStatus(`⚠️ 送出失敗，請通知管理員檢查GAS部署與權限`);
           }
 
         } catch (e2) {
@@ -665,7 +644,7 @@
         $('#displayName').value = displayName || '（匿名）';
         setStatus('已就緒');
       }catch(e){
-        setStatus('❌ LIFF初始化失敗);
+        setStatus('❌ LIFF初始化失敗'); // ★ 修正：補結尾引號
       }
     }
     window.addEventListener('DOMContentLoaded', init);
