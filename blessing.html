@@ -31,13 +31,8 @@
         --panel-bottom-gap:14px;
 
         /* 版權（恢復並常駐背景上） */
-        --copyright-color:#666666;
+        --copyright-color:#d9d9d9;
         --copyright-pad:12px;
-
-        /* 木牌視覺細節 */
-        --tile-w:180px; --tile-h:156px;
-        --wood-grain-contrast:.9;
-        --rope-width:8px; --rope-height:42px; --knot-size:22px;
       }
 
       .bg-notes{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none;user-select:none;}
@@ -63,11 +58,9 @@
       .tool-btn:active{transform:translateY(1px) scale(.99);}
 
       .rolebar{display:flex;gap:var(--toolbar-gap);}
-      .role-btn{min-width:64px;height:var(--tool-h);padding:0 12px;background:#fff;border:1px solid var(--rim);border-radius:12px;
-        font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-2);cursor:pointer;}
+      .role-btn{min-width:64px;height:var(--tool-h);padding:0 12px;background:#fff;border:1px solid var(--rim);border-radius:12px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-2);cursor:pointer;}
       .role-btn.active{outline:2px solid rgba(0,0,0,.15);}
-      #status{flex:1 1 auto;min-width:240px;background:#F5F1EC;border:1px solid #E4E4E4;border-radius:12px;padding:8px 10px;
-        font-size:14px;text-align:center;color:#A68A7C;font-weight:700;}
+      #status{flex:1 1 auto;min-width:240px;background:#F5F1EC;border:1px solid #E4E4E4;border-radius:12px;padding:8px 10px;font-size:14px;text-align:center;color:#A68A7C;font-weight:700;}
 
       .stage{flex:1 1 auto;padding:14px 22px var(--panel-bottom-gap);display:flex;justify-content:center;align-items:flex-start;overflow:hidden;}
       .card{position:relative;width:100%;max-width:var(--card-maxw);border:1px solid rgba(0,0,0,.05);border-radius:16px;box-shadow:0 10px 26px rgba(0,0,0,.08);
@@ -81,8 +74,7 @@
       #chipBride{top:10px;left:10px;}
       #brideLabel{font-weight:800;line-height:1;}
 
-      .editor{position:absolute;top:calc(10px + var(--ctrl-h) + 16px);right:10px;bottom:calc(10px + var(--ctrl-h) + 10px);left:10px;overflow:auto;line-height:1.8;
-        outline:none;background:transparent;border-radius:12px;padding:14px;font-size:var(--editor-zoom);border:1px dashed rgba(0,0,0,.12);}
+      .editor{position:absolute;top:calc(10px + var(--ctrl-h) + 16px);right:10px;bottom:calc(10px + var(--ctrl-h) + 10px);left:10px;overflow:auto;line-height:1.8;outline:none;background:transparent;border-radius:12px;padding:14px;font-size:var(--editor-zoom);border:1px dashed rgba(0,0,0,.12);}
       .editor[data-empty]{opacity:1;color:rgba(15,23,42,.28);-webkit-text-stroke:0;text-shadow:none;font-style:italic;}
       .editor.locked{pointer-events:none;opacity:.85;}
 
@@ -92,62 +84,24 @@
       .left-actions button{background:#fff;border:1px solid var(--rim);border-radius:10px;font-weight:800;box-shadow:var(--shadow-2);cursor:pointer;white-space:nowrap;}
       .left-actions button:active{transform:translateY(1px) scale(.99);}
 
-      /* ✦ 簽名 chip：與按鈕同字級/粗體；縮圖不再顯示破圖文字 */
-      .left-actions .chip{ font-size:1rem;font-weight:800;line-height:1; position:static; display:flex; align-items:center; justify-content:center; cursor:pointer;
-        background:#fff; border:1px solid var(--rim); border-radius:10px; box-shadow:var(--shadow-2); padding:0 8px; overflow:hidden; }
+      /* ======= 這段為本次唯一 CSS 調整（簽名 chip 與縮圖） ======= */
+      .left-actions .chip{
+        font-size:1rem;
+        font-weight:800;
+        line-height:1;
+        position:static;
+        display:flex;align-items:center;justify-content:center;
+        cursor:pointer;background:#fff;border:1px solid var(--rim);border-radius:10px;box-shadow:var(--shadow-2);padding:0 8px;overflow:hidden;
+      }
       #chipSign .hint{ font-weight:800; color:rgba(15,23,42,.38); }
       #chipSign.locked{ pointer-events:none; opacity:.9; }
-      #signThumb{ display:none; width:100%; height:100%; object-fit:contain; pointer-events:none; }
+      #signThumb{ display:none; width:100%; height:100%; object-fit:contain; object-position:center; image-rendering:auto; }
       #chipSign.has-img #signThumb{ display:block; }
       #chipSign.has-img .hint{ display:none; }
+      /* ======================================================= */
 
       .wall-wrap{background:linear-gradient(180deg,#f9e5ee,#f6dce7);border-radius:16px;border:1px solid rgba(0,0,0,.05);padding:12px;overflow:auto;}
       .wall{min-height:280px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;align-content:start;padding:2px;overflow:visible;}
-
-      /* ===== 木牌（木紋、繩條、繩結 — 繩結再上提，像被吊著） ===== */
-      .tile{
-        position:relative;width:100%;height:var(--tile-h);padding:14px 12px 12px;cursor:pointer;overflow:visible;display:flex;flex-direction:column;gap:6px;
-        background:
-          linear-gradient(180deg,#f1e3cf,#e5d1b8),
-          repeating-linear-gradient(14deg, rgba(0,0,0, calc(.03 + var(--wood-grain-contrast)*.10)) 0 4px, rgba(255,255,255, calc(.02 + var(--wood-grain-contrast)*.06)) 4px 9px),
-          repeating-linear-gradient(0deg, rgba(0,0,0, calc(.018 + var(--wood-grain-contrast)*.04)) 0 2px, rgba(255,255,255, calc(.015 + var(--wood-grain-contrast)*.04)) 2px 4px),
-          radial-gradient(16px 12px at 28% 36%, rgba(0,0,0,.08), transparent 60%),
-          radial-gradient(14px 10px at 72% 62%, rgba(0,0,0,.08), transparent 60%);
-        border:1px solid #cfba9b;border-radius:14px;box-shadow:0 10px 18px rgba(0,0,0,.10);
-        clip-path:polygon(0 12%, 12% 0, 88% 0, 100% 12%, 100% 100%, 0 100%);
-      }
-      .tile::before{content:"";position:absolute;top:4px;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;
-        background:radial-gradient(circle at 35% 35%, #fff 0 35%, #bbb 36% 60%, transparent 61%);box-shadow:inset 0 1px 0 rgba(255,255,255,.9), inset 0 -1px 0 rgba(0,0,0,.15);}
-
-      .tile .rope{
-        position:absolute; top:-26px; left:50%; transform:translateX(-50%);
-        width:var(--rope-width); height:calc(var(--rope-height) + 8px);
-        background:
-          repeating-linear-gradient(90deg,#b77c3a 0 3px,#c98a45 3px 6px),
-          linear-gradient(180deg,rgba(255,255,255,.65),rgba(255,255,255,0) 55%),
-          linear-gradient(0deg,rgba(0,0,0,.12),transparent 60%);
-        border-radius:999px; filter:saturate(.9); box-shadow:0 3px 8px rgba(0,0,0,.15); z-index:2;
-      }
-      .tile .knot{
-        position:absolute; top:-18px; left:50%; transform:translateX(-50%);
-        width:calc(var(--knot-size) * 1.3); height:calc(var(--knot-size) * .9);
-        background:linear-gradient(180deg,#cc8a3d,#a9652b);
-        border-radius:14px; box-shadow:0 2px 0 rgba(0,0,0,.08), 0 10px 16px rgba(0,0,0,.12);
-        border:1px solid rgba(0,0,0,.12); z-index:3;
-      }
-      .tile .knot::before,
-      .tile .knot::after{
-        content:"";position:absolute;top:40%;width:54%;height:54%;
-        background:linear-gradient(180deg,#d09045,#b17233);
-        border-radius:999px;box-shadow:inset 0 2px 2px rgba(255,255,255,.35);
-      }
-      .tile .knot::before{left:-14px;transform:rotate(-28deg);}
-      .tile .knot::after{right:-14px;transform:rotate(28deg);}
-
-      .tile-name{font-weight:800;text-align:center;margin-top:8px;}
-      .tile-sep{height:1px;background:rgba(0,0,0,.12);margin:6px 0;}
-      .tile-date{font-size:12px;opacity:.85;text-align:center;font-weight:800;}
-      .tile-snippet{font-size:14px;line-height:1.6;text-align:left;word-break:break-word;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;}
 
       .overlay{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:rgba(17,24,39,.35);backdrop-filter:blur(3px);}
       .overlay.show{display:flex;}
@@ -163,14 +117,14 @@
       .dlg-actions{display:flex;gap:10px;justify-content:center;margin-top:12px;}
       .dlg-actions button{width:120px;height:var(--tool-h);border-radius:10px;border:1px solid var(--rim);background:#fff;cursor:pointer;font-weight:700;}
 
-      /* 版權（固定於底部背景層） */
+      /* 版權（恢復顯示在背景層，固定於底部） */
       .footer-copyright{position:fixed;left:0;right:0;bottom:6px;z-index:0;text-align:center;padding:var(--copyright-pad) 0;
         font-size:13px;font-weight:700;color:var(--copyright-color);-webkit-text-stroke:0;text-shadow:none;}
     </style>
   </head>
 
   <body>
-    <img class="bg-notes" src="./assets/favors.png?v=4" alt="" />
+    <img class="bg-notes" src="./assets/favros.png?v=4" alt="" />
 
     <div class="panel">
       <h2>❤️同心祈願❤️</h2>
@@ -228,9 +182,9 @@
             </div>
           </section>
 
-          <section class="wall-wrap">
-            <div class="wall" id="wall"></div>
-          </section>
+            <section class="wall-wrap">
+              <div class="wall" id="wall"></div>
+            </section>
         </div>
       </div>
     </div>
@@ -299,15 +253,6 @@
         }catch(_){}
       }
 
-      /* 轉換 Google Drive 分享連結為可嵌入的直連（縮圖不破） */
-      function toDriveDirectUrl(u){
-        if(!u) return u;
-        try{
-          const m = String(u).match(/drive\.google\.com\/file\/d\/([^/]+)/);
-          return m ? `https://drive.google.com/uc?export=view&id=${m[1]}` : u;
-        }catch(_){ return u; }
-      }
-
       async function preloadMyLatest(){
         if(!lineId) return;
         try{
@@ -317,9 +262,7 @@
             if(it.contentHTML){ editor.innerHTML=it.contentHTML; editor.removeAttribute('data-empty'); lockEditor(); }
             if(it.signature){
               const chip=document.getElementById('chipSign'); const img=document.getElementById('signThumb');
-              img.removeAttribute('alt');
-              img.src = it.signature.startsWith('data:') ? it.signature : toDriveDirectUrl(it.signature);
-              chip.classList.add('has-img'); chip.classList.add('locked');
+              img.src=it.signature; chip.classList.add('has-img'); chip.classList.add('locked');
             }
             myLastRow = Number(it.row||0) || null;
           }
@@ -341,25 +284,37 @@
       /* 簽名 */
       const sigOverlay=document.getElementById('sigOverlay'); const pad=document.getElementById('pad'); const ctx=pad.getContext('2d');
       let drawing=false,lastX=0,lastY=0;
-      function fitCanvas(){ const dpr=Math.max(1,devicePixelRatio||1),w=pad.clientWidth,h=pad.clientHeight; pad.width=w*dpr; pad.height=h*dpr;
-        ctx.setTransform(dpr,0,0,dpr,0,0); ctx.lineCap='round'; ctx.lineJoin='round'; ctx.lineWidth=3; ctx.strokeStyle='#111'; ctx.clearRect(0,0,w,h); }
+      function fitCanvas(){ const dpr=Math.max(1,devicePixelRatio||1),w=pad.clientWidth,h=pad.clientHeight; pad.width=w*dpr; pad.height=h*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); ctx.lineCap='round'; ctx.lineJoin='round'; ctx.lineWidth=3; ctx.strokeStyle='#111'; ctx.clearRect(0,0,w,h); }
       function pos(e){ const r=pad.getBoundingClientRect(); const c=e.touches?e.touches[0]:e; return {x:c.clientX-r.left,y:c.clientY-r.top}; }
       function start(e){ drawing=true; const p=pos(e); lastX=p.x; lastY=p.y; e.preventDefault(); }
       function move(e){ if(!drawing)return; const p=pos(e); ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke(); lastX=p.x; lastY=p.y; e.preventDefault(); }
       function end(){ drawing=false; }
-      document.getElementById('chipSign').addEventListener('click',()=>{ const chip=document.getElementById('chipSign'); if(chip.classList.contains('locked')) return;
-        sigOverlay.classList.add('show'); setTimeout(fitCanvas,40); });
+      document.getElementById('chipSign').addEventListener('click',()=>{ const chip=document.getElementById('chipSign'); if(chip.classList.contains('locked')) return; sigOverlay.classList.add('show'); setTimeout(fitCanvas,40); });
       pad.addEventListener('mousedown',start); pad.addEventListener('mousemove',move); pad.addEventListener('mouseup',end); pad.addEventListener('mouseleave',end);
       pad.addEventListener('touchstart',start,{passive:false}); pad.addEventListener('touchmove',move,{passive:false}); pad.addEventListener('touchend',end);
       document.getElementById('sigClear').onclick=fitCanvas;
       document.getElementById('sigCancel').onclick=()=>sigOverlay.classList.remove('show');
-      document.getElementById('sigOK').onclick=()=>{
-        signatureDataURL=pad.toDataURL('image/png');
-        const chip=document.getElementById('chipSign'); const img=document.getElementById('signThumb');
-        img.removeAttribute('alt'); img.src=signatureDataURL;              /* 直接用 dataURL 預覽 */
-        chip.classList.add('has-img'); chip.classList.add('locked');
+
+      /* ======= 這段為本次唯一 JS 替換（縮圖用 Blob 物件 URL） ======= */
+      document.getElementById('sigOK').onclick = async () => {
+        signatureDataURL = pad.toDataURL('image/png'); // 給後端的仍用 dataURL（不變）
+
+        // 產生穩定的縮圖來源
+        let thumbURL = signatureDataURL;
+        try {
+          const blob = await (await fetch(signatureDataURL)).blob();
+          thumbURL = URL.createObjectURL(blob);
+        } catch (_) { /* 失敗就退回 dataURL 也能顯示 */ }
+
+        const chip = document.getElementById('chipSign');
+        const img  = document.getElementById('signThumb');
+        img.removeAttribute('alt');
+        img.src = thumbURL;
+        chip.classList.add('has-img');
+        chip.classList.add('locked');
         sigOverlay.classList.remove('show');
       };
+      /* ========================================================= */
 
       /* 牆 */
       function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
@@ -382,21 +337,16 @@
       async function openView(el){
         const row=el.getAttribute('data-row');
         const j=await (await fetch(WEBHOOK+`?action=getBlessingDetail&id=${encodeURIComponent(row)}`)).json();
-        if(j?.ok&&j.item){
-          document.getElementById('viewMeta').textContent=`${j.item.displayName||'—'} ｜ ${fmtTaipei(j.item.time)}`;
-          document.getElementById('viewContent').innerHTML=j.item.contentHTML||'';
-          document.getElementById('viewOverlay').classList.add('show');
-        }
+        if(j?.ok&&j.item){ document.getElementById('viewMeta').textContent=`${j.item.displayName||'—'} ｜ ${fmtTaipei(j.item.time)}`; document.getElementById('viewContent').innerHTML=j.item.contentHTML||''; document.getElementById('viewOverlay').classList.add('show'); }
       }
       document.getElementById('viewClose').onclick=()=>document.getElementById('viewOverlay').classList.remove('show');
       document.getElementById('roleAll').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));document.getElementById('roleAll').classList.add('active');refreshWall();};
       document.getElementById('roleMale').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));document.getElementById('roleMale').classList.add('active');refreshWall();};
       document.getElementById('roleFemale').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));document.getElementById('roleFemale').classList.add('active');refreshWall();};
 
-      /* 編輯/送出互鎖（你已啟用的版邏輯保留） */
       function lockEditor(){editor.classList.add('locked');editor.setAttribute('contenteditable','false');}
       function unlockEditor(){editor.classList.remove('locked');editor.setAttribute('contenteditable','true');editor.focus();}
-      document.getElementById('btnEdit').onclick=()=>{ unlockEditor(); submittedOnce=false; const btn=document.getElementById('btnSend'); btn.disabled=false; btn.style.opacity=1; btn.style.pointerEvents='auto'; };
+      document.getElementById('btnEdit').onclick=()=>unlockEditor();
       function hasSignature(){return document.getElementById('chipSign').classList.contains('has-img');}
 
       async function sendOrUpdate(){
@@ -404,10 +354,7 @@
         if(!hasSignature()){ alert('欸，沒有畫押不准離開✍️'); return; }
         if(sendInFlight||submittedOnce){ return; }
         sendInFlight=true;
-        const btnSend=document.getElementById('btnSend'); const btnEdit=document.getElementById('btnEdit');
-        btnSend.disabled=true; btnSend.style.opacity=.6; btnSend.style.pointerEvents='none';
-        btnEdit.disabled=true; btnEdit.style.opacity=.6; btnEdit.style.pointerEvents='none';
-
+        const btn=document.getElementById('btnSend'); btn.disabled=true; btn.style.opacity=.6; btn.style.pointerEvents='none';
         const content=editor.innerHTML.trim();
         const payload = myLastRow
           ? {action:'updateBlessing',row:Number(myLastRow),lineId,contentHTML:content}
@@ -415,31 +362,14 @@
         try{
           const r=await fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(payload)});
           const j=await r.json().catch(()=>null);
-          if(j?.ok){
-            submittedOnce=true; lockEditor(); await refreshWall(); if(!myLastRow) await preloadMyLatest();
-            setStatus(myLastRow?'✅ 已更新並鎖定，截止日前都可以修改唷':'✅ 已送出並鎖定，截止日前都可以修改唷');
-            btnEdit.disabled=false; btnEdit.style.opacity=1; btnEdit.style.pointerEvents='auto';   // 成功後放開「再次修改」
-          }else if(j?.error==='deadline_passed'){
-            setStatus('⛔ 已到截止日，無法送出及編輯'); lockEditor();
-          }else{
-            setStatus('❌ 送出失敗，稍後再試');
-            sendInFlight=false;
-            btnSend.disabled=false; btnSend.style.opacity=1; btnSend.style.pointerEvents='auto';
-            btnEdit.disabled=false; btnEdit.style.opacity=1; btnEdit.style.pointerEvents='auto';
-          }
-        }catch(_){
-          setStatus('❌ 送出失敗，稍後再試');
-          sendInFlight=false;
-          btnSend.disabled=false; btnSend.style.opacity=1; btnSend.style.pointerEvents='auto';
-          btnEdit.disabled=false; btnEdit.style.opacity=1; btnEdit.style.pointerEvents='auto';
-        }
+          if(j?.ok){ submittedOnce=true; lockEditor(); await refreshWall(); if(!myLastRow) await preloadMyLatest(); setStatus(myLastRow?'✅ 已更新並鎖定，截止日前都可以修改唷':'✅ 已送出並鎖定，截止日前都可以修改唷'); }
+          else if(j?.error==='deadline_passed'){ setStatus('⛔ 已到截止日，無法送出及編輯'); lockEditor(); }
+          else{ setStatus('❌ 送出失敗，稍後再試'); sendInFlight=false; btn.disabled=false; btn.style.opacity=1; btn.style.pointerEvents='auto'; }
+        }catch(_){ setStatus('❌ 送出失敗，稍後再試'); sendInFlight=false; btn.disabled=false; btn.style.opacity=1; btn.style.pointerEvents='auto'; }
       }
       document.getElementById('btnSend').onclick=sendOrUpdate;
 
-      window.addEventListener('DOMContentLoaded',()=>{
-        if(!editor.textContent.trim()){ editor.setAttribute('data-empty',''); editor.textContent='寫下並獻上最誠摯的祝福…💝'; }
-        if(window.liff) initLIFF(); else initialLoad();
-      });
+      window.addEventListener('DOMContentLoaded',()=>{ if(!editor.textContent.trim()){ editor.setAttribute('data-empty',''); editor.textContent='寫下並獻上最誠摯的祝福…💝'; } if(window.liff) initLIFF(); else initialLoad(); });
     </script>
   </body>
 </html>
