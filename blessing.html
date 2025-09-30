@@ -19,20 +19,26 @@
   --shadow-1:0 10px 26px rgba(0,0,0,.10);
   --shadow-2:0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06);
 
-  /* 統一控制 Dear 與三顆按鈕寬高 */
+  /* Dear 與三顆按鈕一致的寬高 */
   --ctrl-w:168px;
   --ctrl-h:40px;
 
+  /* 編輯器縮放（放大/縮小使用） */
+  --editor-zoom:1rem;
+
+  /* 紅卡與藍底的間距（保留下緣緩衝不要貼） */
+  --bottom-gap:16px;
+
   /* 版權可調整（顏色/位置/大小） */
-  --copyright-bottom: 14px;
+  --copyright-bottom: 20px;
   --copyright-size: 13px;
   --copyright-pad: 6px;
-  --copyright-color: #6b5e52;   /* ← 你可改色 */
+  --copyright-color: #6b5e52;
 }
 
+/* 最底層背景圖 */
 .bg-notes{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;}
 
-/* layout */
 *{box-sizing:border-box;}
 html,body{height:100%;margin:0;overflow:hidden;color:var(--ink);background:var(--brand-bg);
   font-family:"Patrick Hand","Noto Sans TC",system-ui,-apple-system,sans-serif;}
@@ -44,46 +50,53 @@ h2{margin:12px 0 6px;text-align:center;font-family:"Sacramento",cursive;font-siz
 
 .bar{padding:6px 22px 8px;}
 .bar-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:12px;}
-.toolbar{display:flex;gap:8px;}
-.tool-btn{min-width:64px;height:var(--ctrl-h);padding:0 12px;background:#fff;border:1px solid var(--rim);border-radius:12px;font-weight:700;box-shadow:var(--shadow-2);}
+.toolbar{display:flex;gap:8px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.08));}
+.tool-btn,.tool-select{min-width:64px;height:var(--ctrl-h);padding:0 12px;background:#fff;border:1px solid var(--rim);
+  border-radius:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:var(--shadow-2);}
+.tool-select{min-width:auto;padding:0 10px;}
+.tool-btn:active{transform:translateY(1px) scale(.99);}
 
 .rolebar{display:flex;gap:8px;}
 .role-btn{min-width:64px;height:var(--ctrl-h);padding:0 12px;background:#fff;border:1px solid var(--rim);border-radius:12px;font-weight:700;box-shadow:var(--shadow-2);}
 .role-btn.active{outline:2px solid rgba(0,0,0,.15);}
 #status{flex:1 1 auto;min-width:240px;background:#F5F1EC;border:1px solid #E4E4E4;border-radius:12px;padding:8px 10px;font-size:14px;text-align:center;color:#A68A7C;font-weight:700;}
 
-.stage{flex:1 1 auto;padding:14px 22px 0;display:flex;justify-content:center;} /* ← 恢復你前版間距 */
+/* 有底部緩衝，紅卡不會貼到藍底 */
+.stage{flex:1 1 auto;padding:14px 22px var(--bottom-gap);display:flex;justify-content:center;}
 .card{position:relative;width:100%;max-width:1200px;border:1px solid rgba(0,0,0,.05);border-radius:16px;box-shadow:0 10px 26px rgba(0,0,0,.08);
-  padding:22px;height:100%;display:grid;grid-template-columns:1fr 2fr;gap:14px;background:#e6b8af;} /* ← 恢復 height:100% */
-.left-wrap{position:relative;background:linear-gradient(180deg, rgba(255,242,204,.98), rgba(255,242,204,.92));border-radius:16px;border:1px solid rgba(0,0,0,.05);padding:12px;}
+  padding:22px;height:calc(100% - var(--bottom-gap));display:grid;grid-template-columns:1fr 2fr;gap:14px;background:#e6b8af;}
+.left-wrap{position:relative;background:linear-gradient(180deg, rgba(255,242,204,.98), rgba(255,242,204,.92));border-radius:16px;border:1px solid rgba(0,0,0,.05);padding:12px;overflow:hidden;}
 
-/* Dear chip 與三顆按鈕同寬同高 */
-.chip{width:var(--ctrl-w);height:var(--ctrl-h);background:#fff;border:1px solid var(--rim);border-radius:10px;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 10px;box-shadow:var(--shadow-2);}
+/* Dear 與三顆按鈕同寬同高 */
+.chip{width:var(--ctrl-w);height:var(--ctrl-h);background:#fff;border:1px solid var(--rim);border-radius:10px;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 10px;box-shadow:var(--shadow-2);user-select:none;}
 #chipBride{margin-bottom:10px;}
 #brideLabel{font-weight:800;line-height:1;}
 
-.editor{height:calc(100% - var(--ctrl-h) - 20px);overflow:auto;line-height:1.8;outline:none;border:1px dashed rgba(0,0,0,.12);border-radius:12px;padding:14px;font-size:1rem;background:transparent;}
+/* 編輯器（字級可放大縮小） */
+.editor{height:calc(100% - var(--ctrl-h) - 20px);overflow:auto;line-height:1.8;outline:none;border:1px dashed rgba(0,0,0,.12);border-radius:12px;padding:14px;
+  font-size:var(--editor-zoom); background:transparent;}
 .editor[data-empty]{opacity:1;color:rgba(15,23,42,.28);-webkit-text-stroke:0;text-shadow:none;font-style:italic;}
 .editor.locked{pointer-events:none;opacity:.85;}
 
+/* 下方三顆（等寬等高，含簽名 chip） */
 .left-actions{display:flex;gap:10px;margin-top:10px;}
 .left-actions>*{flex:0 0 var(--ctrl-w);height:var(--ctrl-h);}
 .left-actions button{background:#fff;border:1px solid var(--rim);border-radius:10px;font-weight:800;box-shadow:var(--shadow-2);cursor:pointer;}
 .left-actions button:active{transform:translateY(1px) scale(.99);}
 
-/* 簽名 chip：簽完顯示縮圖，且鎖定不再可點 */
+/* 簽名 chip：簽完顯示縮圖且鎖定（只解鎖內文） */
 #chipSign{cursor:pointer;display:flex;align-items:center;justify-content:center;}
 #chipSign.locked{pointer-events:none;opacity:.9;}
 #signThumb{display:none;width:100%;height:70%;object-fit:contain;}
 #chipSign.has-img #signThumb{display:block;}
 #chipSign.has-img .hint{display:none;}
-#chipSign .hint{font-weight:900; color:rgba(15,23,42,.34); letter-spacing:.02em;} /* ← 粗體 + 淡色 */
+#chipSign .hint{font-weight:900; color:rgba(15,23,42,.34); letter-spacing:.02em;}
 
 /* 右側牆面 */
 .wall-wrap{background:linear-gradient(180deg,#f9e5ee,#f6dce7);border-radius:16px;border:1px solid rgba(0,0,0,.05);padding:12px;overflow:auto;}
 .wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;align-content:start;}
 
-/* 祝福吊牌（沿用） */
+/* 祝福吊牌（沿用你的設定） */
 .tile{
   position:relative;width:100%;height:156px;padding:14px 12px 12px;cursor:pointer;overflow:visible;display:flex;flex-direction:column;gap:6px;
   background:
@@ -99,8 +112,10 @@ h2{margin:12px 0 6px;text-align:center;font-family:"Sacramento",cursive;font-siz
   background:radial-gradient(circle at 35% 35%, #fff 0 35%, #bbb 36% 60%, transparent 61%);box-shadow:inset 0 1px 0 rgba(255,255,255,.9), inset 0 -1px 0 rgba(0,0,0,.15);}
 .tile::after{content:"";position:absolute;top:-6px;right:12px;width:18px;height:12px;border-radius:0 18px 18px 18px / 0 12px 12px 12px;
   background:linear-gradient(180deg,#7fcf7a,#58b35a);box-shadow:0 1px 0 rgba(255,255,255,.45), inset 0 -1px 0 rgba(0,0,0,.15);}
-.tile .rope{position:absolute;top:-18px;left:50%;transform:translateX(-50%);width:8px;height:42px;
-  background:repeating-linear-gradient(90deg,#b77c3a 0 3px,#c98a45 3px 6px),linear-gradient(180deg,rgba(255,255,255,.65),rgba(255,255,255,0) 55%),linear-gradient(0deg,rgba(0,0,0,.12),transparent 60%);border-radius:999px;filter:saturate(.9);box-shadow:0 3px 8px rgba(0,0,0,.15);}
+.tile .rope{position:absolute;top:-18px;left:50%;transform:translateX(-50%);width:8px;height:42px;background:
+  repeating-linear-gradient(90deg,#b77c3a 0 3px,#c98a45 3px 6px),
+  linear-gradient(180deg,rgba(255,255,255,.65),rgba(255,255,255,0) 55%),
+  linear-gradient(0deg,rgba(0,0,0,.12),transparent 60%);border-radius:999px;filter:saturate(.9);box-shadow:0 3px 8px rgba(0,0,0,.15);}
 .tile .knot{position:absolute;top:-12px;left:50%;transform:translateX(-50%);width:28px;height:20px;background:linear-gradient(180deg,#cc8a3d,#a9652b);
   border-radius:14px;box-shadow:0 2px 0 rgba(0,0,0,.08), 0 10px 16px rgba(0,0,0,.12);border:1px solid rgba(0,0,0,.12);}
 .tile .knot::before,.tile .knot::after{content:"";position:absolute;top:40%;width:54%;height:54%;background:linear-gradient(180deg,#d09045,#b17233);
@@ -112,7 +127,14 @@ h2{margin:12px 0 6px;text-align:center;font-family:"Sacramento",cursive;font-siz
 .tile-date{font-size:12px;opacity:.8;text-align:center;}
 .tile-snippet{font-size:14px;line-height:1.6;text-align:left;word-break:break-word;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;}
 
-/* 簽名視窗 */
+/* 版權在背景層（藍底外），顏色/高度可調 */
+.copyright-bg{
+  position:fixed; left:0; right:0; bottom:var(--copyright-bottom);
+  z-index:1; text-align:center; padding:var(--copyright-pad) 0;
+  font-size:var(--copyright-size); color:var(--copyright-color); font-weight:700; pointer-events:none;
+}
+
+/* 簽名對話框（可點可畫） */
 .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(17,24,39,.35);backdrop-filter:blur(3px);z-index:9999;}
 .overlay.show{display:flex;}
 .dialog{width:min(92vw,520px);max-height:82vh;background:#F5F1EC;border:1px solid var(--rim);border-radius:14px;padding:16px;box-shadow:0 18px 44px rgba(0,0,0,.18);overflow:auto;}
@@ -120,20 +142,13 @@ h2{margin:12px 0 6px;text-align:center;font-family:"Sacramento",cursive;font-siz
 #pad{width:100%;height:260px;background:#fff;border:1px solid #ddd;border-radius:12px;touch-action:none;}
 .dlg-actions{display:flex;gap:10px;justify-content:center;margin-top:12px;}
 .dlg-actions button{width:120px;height:var(--ctrl-h);border-radius:10px;border:1px solid var(--rim);background:#fff;cursor:pointer;font-weight:700;box-shadow:var(--shadow-2);}
-
-/* 版權：背景層上（在面板外），可調顏色與高度 */
-.copyright-bg{
-  position:fixed; left:0; right:0; bottom:var(--copyright-bottom);
-  z-index:1; text-align:center; padding:var(--copyright-pad) 0;
-  font-size:var(--copyright-size); color:var(--copyright-color); font-weight:700; pointer-events:none;
-}
 </style>
 
 <body>
-  <!-- 最底層背景圖 -->
-  <img class="bg-notes" src="./assets/favos.png?v=4" alt="">
+  <!-- 背景圖（你提供的路徑） -->
+  <img class="bg-notes" src="./assets/favors.png?v=4" alt="">
 
-  <!-- 版權放在背景層（顏色/高度可調） -->
+  <!-- 版權（可改顏色與高度） -->
   <div class="copyright-bg">© Copyright 2025 MY‘s System</div>
 
   <div class="panel">
@@ -152,6 +167,17 @@ h2{margin:12px 0 6px;text-align:center;font-family:"Sacramento",cursive;font-siz
         <button class="tool-btn" id="btnBold">粗體</button>
         <button class="tool-btn" id="btnItalic">斜體</button>
         <button class="tool-btn" id="btnUnderline">底線</button>
+        <select id="colorPick" class="tool-select" title="字體顏色">
+          <option value="" selected>顏色</option>
+          <option value="#a21caf">小紫</option>
+          <option value="#dc2626">小紅</option>
+          <option value="#2563eb">小藍</option>
+          <option value="#059669">小綠</option>
+          <option value="#d97706">小橘</option>
+          <option value="#6b7280">小灰</option>
+        </select>
+        <button class="tool-btn" id="btnBigger">放大</button>
+        <button class="tool-btn" id="btnSmaller">縮小</button>
       </div>
     </div></div>
 
@@ -209,10 +235,11 @@ h2{margin:12px 0 6px;text-align:center;font-family:"Sacramento",cursive;font-siz
 
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script>
-/* ===== 原本設定（保持不動） ===== */
+/* ===== 你的原本設定（不動） ===== */
 const LIFF_ID='2008149060-m5pDXW6a';
 const WEBHOOK='https://script.google.com/macros/s/AKfycby-yPxuPhS9hk-uLLSEZRuEfHqw1r16ND6c_6D2GzoN0XEnu-cWg1DIw_-i2G50YM2t/exec';
 
+/* 狀態與元素 */
 const editor=document.getElementById('editor'); const wallEl=document.getElementById('wall');
 function setStatus(m){ document.getElementById('status').textContent=m; }
 
@@ -249,23 +276,42 @@ async function preloadMyLatest(){
       if(it.contentHTML){ editor.innerHTML=it.contentHTML; editor.removeAttribute('data-empty'); lockEditor(); }
       if(it.signature){
         const chip=document.getElementById('chipSign'); const img=document.getElementById('signThumb');
-        img.src=it.signature; chip.classList.add('has-img'); chip.classList.add('locked'); // 簽名鎖住
+        img.src=it.signature; chip.classList.add('has-img'); chip.classList.add('locked');
       }
       myLastRow = Number(it.row||0) || null;
     }
   }catch(_){}
 }
 
-/* ===== 工具列（沿用） ===== */
+/* ===== 工具列（粗體/斜體/底線 + 放大/縮小 + 顏色） ===== */
 function exec(cmd){ if(editor.hasAttribute('data-empty')||editor.classList.contains('locked')) return; document.execCommand(cmd,false,null); editor.focus(); }
 document.getElementById('btnBold').onclick=()=>exec('bold');
 document.getElementById('btnItalic').onclick=()=>exec('italic');
 document.getElementById('btnUnderline').onclick=()=>exec('underline');
-const PLACEHOLDER='寫下並獻上最誠摯的祝福…💝';
-editor.addEventListener('focus',()=>{ if(editor.hasAttribute('data-empty')){ editor.textContent=''; editor.removeAttribute('data-empty'); }});
-editor.addEventListener('blur',()=>{ if(!editor.textContent.trim()){ editor.setAttribute('data-empty',''); editor.textContent=PLACEHOLDER; }});
+document.getElementById('colorPick').onchange=e=>{ const v=e.target.value; if(v&&!editor.classList.contains('locked')&&!editor.hasAttribute('data-empty')) document.execCommand('foreColor',false,v); e.target.blur(); };
 
-/* ===== 祝福牆（沿用；保險倒序） ===== */
+/* 放大/縮小：調 CSS 變數 */
+let currentScale=1;
+function setScale(s){ currentScale=Math.max(.7,Math.min(1.7,s)); editor.style.setProperty('--editor-zoom', currentScale+'rem'); editor.focus(); }
+document.getElementById('btnBigger').onclick=()=> setScale(currentScale + .06);
+document.getElementById('btnSmaller').onclick=()=> setScale(currentScale - .06);
+
+/* 占位字：點進去就清掉，離開若空再放回 */
+const PLACEHOLDER='寫下並獻上最誠摯的祝福…💝';
+editor.addEventListener('focus',()=>{
+  if(editor.hasAttribute('data-empty')){
+    editor.innerHTML='';            // 直接清空，不用手動刪
+    editor.removeAttribute('data-empty');
+  }
+});
+editor.addEventListener('blur',()=>{
+  if(!editor.textContent.trim()){
+    editor.setAttribute('data-empty','');
+    editor.textContent=PLACEHOLDER;
+  }
+});
+
+/* ===== 祝福牆（保險倒序） ===== */
 function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
 function fmt(s){return s?String(s).replace('T',' ').slice(0,19):'';}
 function tileTemplate(it){return `<div class="tile" data-row="${it.row||''}" data-owner="${it.lineId||''}">
@@ -302,7 +348,7 @@ document.getElementById('roleAll').onclick=()=>{document.querySelectorAll('.role
 document.getElementById('roleMale').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));document.getElementById('roleMale').classList.add('active');refreshWall();};
 document.getElementById('roleFemale').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));document.getElementById('roleFemale').classList.add('active');refreshWall();};
 
-/* ===== 送出 / 更新（送出鎖定；再次修改只解鎖內文，簽名保持鎖） ===== */
+/* ===== 送出 / 更新 ===== */
 function lockEditor(){editor.classList.add('locked');editor.setAttribute('contenteditable','false');}
 function unlockEditor(){editor.classList.remove('locked');editor.setAttribute('contenteditable','true');editor.focus();}
 document.getElementById('btnEdit').onclick=()=>unlockEditor();
@@ -330,7 +376,7 @@ const ctx        = pad.getContext('2d');
 const chipSign   = document.getElementById('chipSign');
 const signThumb  = document.getElementById('signThumb');
 
-let drawing=false, lastX=0, lastY=0, signatureDataURL='';
+let drawing=false, lastX=0, lastY=0;
 
 function fitCanvas(){
   const dpr = Math.max(1, window.devicePixelRatio || 1);
@@ -354,7 +400,7 @@ function move(e){
 }
 function end(){ drawing=false; }
 
-/* 開啟對話框（若已鎖定則不開） */
+/* 開啟對話框（若簽名已鎖定則不開） */
 chipSign.addEventListener('click', ()=>{
   if(chipSign.classList.contains('locked')) return;
   sigOverlay.classList.add('show');
@@ -370,7 +416,7 @@ pad.addEventListener('touchstart', start, {passive:false});
 pad.addEventListener('touchmove',  move,  {passive:false});
 pad.addEventListener('touchend',   end);
 
-/* 三顆按鈕 */
+/* 對話框三顆 */
 document.getElementById('sigClear').onclick  = fitCanvas;
 document.getElementById('sigCancel').onclick = ()=> sigOverlay.classList.remove('show');
 document.getElementById('sigOK').onclick     = ()=>{
@@ -383,7 +429,11 @@ document.getElementById('sigOK').onclick     = ()=>{
 
 /* ===== 啟動 ===== */
 window.addEventListener('DOMContentLoaded',()=>{
-  if(!editor.textContent.trim()){ editor.setAttribute('data-empty',''); editor.textContent='寫下並獻上最誠摯的祝福…💝'; }
+  /* 占位字：初始給上 data-empty，點進就清 */
+  if(!editor.textContent.trim()){
+    editor.setAttribute('data-empty','');
+    editor.textContent='寫下並獻上最誠摯的祝福…💝';
+  }
   if(window.liff) initLIFF(); else initialLoad();
 });
 </script>
