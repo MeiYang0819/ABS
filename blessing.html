@@ -246,6 +246,45 @@
       /* =========================
          ⬆⬆⬆ 只新增：手機版排版 ⬆⬆⬆
          ========================= */
+
+      /* =========================
+         ⬇⬇⬇ 追加覆蓋：直向手機微調（置中、小框、可捲動、縮小木牌） ⬇⬇⬇
+         ========================= */
+      @media (max-width: 860px) and (orientation: portrait){
+        /* 置中角色鈕 */
+        .rolebar{ justify-content: center; }
+
+        /* 工具列小框，與「顏色」一致視覺 */
+        .toolbar{ gap: 6px; }
+        .toolbar .tool-btn,
+        .toolbar .tool-select{
+          min-width: auto;
+          height: 32px;
+          padding: 0 10px;
+          font-size: 13px;
+          border-radius: 10px; /* 保持你的圓角語言 */
+        }
+
+        /* 允許頁面捲動，避免黃區被吃掉 */
+        html, body{ overflow: auto; }
+        .panel{
+          height: auto;
+          min-height: calc(100dvh - 110px);
+        }
+        .stage{ overflow: auto; }
+
+        /* 提高黃區比例，粉區稍小，確保可編輯 */
+        .left-wrap{ min-height: 54%; }
+        .wall-wrap{ min-height: 40%; }
+
+        /* 木牌縮小：高度與欄寬門檻下修 */
+        :root{ --tile-h: 140px; }
+        .wall{ grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+        .tile{ font-size: 14px; }
+      }
+      /* =========================
+         ⬆⬆⬆ 追加覆蓋：直向手機微調 ⬆⬆⬆
+         ========================= */
     </style>
   </head>
 
@@ -263,7 +302,7 @@
             <button type="button" class="role-btn" id="roleFemale">女方</button>
           </div>
 
-          <p id="status">✅ 初始化完成，可以送上祝福囉，送出後請稍後唷，成功會通知呢</p>
+          <p id="status">✅ 可送上祝福囉，送出後請稍後唷，成功會通知呢</p>
 
           <div class="toolbar" role="toolbar" aria-label="文字工具">
             <button class="tool-btn" id="btnBold"      type="button">粗體</button>
