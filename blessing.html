@@ -35,7 +35,7 @@
         --copyright-pad:12px;
       }
 
-      /* 讓簽名 chip 的字級、粗細與按鈕一致 */
+      /* 讓簽名 chip 的字級、粗細與按鈕一致（保留你原設定） */
       .left-actions .chip{ font-size:1rem; font-weight:800; line-height:1; }
       .left-actions .chip .hint{ font-size:inherit; font-weight:800; }
 
@@ -82,20 +82,22 @@
       .editor[data-empty]{opacity:1;color:rgba(15,23,42,.28);-webkit-text-stroke:0;text-shadow:none;font-style:italic;}
       .editor.locked{pointer-events:none;opacity:.85;}
 
-      /* 下方三顆：順序 再次修改 → 送出祝福 → 畫押簽名；固定寬避免重疊 */
+      /* 下方三顆：順序 再次修改 → 送出祝福 → 畫押簽名；固定寬避免重疊（保留你原設定） */
       .left-actions{position:absolute;left:10px;right:10px;bottom:10px;height:var(--ctrl-h);display:flex;gap:10px;justify-content:space-between;flex-wrap:nowrap;}
       .left-actions > *{flex:0 0 var(--ctrl-w);width:var(--ctrl-w);height:100%;}
       .left-actions button{background:#fff;border:1px solid var(--rim);border-radius:10px;font-weight:800;box-shadow:var(--shadow-2);cursor:pointer;white-space:nowrap;}
       .left-actions button:active{transform:translateY(1px) scale(.99);}
 
       #chipSign{position:static;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;border:1px solid var(--rim);border-radius:10px;box-shadow:var(--shadow-2);padding:0 8px;}
-      #chipSign .hint{font-weight:800;color:rgba(15,23,42,.38);} /* 一致粗體、淡淡的字 */
+      #chipSign .hint{font-weight:800;color:rgba(15,23,42,.38);}
       #chipSign.locked{pointer-events:none;opacity:.9;}
-      #signThumb{display:none;width:100%;height:70%;object-fit:contain;}
+
+      /* 只在簽完才顯示縮圖：避免沒 src 時出現破圖 */
+      #signThumb{display:none;width:100%;height:100%;object-fit:contain;}
       #chipSign.has-img #signThumb{display:block;}
       #chipSign.has-img .hint{display:none;}
 
-      /* 右側祝福牆（恢復木牌、繩條、繩結） */
+      /* 右側祝福牆（木牌、繩條、繩結：依你前版樣式恢復，並讓繩結更「凸」且置頂） */
       .wall-wrap{background:linear-gradient(180deg,#f9e5ee,#f6dce7);border-radius:16px;border:1px solid rgba(0,0,0,.05);padding:12px;overflow:auto;}
       .wall{min-height:280px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;align-content:start;padding:2px;overflow:visible;}
 
@@ -109,23 +111,24 @@
           radial-gradient(14px 10px at 72% 62%, rgba(0,0,0,.08), transparent 60%);
         border:1px solid #cfba9b;border-radius:14px;box-shadow:0 10px 18px rgba(0,0,0,.10);
         clip-path:polygon(0 12%, 12% 0, 88% 0, 100% 12%, 100% 100%, 0 100%);
+        overflow:visible;
       }
       .tile::before{content:"";position:absolute;top:4px;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;
-        background:radial-gradient(circle at 35% 35%, #fff 0 35%, #bbb 36% 60%, transparent 61%);box-shadow:inset 0 1px 0 rgba(255,255,255,.9), inset 0 -1px 0 rgba(0,0,0,.15);}
+        background:radial-gradient(circle at 35% 35%, #fff 0 35%, #bbb 36% 60%, transparent 61%);box-shadow:inset 0 1px 0 rgba(255,255,255,.9), inset 0 -1px 0 rgba(0,0,0,.15);z-index:1;}
       .tile::after{content:"";position:absolute;top:-6px;right:12px;width:18px;height:12px;border-radius:0 18px 18px 18px / 0 12px 12px 12px;
-        background:linear-gradient(180deg,#7fcf7a,#58b35a);box-shadow:0 1px 0 rgba(255,255,255,.45), inset 0 -1px 0 rgba(0,0,0,.15);}
+        background:linear-gradient(180deg,#7fcf7a,#58b35a);box-shadow:0 1px 0 rgba(255,255,255,.45), inset 0 -1px 0 rgba(0,0,0,.15);z-index:1;}
 
-      .tile .rope{position:absolute;top:-18px;left:50%;transform:translateX(-50%);width:8px;height:42px;
+      .tile .rope{position:absolute;top:-22px;left:50%;transform:translateX(-50%);width:8px;height:46px;
         background:
           repeating-linear-gradient(90deg,#b77c3a 0 3px,#c98a45 3px 6px),
           linear-gradient(180deg,rgba(255,255,255,.65),rgba(255,255,255,0) 55%),
           linear-gradient(0deg,rgba(0,0,0,.12),transparent 60%);
-        border-radius:999px;filter:saturate(.9);box-shadow:0 3px 8px rgba(0,0,0,.15);}
+        border-radius:999px;filter:saturate(.9);box-shadow:0 3px 8px rgba(0,0,0,.15);z-index:2;}
       .tile .knot{
-        position:absolute;top:-12px;left:50%;transform:translateX(-50%);
-        width:28px;height:20px;background:linear-gradient(180deg,#cc8a3d,#a9652b);
+        position:absolute;top:-18px;left:50%;transform:translateX(-50%);
+        width:32px;height:22px;background:linear-gradient(180deg,#cc8a3d,#a9652b);
         border-radius:14px;box-shadow:0 2px 0 rgba(0,0,0,.08), 0 10px 16px rgba(0,0,0,.12);
-        border:1px solid rgba(0,0,0,.12);
+        border:1px solid rgba(0,0,0,.12);z-index:3; /* 讓繩結凸在最上面 */
       }
       .tile .knot::before,
       .tile .knot::after{
@@ -214,7 +217,7 @@
                 <button id="btnSend"  type="button">送出祝福</button>
                 <div class="chip" id="chipSign" title="點此簽名">
                   <span class="hint">畫押簽名</span>
-                  <img id="signThumb" alt="signature preview" />
+                  <img id="signThumb" alt="">
                 </div>
               </div>
             </div>
@@ -227,7 +230,7 @@
       </div>
     </div>
 
-    <!-- 版權（恢復） -->
+    <!-- 版權 -->
     <div class="footer-copyright" id="copyright">© Copyright 2025 MY‘s System</div>
 
     <!-- 檢視窗 -->
@@ -263,10 +266,10 @@
 
       let lineId='',displayName='',pictureUrl='',myLastRow=null,signatureDataURL='',sendInFlight=false;
 
-      // --- 按鈕狀態機：editing | sending | locked ---
       const btnEdit  = document.getElementById('btnEdit');
       const btnSend  = document.getElementById('btnSend');
       const chipSign = document.getElementById('chipSign');
+      const signImg  = document.getElementById('signThumb');
 
       function setButtons(state){
         if(state==='sending'){
@@ -277,7 +280,7 @@
           btnSend.disabled=true; btnEdit.disabled=false;
           btnSend.style.opacity=.6; btnEdit.style.opacity=1;
           btnSend.style.pointerEvents='none'; btnEdit.style.pointerEvents='auto';
-        }else{ // editing
+        }else{
           btnSend.disabled=false; btnEdit.disabled=true;
           btnSend.style.opacity=1; btnEdit.style.opacity=.6;
           btnSend.style.pointerEvents='auto'; btnEdit.style.pointerEvents='none';
@@ -308,7 +311,7 @@
       async function fetchRoleAndNames(){
         try{
           const j=await (await fetch(WEBHOOK+`?action=userRole&lineId=${encodeURIComponent(lineId||'')}`)).json();
-          if(j?.ok){ document.getElementById('brideLabel').textContent = j.nameLabel || '—'; }
+        if(j?.ok){ document.getElementById('brideLabel').textContent = j.nameLabel || '—'; }
         }catch(_){}
       }
 
@@ -321,8 +324,8 @@
             if(it.contentHTML){ editor.innerHTML=it.contentHTML; editor.removeAttribute('data-empty'); lockEditor(); setButtons('locked'); }
             else{ setButtons('editing'); }
             if(it.signature){
-              const img=document.getElementById('signThumb');
-              img.src=it.signature; chipSign.classList.add('has-img'); chipSign.classList.add('locked');
+              signImg.src=it.signature;
+              chipSign.classList.add('has-img','locked');
             }
             myLastRow = Number(it.row||0) || null;
           }else{
@@ -346,17 +349,40 @@
       /* 簽名 */
       const sigOverlay=document.getElementById('sigOverlay'); const pad=document.getElementById('pad'); const ctx=pad.getContext('2d');
       let drawing=false,lastX=0,lastY=0;
-      function fitCanvas(){ const dpr=Math.max(1,devicePixelRatio||1),w=pad.clientWidth,h=pad.clientHeight; pad.width=w*dpr; pad.height=h*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); ctx.lineCap='round'; ctx.lineJoin='round'; ctx.lineWidth=3; ctx.strokeStyle='#111'; ctx.clearRect(0,0,w,h); }
+      function fitCanvas(){
+        const dpr=Math.max(1,devicePixelRatio||1),
+              w=pad.clientWidth||520,h=pad.clientHeight||260;
+        pad.width=w*dpr; pad.height=h*dpr;
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+        ctx.lineCap='round'; ctx.lineJoin='round'; ctx.lineWidth=3; ctx.strokeStyle='#111';
+        ctx.clearRect(0,0,w,h);
+      }
       function pos(e){ const r=pad.getBoundingClientRect(); const c=e.touches?e.touches[0]:e; return {x:c.clientX-r.left,y:c.clientY-r.top}; }
       function start(e){ drawing=true; const p=pos(e); lastX=p.x; lastY=p.y; e.preventDefault(); }
       function move(e){ if(!drawing)return; const p=pos(e); ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke(); lastX=p.x; lastY=p.y; e.preventDefault(); }
       function end(){ drawing=false; }
-      chipSign.addEventListener('click',()=>{ if(chipSign.classList.contains('locked')) return; sigOverlay.classList.add('show'); setTimeout(fitCanvas,40); });
+
+      chipSign.addEventListener('click',()=>{
+        if(chipSign.classList.contains('locked')) return;
+        sigOverlay.classList.add('show');
+        setTimeout(fitCanvas,40);  // 先顯示再量尺寸，避免 0x0 造成破圖
+      });
+
       pad.addEventListener('mousedown',start); pad.addEventListener('mousemove',move); pad.addEventListener('mouseup',end); pad.addEventListener('mouseleave',end);
       pad.addEventListener('touchstart',start,{passive:false}); pad.addEventListener('touchmove',move,{passive:false}); pad.addEventListener('touchend',end);
       document.getElementById('sigClear').onclick=fitCanvas;
       document.getElementById('sigCancel').onclick=()=>sigOverlay.classList.remove('show');
-      document.getElementById('sigOK').onclick=()=>{ signatureDataURL=pad.toDataURL('image/png'); const img=document.getElementById('signThumb'); img.src=signatureDataURL; chipSign.classList.add('has-img'); chipSign.classList.add('locked'); sigOverlay.classList.remove('show'); };
+      document.getElementById('sigOK').onclick=()=>{
+        // 只有在畫面尺寸正確時才取圖，避免空 src 破圖
+        try{
+          signatureDataURL=pad.toDataURL('image/png');
+          if(signatureDataURL && signatureDataURL.startsWith('data:image/png')){
+            signImg.src=signatureDataURL;
+            chipSign.classList.add('has-img','locked');
+          }
+        }catch(_){}
+        sigOverlay.classList.remove('show');
+      };
 
       /* 牆 */
       function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
@@ -401,7 +427,7 @@
         if(!hasSignature()){ alert('欸，沒有畫押不准離開✍️'); return; }
         if(sendInFlight){ return; }
         sendInFlight=true;
-        setButtons('sending'); // 送出時兩顆都暫時鎖住
+        setButtons('sending');
         const content=editor.innerHTML.trim();
         const payload = myLastRow
           ? {action:'updateBlessing',row:Number(myLastRow),lineId,contentHTML:content}
@@ -411,14 +437,14 @@
           const j=await r.json().catch(()=>null);
           if(j?.ok){
             lockEditor();
-            setButtons('locked'); // 成功後：送出維持鎖定、修改可用
+            setButtons('locked');
             await refreshWall();
             if(!myLastRow) await preloadMyLatest();
             setStatus(myLastRow?'✅ 已更新並鎖定，截止日前都可以修改唷':'✅ 已送出並鎖定，截止日前都可以修改唷');
           }else if(j?.error==='deadline_passed'){
             setStatus('⛔ 已到截止日，無法送出及編輯'); lockEditor(); setButtons('locked');
           }else{
-            setStatus('❌ 送出失敗，稍後再試'); setButtons('editing'); // 失敗回到可編輯
+            setStatus('❌ 送出失敗，稍後再試'); setButtons('editing');
           }
         }catch(_){
           setStatus('❌ 送出失敗，稍後再試'); setButtons('editing');
