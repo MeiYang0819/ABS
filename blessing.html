@@ -101,8 +101,8 @@
       #chipSign.has-img #signThumb{ display:block; }
       #chipSign.has-img .hint{ display:none; }
 
-      .wall-wrap{background:linear-gradient(180deg,#f9e5ee,#f6dce7);border-radius:16px;border:1px solid rgba(0,0,0,.05);padding:12px;overflow:auto;}
-      .wall{min-height:280px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;align-content:start;padding:2px;overflow:visible;}
+      .wall-wrap{background:linear-gradient(180deg,#f9e5ee,#f6dce7);border-radius:16px;border:1px solid rgba(0,0,0,.05);padding:12px;overflow:visible;}
+      .wall{min-height:280px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;align-content:start;padding:2px;overflow:visible;padding-top:28px;}
 
       /* ===== 木牌（木紋、繩條、繩結 — 繩結再上提，像被吊著） ===== */
       .tile{
@@ -264,7 +264,7 @@
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
       const LIFF_ID='2008149060-m5pDXW6a';
-      const WEBHOOK='https://script.google.com/macros/s/AKfycby-yPxuPhS9hk-uLLSEZRuEfHqw1r16ND6c_6D2GzoN0XEnu-cWg1DIw_-i2G50YM2t/exec';
+      const WEBHOOK='https://script.google.com/macros/s/AKfycby8VxE7GgJeNWjCKMiMgD_IIWVO0jJDpv-3swgYY5xFu79T-S3z7ze1VDEtX4Vt1MgR/exec';
 
       const editor=document.getElementById('editor'); const wallEl=document.getElementById('wall');
       function setStatus(m){ document.getElementById('status').textContent=m; }
@@ -318,6 +318,7 @@
             if(it.signature){
               const chip=document.getElementById('chipSign'); const img=document.getElementById('signThumb');
               img.removeAttribute('alt');
+              img.onerror = ()=>{ try{ if(/drive\.google\.com\/file\/d\//.test(img.src)) img.src = toDriveDirectUrl(img.src); }catch(_){} img.onerror=null; };
               img.src = it.signature.startsWith('data:') ? it.signature : toDriveDirectUrl(it.signature);
               chip.classList.add('has-img'); chip.classList.add('locked');
             }
@@ -354,11 +355,14 @@
       document.getElementById('sigClear').onclick=fitCanvas;
       document.getElementById('sigCancel').onclick=()=>sigOverlay.classList.remove('show');
       document.getElementById('sigOK').onclick=()=>{
-        signatureDataURL=pad.toDataURL('image/png');
-        const chip=document.getElementById('chipSign'); const img=document.getElementById('signThumb');
-        img.removeAttribute('alt'); img.src=signatureDataURL;              /* 直接用 dataURL 預覽 */
-        chip.classList.add('has-img'); chip.classList.add('locked');
-        sigOverlay.classList.remove('show');
+        /* 等待一個 frame，確保畫面完成再取 DataURL（避免偶發空白/破圖） */
+        requestAnimationFrame(()=>{
+          signatureDataURL=pad.toDataURL('image/png');
+          const chip=document.getElementById('chipSign'); const img=document.getElementById('signThumb');
+          img.removeAttribute('alt'); img.src=signatureDataURL;
+          chip.classList.add('has-img'); chip.classList.add('locked');
+          sigOverlay.classList.remove('show');
+        });
       };
 
       /* 牆 */
