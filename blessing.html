@@ -23,10 +23,11 @@
   --ctrl-w:168px;
   --ctrl-h:40px;
 
-  /* 版權位置/大小（你可自由調） */
-  --copyright-bottom: 25px;     /* 離底部距離 */
-  --copyright-size: 13px;     /* 上下內距 */
-  --copyright-pad: 6px;     /* 字體大小*/
+  /* 版權可調整（顏色/位置/大小） */
+  --copyright-bottom: 14px;
+  --copyright-size: 13px;
+  --copyright-pad: 6px;
+  --copyright-color: #6b5e52;   /* ← 你可改色 */
 }
 
 .bg-notes{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;}
@@ -51,9 +52,9 @@ h2{margin:12px 0 6px;text-align:center;font-family:"Sacramento",cursive;font-siz
 .role-btn.active{outline:2px solid rgba(0,0,0,.15);}
 #status{flex:1 1 auto;min-width:240px;background:#F5F1EC;border:1px solid #E4E4E4;border-radius:12px;padding:8px 10px;font-size:14px;text-align:center;color:#A68A7C;font-weight:700;}
 
-.stage{flex:1 1 auto;padding:14px 22px 0;display:flex;justify-content:center;}
+.stage{flex:1 1 auto;padding:14px 22px 0;display:flex;justify-content:center;} /* ← 恢復你前版間距 */
 .card{position:relative;width:100%;max-width:1200px;border:1px solid rgba(0,0,0,.05);border-radius:16px;box-shadow:0 10px 26px rgba(0,0,0,.08);
-  padding:22px;height:100%;display:grid;grid-template-columns:1fr 2fr;gap:14px;background:#e6b8af;}
+  padding:22px;height:100%;display:grid;grid-template-columns:1fr 2fr;gap:14px;background:#e6b8af;} /* ← 恢復 height:100% */
 .left-wrap{position:relative;background:linear-gradient(180deg, rgba(255,242,204,.98), rgba(255,242,204,.92));border-radius:16px;border:1px solid rgba(0,0,0,.05);padding:12px;}
 
 /* Dear chip 與三顆按鈕同寬同高 */
@@ -76,6 +77,7 @@ h2{margin:12px 0 6px;text-align:center;font-family:"Sacramento",cursive;font-siz
 #signThumb{display:none;width:100%;height:70%;object-fit:contain;}
 #chipSign.has-img #signThumb{display:block;}
 #chipSign.has-img .hint{display:none;}
+#chipSign .hint{font-weight:900; color:rgba(15,23,42,.34); letter-spacing:.02em;} /* ← 粗體 + 淡色 */
 
 /* 右側牆面 */
 .wall-wrap{background:linear-gradient(180deg,#f9e5ee,#f6dce7);border-radius:16px;border:1px solid rgba(0,0,0,.05);padding:12px;overflow:auto;}
@@ -110,8 +112,8 @@ h2{margin:12px 0 6px;text-align:center;font-family:"Sacramento",cursive;font-siz
 .tile-date{font-size:12px;opacity:.8;text-align:center;}
 .tile-snippet{font-size:14px;line-height:1.6;text-align:left;word-break:break-word;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;}
 
-/* 檢視窗（沿用樣式） */
-.overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(17,24,39,.35);backdrop-filter:blur(3px);}
+/* 簽名視窗 */
+.overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(17,24,39,.35);backdrop-filter:blur(3px);z-index:9999;}
 .overlay.show{display:flex;}
 .dialog{width:min(92vw,520px);max-height:82vh;background:#F5F1EC;border:1px solid var(--rim);border-radius:14px;padding:16px;box-shadow:0 18px 44px rgba(0,0,0,.18);overflow:auto;}
 .dialog h3{margin:0 0 10px;font-size:18px;color:#6b5e52;text-align:center;-webkit-text-stroke:0;text-shadow:none;}
@@ -119,19 +121,19 @@ h2{margin:12px 0 6px;text-align:center;font-family:"Sacramento",cursive;font-siz
 .dlg-actions{display:flex;gap:10px;justify-content:center;margin-top:12px;}
 .dlg-actions button{width:120px;height:var(--ctrl-h);border-radius:10px;border:1px solid var(--rim);background:#fff;cursor:pointer;font-weight:700;box-shadow:var(--shadow-2);}
 
-/* 版權：背景層上（在面板外），可調高度 */
+/* 版權：背景層上（在面板外），可調顏色與高度 */
 .copyright-bg{
   position:fixed; left:0; right:0; bottom:var(--copyright-bottom);
   z-index:1; text-align:center; padding:var(--copyright-pad) 0;
-  font-size:var(--copyright-size); color:#6b5e52; font-weight:700; pointer-events:none;
+  font-size:var(--copyright-size); color:var(--copyright-color); font-weight:700; pointer-events:none;
 }
 </style>
 
 <body>
-  <!-- 最底層背景圖（你的檔案路徑，若專案名稱不同改這裡） -->
-  <img class="bg-notes" src="./assets/favors.png?v=4" alt="">
+  <!-- 最底層背景圖 -->
+  <img class="bg-notes" src="./assets/favos.png?v=4" alt="">
 
-  <!-- 版權放在背景層（不擋操作；高度可用變數調） -->
+  <!-- 版權放在背景層（顏色/高度可調） -->
   <div class="copyright-bg">© Copyright 2025 MY‘s System</div>
 
   <div class="panel">
@@ -207,14 +209,14 @@ h2{margin:12px 0 6px;text-align:center;font-family:"Sacramento",cursive;font-siz
 
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script>
-/* ===== 你原本可用的設定（保持不動） ===== */
+/* ===== 原本設定（保持不動） ===== */
 const LIFF_ID='2008149060-m5pDXW6a';
 const WEBHOOK='https://script.google.com/macros/s/AKfycby-yPxuPhS9hk-uLLSEZRuEfHqw1r16ND6c_6D2GzoN0XEnu-cWg1DIw_-i2G50YM2t/exec';
 
 const editor=document.getElementById('editor'); const wallEl=document.getElementById('wall');
 function setStatus(m){ document.getElementById('status').textContent=m; }
 
-/* ===== LIFF init & role/name（沿用你的流程） ===== */
+/* ===== LIFF init & role/name（沿用） ===== */
 let lineId='',displayName='',pictureUrl='',myLastRow=null, signatureDataURL='';
 
 async function initLIFF(){
@@ -263,7 +265,7 @@ const PLACEHOLDER='寫下並獻上最誠摯的祝福…💝';
 editor.addEventListener('focus',()=>{ if(editor.hasAttribute('data-empty')){ editor.textContent=''; editor.removeAttribute('data-empty'); }});
 editor.addEventListener('blur',()=>{ if(!editor.textContent.trim()){ editor.setAttribute('data-empty',''); editor.textContent=PLACEHOLDER; }});
 
-/* ===== 祝福牆（沿用；若後端已倒序就直接渲染） ===== */
+/* ===== 祝福牆（沿用；保險倒序） ===== */
 function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
 function fmt(s){return s?String(s).replace('T',' ').slice(0,19):'';}
 function tileTemplate(it){return `<div class="tile" data-row="${it.row||''}" data-owner="${it.lineId||''}">
@@ -279,7 +281,7 @@ async function refreshWall(){
     const role=document.querySelector('.role-btn.active')?.id?.replace('role','').toLowerCase()||'all';
     const j=await (await fetch(WEBHOOK+`?action=listblessings&role=${role}`)).json();
     if(j?.ok){
-      const arr=(j.items||[]).slice().sort((a,b)=> new Date(b.time||0) - new Date(a.time||0)); // 再保險一次倒序
+      const arr=(j.items||[]).slice().sort((a,b)=> new Date(b.time||0) - new Date(a.time||0));
       wallEl.innerHTML=arr.map(tileTemplate).join('');
       bindTileClicks();
     }
@@ -290,12 +292,8 @@ async function openView(el){
   const row=el.getAttribute('data-row');
   const j=await (await fetch(WEBHOOK+`?action=getBlessingDetail&id=${encodeURIComponent(row)}`)).json();
   if(j?.ok&&j.item){
-    document.getElementById('viewMeta')?.remove?.();
-    const meta=document.createElement('div'); meta.id='viewMeta'; meta.className='view-meta';
-    meta.textContent=`${j.item.displayName||'—'} ｜ ${fmt(j.item.time)}`;
-    const dlg=el.closest ? null : null; // 保持簡單
+    const meta=document.getElementById('viewMeta'); if(meta) meta.textContent=`${j.item.displayName||'—'} ｜ ${fmt(j.item.time)}`;
     const vc=document.getElementById('viewContent'); vc.innerHTML=j.item.contentHTML||'';
-    document.getElementById('viewTitle').parentElement.insertBefore(meta, document.getElementById('viewContent'));
     document.getElementById('viewOverlay').classList.add('show');
   }
 }
@@ -332,7 +330,7 @@ const ctx        = pad.getContext('2d');
 const chipSign   = document.getElementById('chipSign');
 const signThumb  = document.getElementById('signThumb');
 
-let drawing=false, lastX=0, lastY=0;
+let drawing=false, lastX=0, lastY=0, signatureDataURL='';
 
 function fitCanvas(){
   const dpr = Math.max(1, window.devicePixelRatio || 1);
