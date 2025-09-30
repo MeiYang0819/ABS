@@ -172,54 +172,25 @@
          ========================= */
 
       /* 直向手機：第一行=全部/男方/女方；第二行=狀態列；第三行=工具列。
-         紅色卡片變更為上下堆疊：上(黃色) / 下(粉色)。 */
+         紅色卡片上下堆疊。 */
       @media (max-width: 860px) and (orientation: portrait){
         .bar-inner{
           flex-direction: column;
           align-items: stretch;
           gap: 8px;
         }
-        .rolebar{ order:1; justify-content:center; } /* 置中角色鈕 */
+        .rolebar{ order:1; justify-content:center; }
         #status{
           order:2;
           min-width: 0;
+          text-align:center;
         }
         .toolbar{
           order:3;
           flex-wrap: wrap;
-          justify-content: center; /* ← 手機置中工具列 */
+          justify-content: flex-start;
           gap: 6px;
         }
-
-        .stage{
-          padding: 10px 10px var(--panel-bottom-gap);
-        }
-        .card{
-          grid-template-columns: 1fr;         /* 上下堆疊 */
-          grid-auto-rows: minmax(0, auto);
-          height: calc(100% - var(--panel-bottom-gap));
-          gap: 12px;
-        }
-        .left-wrap{
-          min-height: 54%;                    /* 上半（黃色面板） */
-        }
-        .wall-wrap{
-          min-height: 40%;                    /* 下半（粉色面板） */
-        }
-        /* 編輯區在直向時較高，避免被三顆按鈕擠壓 */
-        .editor{
-          bottom: calc(10px + var(--ctrl-h) + 14px);
-        }
-
-        /* 允許頁面捲動，避免黃區被吃掉 */
-        html, body{ overflow: auto; }
-        .panel{
-          height: auto;
-          min-height: calc(100dvh - 110px);
-        }
-        .stage{ overflow: auto; }
-
-        /* 工具列小框，與「顏色」一致視覺 */
         .toolbar .tool-btn,
         .toolbar .tool-select{
           min-width: auto;
@@ -229,14 +200,35 @@
           border-radius: 10px;
         }
 
-        /* 木牌縮小 */
-        :root{ --tile-h: 140px; }
-        .wall{ grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
-        .tile{ font-size: 14px; }
+        /* 允許頁面捲動，避免內容被吃掉 */
+        html, body{ overflow:auto; }
+        .panel{
+          height:auto;
+          min-height:calc(100dvh - 110px);
+        }
+        .stage{ overflow:auto; padding:10px 10px var(--panel-bottom-gap); }
+
+        /* ✅ 精準 70% / 30% 分割 */
+        .card{
+          grid-template-columns: 1fr;      /* 上下 */
+          grid-template-rows: 70% 30%;     /* 黃 70%、粉 30% */
+          height: calc(100% - var(--panel-bottom-gap));
+          gap:12px;
+        }
+        /* 移除舊的 min-height 影響 */
+        .left-wrap,.wall-wrap{ min-height:auto; }
+
+        /* 編輯區在直向時較高，避免被三顆按鈕擠壓 */
+        .editor{ bottom: calc(10px + var(--ctrl-h) + 14px); }
+
+        /* 木牌縮小（粉區較小仍好排） */
+        :root{ --tile-h: 120px; }
+        .wall{ grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+        .tile{ font-size: 13px; }
       }
 
-      /* 橫向手機：第一行=全部/男方/女方/狀態列（同一行）；第二行=工具列。
-         紅色卡片保持左右：左(黃色) / 右(粉色)。 */
+      /* 橫向手機：第一行=全部/男方/女方/狀態列；第二行=工具列。
+         紅色卡片保持左右。 */
       @media (max-width: 860px) and (orientation: landscape){
         .bar-inner{
           flex-wrap: wrap;
@@ -246,31 +238,30 @@
         .rolebar{
           order:1;
           flex: 0 1 auto;
-          justify-content:center; /* 橫向也置中角色鈕（行內） */
         }
         #status{
           order:1;
           flex: 1 1 50%;
           min-width: 200px;
+          text-align:center;
         }
         .toolbar{
           order:2;
-          flex: 1 0 100%;    /* 佔滿第二行 */
-          justify-content: center; /* ← 手機橫向也置中工具列 */
-          gap: 6px;
+          flex: 1 0 100%;
+          justify-content: flex-start;
         }
 
         .stage{
           padding: 10px 12px var(--panel-bottom-gap);
         }
         .card{
-          grid-template-columns: 1fr 1.2fr;   /* 左右佈局，右側稍寬 */
+          grid-template-columns: 1fr 1.2fr;
           gap: 12px;
           height: calc(100% - var(--panel-bottom-gap));
         }
       }
       /* =========================
-         ⬆⬆⬆ 只新增：手機版排版 ⬆⬆⬆
+         ⬆⬆⬆ 手機版排版結束 ⬆⬆⬆
          ========================= */
     </style>
   </head>
@@ -386,21 +377,6 @@
       function pad2(n){return String(n).padStart(2,'0');}
       function fmtTaipei(s){ const d=parseSheetTimeToDate(s); return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())+' '+pad2(d.getHours())+':'+pad2(d.getMinutes())+':'+pad2(d.getSeconds()); }
 
-      // ========= 修正：有時 LIFF 腳本尚未可用，導致沒登入、lineId 空白 =========
-      async function bootLIFFWithRetry(maxTry=10){
-        let n=0;
-        while(!window.liff && n<maxTry){
-          await new Promise(r=>setTimeout(r,150));
-          n++;
-        }
-        if(!window.liff){
-          // 仍不可用，退而求其次載入公開牆，避免整個壞掉
-          await initialLoad();
-          return;
-        }
-        await initLIFF();
-      }
-
       async function initLIFF(){
         try{
           await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser:true });
@@ -468,6 +444,7 @@
                   img.onerror = null;
                 };
 
+                // 只有在確定是 dataURL 或 http(s) 才設定 src，避免空字串造成破圖
                 if(/^data:/.test(src) || /^https?:\/\//.test(src)){ img.src = src; }
               }
             }
@@ -480,7 +457,7 @@
       function exec(cmd){ if(editor.hasAttribute('data-empty')||editor.classList.contains('locked')) return; document.execCommand(cmd,false,null); editor.focus(); }
       document.getElementById('btnBold').onclick=()=>exec('bold');
       document.getElementById('btnItalic').onclick=()=>exec('italic');
-      document.getElementById('btnUnderline').onclick=()=>exec('underline');
+      document.getElementById='btnUnderline'&&document.getElementById('btnUnderline').addEventListener('click',()=>exec('underline'));
       document.getElementById('colorPick').onchange=e=>{ const v=e.target.value; if(v&&!editor.classList.contains('locked')&&!editor.hasAttribute('data-empty')) document.execCommand('foreColor',false,v); e.target.blur(); };
       let globalScale=1; function setScale(s){globalScale=Math.max(.7,Math.min(1.7,s)); editor.style.setProperty('--editor-zoom',globalScale+'rem');}
       document.getElementById('btnBigger').onclick=()=>setScale(globalScale+.06);
@@ -592,10 +569,9 @@
       }
       document.getElementById('btnSend').onclick=sendOrUpdate;
 
-      // 原本這段在 DOMContentLoaded 判斷 liff 存在與否；改成使用 bootLIFFWithRetry 更穩定
       window.addEventListener('DOMContentLoaded',()=>{
         if(!editor.textContent.trim()){ editor.setAttribute('data-empty',''); editor.textContent='寫下並獻上最誠摯的祝福…💝'; }
-        bootLIFFWithRetry(); // ← 新增：等 liff 可用才 init（含重試）
+        if(window.liff) initLIFF(); else initialLoad();
       });
     </script>
   </body>
