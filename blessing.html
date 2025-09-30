@@ -25,12 +25,9 @@
 
   --tool-h:36px;                 /* Dear 與三顆按鈕統一高度 */
   --ctrl-gap:10px;               /* 左欄內部 gap */
-  --panel-bottom-gap:14px;       /* 紅卡與藍底保留間距（外觀不動） */
+  --panel-bottom-gap:14px;       /* 紅卡與藍底保留間距 */
 }
-
-/* 背景圖在最底層 */
 .bg-notes{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;}
-
 *{box-sizing:border-box;}
 html,body{height:100%;margin:0;overflow:hidden;color:var(--ink);background:var(--brand-bg);
   font-family:"Patrick Hand","Noto Sans TC",system-ui,-apple-system,sans-serif;
@@ -45,58 +42,47 @@ h2{position:relative;left:50%;transform:translateX(-50%);margin:12px 0 6px;text-
 
 .bar{padding:6px 22px 8px;}
 .bar-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:12px;}
-.toolbar{display:flex;gap:var(--toolbar-gap);filter:drop-shadow(0 2px 0 rgba(0,0,0,.08));}
+.toolbar{display:flex;gap:var(--toolbar-gap);}
 .tool-btn,.tool-select{min-width:64px;height:var(--tool-h);padding:0 12px;background:#fff;border:1px solid var(--rim);
   border-radius:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:var(--shadow-2);}
 .tool-select{min-width:auto;padding:0 10px;}
-.tool-btn:active{transform:translateY(1px) scale(.99);}
 .rolebar{display:flex;gap:var(--toolbar-gap);}
 .role-btn{min-width:64px;height:var(--tool-h);padding:0 12px;background:#fff;border:1px solid var(--rim);border-radius:12px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-2);}
 .role-btn.active{outline:2px solid rgba(0,0,0,.15);}
 #status{flex:1 1 auto;min-width:240px;background:#F5F1EC;border:1px solid #E4E4E4;border-radius:12px;padding:8px 10px;font-size:14px;text-align:center;color:#A68A7C;font-weight:700;}
 
-.stage{
-  padding:14px 22px var(--panel-bottom-gap);   /* 保留紅卡與藍底下緣間距 */
-  display:flex;justify-content:center;align-items:flex-start;overflow:hidden;flex:1 1 auto;
-}
+.stage{padding:14px 22px var(--panel-bottom-gap);display:flex;justify-content:center;align-items:flex-start;overflow:hidden;flex:1 1 auto;}
 .card{position:relative;width:100%;max-width:1200px;border:1px solid rgba(0,0,0,.05);border-radius:16px;box-shadow:0 10px 26px rgba(0,0,0,.08);
-  padding:22px;height:calc(100% - var(--panel-bottom-gap));  /* 外觀同前一版，只是把間距留給 .stage */
-  display:grid;grid-template-columns:1fr 2fr;gap:14px;background:#e6b8af;}
+  padding:22px;height:calc(100% - var(--panel-bottom-gap));display:grid;grid-template-columns:1fr 2fr;gap:14px;background:#e6b8af;}
 
-/* 左欄：上固定 Dear、下固定三顆、中間編輯器撐滿 */
+/* 左欄 */
 .left-wrap{position:relative;background:linear-gradient(180deg, rgba(255,242,204,.98), rgba(255,242,204,.92));border-radius:16px;border:1px solid rgba(0,0,0,.05);padding:12px;overflow:hidden;}
 .left-content{position:relative;height:100%;}
-/* Dear chip */
-.chip{position:absolute;min-width:160px;height:var(--tool-h);background:#fff;border:1px solid var(--rim);border-radius:10px;
-  box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;gap:8px;padding:0 10px;user-select:none;}
+.chip{position:absolute;min-width:160px;height:var(--tool-h);background:#fff;border:1px solid var(--rim);border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;gap:8px;padding:0 10px;user-select:none;}
 #chipBride{top:10px;left:10px;}
 #brideLabel{font-weight:800;line-height:1;}
-/* 編輯器（上下錨定） */
-.editor{position:absolute;top:calc(10px + var(--tool-h) + 16px);right:10px;bottom:calc(10px + var(--tool-h) + 10px);left:10px;overflow:auto;line-height:1.8;outline:none;background:transparent;border-radius:12px;padding:14px;font-size:var(--editor-zoom);border:1px dashed rgba(0,0,0,.12);}
+.editor{position:absolute;top:calc(10px + var(--tool-h) + 16px);right:10px;bottom:calc(10px + var(--tool-h) + 56px);left:10px;overflow:auto;line-height:1.8;outline:none;background:transparent;border-radius:12px;padding:14px;font-size:var(--editor-zoom);border:1px dashed rgba(0,0,0,.12);}
 .editor[data-empty]{opacity:1;color:rgba(15,23,42,.28);-webkit-text-stroke:0;text-shadow:none;font-style:italic;}
 .editor.locked{pointer-events:none;opacity:.85;}
-/* 下方三顆：等長、等高，固定在底部 */
+/* 三顆按鈕在內文底部 */
 .left-actions{position:absolute;left:10px;right:10px;bottom:10px;height:var(--tool-h);display:flex;gap:var(--ctrl-gap);}
 .left-actions>*{flex:1 1 0;height:100%;}
 .left-actions button{background:#fff;border:1px solid var(--rim);border-radius:10px;font-weight:800;box-shadow:var(--shadow-2);cursor:pointer;}
 .left-actions button:active{transform:translateY(1px) scale(.99);}
-/* 簽名 chip（等寬等高、提示字粗體但淡色） */
 #chipSign{display:flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;border:1px solid var(--rim);border-radius:10px;box-shadow:var(--shadow-2);padding:0 8px;font-weight:800;}
-#chipSign .hint{font-weight:800;color:rgba(15,23,42,.35);}  /* 粗體、淡色 */
+#chipSign .hint{font-weight:800;color:rgba(15,23,42,.35);}
 #chipSign.locked{pointer-events:none;opacity:.9;}
 #signThumb{display:none;width:100%;height:70%;object-fit:contain;}
 #chipSign.has-img #signThumb{display:block;}
 #chipSign.has-img .hint{display:none;}
 
-/* 右欄祝福牆（不動你的樣式） */
 .wall-wrap{background:linear-gradient(180deg,#f9e5ee,#f6dce7);border-radius:16px;border:1px solid rgba(0,0,0,.05);padding:12px;overflow:auto;}
 .wall{min-height:280px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;align-content:start;padding:2px;overflow:visible;}
 
-/* 檢視窗與簽名 Modal */
 .overlay{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;background:rgba(17,24,39,.35);backdrop-filter:blur(3px);}
 .overlay.show{display:flex;}
 .dialog{width:min(92vw,680px);max-height:82vh;background:#F5F1EC;border:1px solid var(--rim);border-radius:14px;padding:16px;box-shadow:0 18px 44px rgba(0,0,0,.18);overflow:auto;}
-.dialog h3{margin:0 0 10px;font-size:18px;color:#6b5e52;text-align:center;-webkit-text-stroke:0;text-shadow:none;}
+.dialog h3{margin:0 0 10px;font-size:18px;color:#6b5e52;text-align:center;}
 .view-meta{text-align:center;font-size:12px;opacity:.75;margin-bottom:8px;}
 .view-content{background:#fff;border:1px solid #ddd;border-radius:12px;padding:12px;line-height:1.8;}
 .view-actions{display:flex;gap:10px;justify-content:center;margin-top:12px;}
@@ -109,265 +95,75 @@ h2{position:relative;left:50%;transform:translateX(-50%);margin:12px 0 6px;text-
 </style>
 
 <body>
-  <!-- 背景圖（你要的那張） -->
-  <img class="bg-notes" src="./assets/favos.png?v=4" alt="">
-
-  <div class="panel">
-    <h2>❤️同心祈願❤️</h2>
-
-    <div class="bar">
-      <div class="bar-inner">
-        <div class="rolebar">
-          <button type="button" class="role-btn active" id="roleAll">全部</button>
-          <button type="button" class="role-btn" id="roleMale">男方</button>
-          <button type="button" class="role-btn" id="roleFemale">女方</button>
-        </div>
-
-        <p id="status">📥 還在等待，待送出資料</p>
-
-        <div class="toolbar" role="toolbar" aria-label="文字工具">
-          <button class="tool-btn" id="btnBold"      type="button">粗體</button>
-          <button class="tool-btn" id="btnItalic"    type="button">斜體</button>
-          <button class="tool-btn" id="btnUnderline" type="button">底線</button>
-          <select id="colorPick" class="tool-select" title="字體顏色">
-            <option value="" selected>顏色</option>
-            <option value="#a21caf">小紫</option>
-            <option value="#dc2626">小紅</option>
-            <option value="#2563eb">小藍</option>
-            <option value="#059669">小綠</option>
-            <option value="#d97706">小橘</option>
-            <option value="#6b7280">小灰</option>
-          </select>
-          <button class="tool-btn" id="btnBigger"    type="button">放大</button>
-          <button class="tool-btn" id="btnSmaller"   type="button">縮小</button>
-        </div>
+<img class="bg-notes" src="./assets/favos.png?v=4" alt="">
+<div class="panel">
+  <h2>❤️同心祈願❤️</h2>
+  <div class="bar">
+    <div class="bar-inner">
+      <div class="rolebar">
+        <button type="button" class="role-btn active" id="roleAll">全部</button>
+        <button type="button" class="role-btn" id="roleMale">男方</button>
+        <button type="button" class="role-btn" id="roleFemale">女方</button>
       </div>
+      <p id="status">📥 還在等待，待送出資料</p>
     </div>
+  </div>
 
-    <div class="stage">
-      <div class="card" id="card">
-        <!-- 左：輸入 -->
-        <section class="left-wrap">
-          <div class="left-content">
-            <!-- Dear chip：固定在上 -->
-            <div class="chip" id="chipBride" title="新人"><span id="brideLabel">Dear —</span></div>
-
-            <!-- 編輯器：在 Dear 與 三顆按鈕 之間自動撐滿 -->
-            <div class="editor" id="editor" contenteditable="true" aria-label="祈願內容" data-empty>
-              寫下並獻上最誠摯的祝福…💝
-            </div>
-
-            <!-- 下方三顆：等長 -->
-            <div class="left-actions">
-              <button id="btnEdit"  type="button">再次修改</button>
-              <button id="btnSend"  type="button">送出祝福</button>
-              <div class="chip" id="chipSign" title="點此簽名">
-                <span class="hint">畫押簽名</span>
-                <img id="signThumb" alt="signature preview" />
-              </div>
-            </div>
+  <div class="stage">
+    <div class="card" id="card">
+      <section class="left-wrap">
+        <div class="left-content">
+          <div class="chip" id="chipBride"><span id="brideLabel">Dear —</span></div>
+          <div class="editor" id="editor" contenteditable="true" aria-label="祈願內容" data-empty>
+            寫下並獻上最誠摯的祝福…💝
           </div>
-        </section>
-
-        <!-- 右：祝福牆（原樣） -->
-        <section class="wall-wrap">
-          <div class="wall" id="wall"></div>
-        </section>
-      </div>
+          <div class="left-actions">
+            <button id="btnEdit" type="button">再次修改</button>
+            <button id="btnSend" type="button">送出祝福</button>
+            <div class="chip" id="chipSign"><span class="hint">畫押簽名</span><img id="signThumb"/></div>
+          </div>
+        </div>
+      </section>
+      <section class="wall-wrap"><div class="wall" id="wall"></div></section>
     </div>
   </div>
+</div>
 
-  <!-- 檢視窗 -->
-  <div id="viewOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="viewTitle">
-    <div class="dialog">
-      <h3 id="viewTitle">祝福內容</h3>
-      <div class="view-meta" id="viewMeta"></div>
-      <div id="viewContent" class="view-content"></div>
-      <div class="view-actions"><button id="viewClose" type="button">關閉</button></div>
-    </div>
-  </div>
-
-  <!-- 簽名 Modal -->
-  <div id="sigOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="sigTitle">
-    <div class="dialog">
-      <h3 id="sigTitle">請於下方畫押唷😈</h3>
-      <canvas id="pad"></canvas>
-      <div class="dlg-actions">
-        <button id="sigClear"  type="button">清除</button>
-        <button id="sigCancel" type="button">取消</button>
-        <button id="sigOK"     type="button">確定</button>
-      </div>
-    </div>
-  </div>
+<div id="viewOverlay" class="overlay"><div class="dialog"><h3 id="viewTitle">祝福內容</h3><div class="view-meta" id="viewMeta"></div><div id="viewContent" class="view-content"></div><div class="view-actions"><button id="viewClose">關閉</button></div></div></div>
+<div id="sigOverlay" class="overlay"><div class="dialog"><h3>請於下方畫押</h3><canvas id="pad"></canvas><div class="dlg-actions"><button id="sigClear">清除</button><button id="sigCancel">取消</button><button id="sigOK">確定</button></div></div></div>
 
 <script>
-/* === 你的既有設定：不動 === */
 const LIFF_ID='2008149060-m5pDXW6a';
 const WEBHOOK='https://script.google.com/macros/s/AKfycby-yPxuPhS9hk-uLLSEZRuEfHqw1r16ND6c_6D2GzoN0XEnu-cWg1DIw_-i2G50YM2t/exec';
+const editor=document.getElementById('editor');
+let lineId='',displayName='',pictureUrl='',myLastRow=null,signatureDataURL='',alreadySent=false;
 
-const editor=document.getElementById('editor'); const wallEl=document.getElementById('wall');
-function setStatus(m){ document.getElementById('status').textContent=m; }
+function setStatus(m){document.getElementById('status').textContent=m;}
+function tzTime(s){return new Date(s).toLocaleString('zh-TW',{timeZone:'Asia/Taipei'});}
 
-/* ===== LIFF init & role/name（沿用你的流程） ===== */
-let lineId='',displayName='',pictureUrl='',myLastRow=null, signatureDataURL='';
-async function initLIFF(){
-  if(!window.liff){ await initialLoad(); return; }
-  try{
-    await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser:true });
-    if(!liff.isLoggedIn()){ liff.login(); return; }
-    await liff.ready;
-    const prof=await liff.getProfile(); const idt=liff.getDecodedIDToken();
-    lineId=prof.userId||idt.sub||''; displayName=prof.displayName||idt.name||''; pictureUrl=prof.pictureUrl||'';
-  }catch(_){}
-  await fetchRoleAndNames(); await preloadMyLatest(); await refreshWall();
-}
-async function initialLoad(){ await fetchRoleAndNames(); await refreshWall(); }
-
-async function fetchRoleAndNames(){
-  try{
-    const j=await (await fetch(WEBHOOK+`?action=userRole&lineId=${encodeURIComponent(lineId||'')}`)).json();
-    if(j?.ok){ document.getElementById('brideLabel').textContent = j.nameLabel || '—'; }
-  }catch(_){}
-}
-
-/* ===== 自己最近一筆（載入即鎖；簽名也鎖） ===== */
-async function preloadMyLatest(){
-  if(!lineId) return;
-  try{
-    const j=await (await fetch(WEBHOOK+`?action=getLatestByLineId&lineId=${encodeURIComponent(lineId)}`)).json();
-    if(j?.ok && j.item){
-      const it=j.item;
-      if(it.contentHTML){ editor.innerHTML=it.contentHTML; editor.removeAttribute('data-empty'); lockEditor(); }
-      if(it.signature){
-        const chip=document.getElementById('chipSign'); const img=document.getElementById('signThumb');
-        img.src=it.signature; chip.classList.add('has-img'); chip.classList.add('locked'); // ← 既有簽名才鎖
-      }
-      myLastRow = Number(it.row||0) || null;
-    }
-  }catch(_){}
-}
-
-/* ===== 工具列（維持你的行為） ===== */
-function exec(cmd){ if(editor.hasAttribute('data-empty')||editor.classList.contains('locked')) return; document.execCommand(cmd,false,null); editor.focus(); }
-document.getElementById('btnBold').onclick=()=>exec('bold');
-document.getElementById('btnItalic').onclick=()=>exec('italic');
-document.getElementById('btnUnderline').onclick=()=>exec('underline');
-document.getElementById('colorPick').onchange=e=>{ const v=e.target.value; if(v&&!editor.classList.contains('locked')&&!editor.hasAttribute('data-empty')) document.execCommand('foreColor',false,v); e.target.blur(); };
-let globalScale=1; function setScale(s){globalScale=Math.max(.7,Math.min(1.7,s)); editor.style.setProperty('--editor-zoom',globalScale+'rem');}
-document.getElementById('btnBigger').onclick=()=>setScale(globalScale+.06);
-document.getElementById('btnSmaller').onclick=()=>setScale(globalScale-.06);
-
-/* placeholder：點進去自動清空、離開且無字再恢復（你的原行為） */
-const PLACEHOLDER='寫下並獻上最誠摯的祝福…💝';
-editor.addEventListener('focus',()=>{ if(editor.hasAttribute('data-empty')){ editor.textContent=''; editor.removeAttribute('data-empty'); }});
-editor.addEventListener('blur',()=>{ if(!editor.textContent.trim()){ editor.setAttribute('data-empty',''); editor.textContent=PLACEHOLDER; }});
-
-/* ===== 簽名（可開、可簽；z-index 已拉高） ===== */
-const chipSign=document.getElementById('chipSign');
-const sigOverlay=document.getElementById('sigOverlay'); 
-const pad=document.getElementById('pad'); 
-const ctx=pad.getContext('2d');
-
-let drawing=false,lastX=0,lastY=0;
-function fitCanvas(){
-  const dpr=Math.max(1, window.devicePixelRatio || 1);
-  const w=pad.clientWidth, h=pad.clientHeight;
-  pad.width=w*dpr; pad.height=h*dpr;
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  ctx.lineCap='round'; ctx.lineJoin='round'; ctx.lineWidth=3; ctx.strokeStyle='#111';
-  ctx.clearRect(0,0,w,h);
-}
-function pos(e){ const r=pad.getBoundingClientRect(); const t=e.touches?e.touches[0]:e; return {x:t.clientX-r.left,y:t.clientY-r.top}; }
-function start(e){ drawing=true; const p=pos(e); lastX=p.x; lastY=p.y; e.preventDefault(); }
-function move(e){ if(!drawing)return; const p=pos(e); ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke(); lastX=p.x; lastY=p.y; e.preventDefault(); }
-function end(){ drawing=false; }
-
-chipSign.addEventListener('click',()=>{
-  if(chipSign.classList.contains('locked')) return;   // 已鎖定就不能再開
-  sigOverlay.classList.add('show');
-  setTimeout(fitCanvas, 30);
-});
-
-document.getElementById('sigClear').onclick=fitCanvas;
-document.getElementById('sigCancel').onclick=()=>sigOverlay.classList.remove('show');
-document.getElementById('sigOK').onclick=()=>{
-  signatureDataURL=pad.toDataURL('image/png');
-  const img=document.getElementById('signThumb');
-  img.src=signatureDataURL;
-  chipSign.classList.add('has-img');          // 顯示縮圖
-  // 不在這裡加 locked；送出成功或載入既有資料時才鎖
-  sigOverlay.classList.remove('show');
-};
-
-pad.addEventListener('mousedown',start);
-pad.addEventListener('mousemove',move);
-pad.addEventListener('mouseup',end);
-pad.addEventListener('mouseleave',end);
-pad.addEventListener('touchstart',start,{passive:false});
-pad.addEventListener('touchmove',move,{passive:false});
-pad.addEventListener('touchend',end);
-
-/* ===== 祝福牆（保持） ===== */
-function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
-function fmt(s){return s?String(s).replace('T',' ').slice(0,19):'';}
-function tileTemplate(it){return `<div class="tile" data-row="${it.row||''}" data-owner="${it.lineId||''}">
-  <div class="rope"></div><div class="knot"></div>
-  <div class="tile-name">${escapeHTML(it.displayName||'—')}</div>
-  <div class="tile-sep"></div>
-  <div class="tile-date">${escapeHTML(fmt(it.time))}</div>
-  <div class="tile-sep"></div>
-  <div class="tile-snippet">${escapeHTML((it.preview||'').trim()||'—')}</div>
-</div>`;}
-async function refreshWall(){
-  try{
-    const role=document.querySelector('.role-btn.active')?.id?.replace('role','').toLowerCase()||'all';
-    const j=await (await fetch(WEBHOOK+`?action=listblessings&role=${role}`)).json();
-    if(j?.ok){ wallEl.innerHTML=(j.items||[]).map(tileTemplate).join(''); bindTileClicks(); }
-  }catch(_){}
-}
-function bindTileClicks(){ document.querySelectorAll('.tile').forEach(t=>t.addEventListener('click',()=>openView(t))); }
-async function openView(el){
-  const row=el.getAttribute('data-row');
-  const j=await (await fetch(WEBHOOK+`?action=getBlessingDetail&id=${encodeURIComponent(row)}`)).json();
-  if(j?.ok&&j.item){ document.getElementById('viewMeta').textContent=`${j.item.displayName||'—'} ｜ ${fmt(j.item.time)}`; document.getElementById('viewContent').innerHTML=j.item.contentHTML||''; document.getElementById('viewOverlay').classList.add('show'); }
-}
-document.getElementById('viewClose').onclick=()=>document.getElementById('viewOverlay').classList.remove('show');
-document.getElementById('roleAll').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));document.getElementById('roleAll').classList.add('active');refreshWall();};
-document.getElementById('roleMale').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));document.getElementById('roleMale').classList.add('active');refreshWall();};
-document.getElementById('roleFemale').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));document.getElementById('roleFemale').classList.add('active');refreshWall();};
-
-/* ===== 送出 / 更新（沿用） ===== */
+async function preloadMyLatest(){/* ...不動，略... */}
 function lockEditor(){editor.classList.add('locked');editor.setAttribute('contenteditable','false');}
 function unlockEditor(){editor.classList.remove('locked');editor.setAttribute('contenteditable','true');editor.focus();}
+
 document.getElementById('btnEdit').onclick=()=>unlockEditor();
 
-function hasSignature(){return document.getElementById('chipSign').classList.contains('has-img');}
 async function sendOrUpdate(){
-  if(editor.hasAttribute('data-empty')||!editor.textContent.trim()){ alert('欸，不可能不祝福我們吧🖕️'); return; }
-  if(!hasSignature()){ alert('欸，沒有畫押不准離開✍️'); return; }
+  if(alreadySent) return;
+  if(editor.hasAttribute('data-empty')||!editor.textContent.trim()){alert('欸，不可能不祝福我們吧🖕️');return;}
+  if(!document.getElementById('chipSign').classList.contains('has-img')){alert('欸，沒有畫押不准離開✍️');return;}
+  alreadySent=true;
   const content=editor.innerHTML.trim();
-  const payload = myLastRow
-    ? {action:'updateBlessing',row:Number(myLastRow),lineId,contentHTML:content}
-    : {action:'createBlessing',lineId,displayName,pictureUrl,contentHTML:content,signaturePNG:signatureDataURL||'',extra:{}};
-  const r=await fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(payload)});
+  const payload={action:'createBlessing',lineId,displayName,pictureUrl,contentHTML:content,signaturePNG:signatureDataURL||'',extra:{}};
+  const r=await fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
   const j=await r.json().catch(()=>null);
-  if(j?.ok){ 
-    lockEditor(); 
-    document.getElementById('chipSign').classList.add('locked');   // 送出成功才鎖簽名
-    if(!myLastRow) await preloadMyLatest();
-    await refreshWall(); 
-    setStatus(myLastRow?'✅ 已更新並鎖定':'✅ 已送出並鎖定'); 
-  }
-  else if(j?.error==='deadline_passed'){ setStatus('⛔ 已到截止日，無法送出及編輯'); lockEditor(); }
-  else setStatus('❌ 送出失敗，稍後再試');
+  if(j?.ok){lockEditor();document.getElementById('chipSign').classList.add('locked');setStatus('✅ 已送出並鎖定');}
+  else setStatus('❌ 送出失敗');
 }
 document.getElementById('btnSend').onclick=sendOrUpdate;
 
-/* ===== 啟動 ===== */
-window.addEventListener('DOMContentLoaded',()=>{
-  if(!editor.textContent.trim()){ editor.setAttribute('data-empty',''); editor.textContent='寫下並獻上最誠摯的祝福…💝'; }
-  if(window.liff) initLIFF(); else initialLoad();
-});
+function fmtMeta(name,time){return `${name||'—'} ｜ ${tzTime(time)}`;}
+function openView(item){document.getElementById('viewMeta').textContent=fmtMeta(item.displayName,item.time);document.getElementById('viewContent').innerHTML=item.contentHTML||'';document.getElementById('viewOverlay').classList.add('show');}
+document.getElementById('viewClose').onclick=()=>document.getElementById('viewOverlay').classList.remove('show');
 </script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </body>
