@@ -165,7 +165,87 @@
 
       /* 版權（固定於底部背景層） */
       .footer-copyright{position:fixed;left:0;right:0;bottom:6px;z-index:0;text-align:center;padding:var(--copyright-pad) 0;
-        font-size:13px;font-weight:700;color:var(--copyright-color);-webkit-text-stroke:0;text-shadow:none;}
+        font-size:13px;font-weight:700;color:#d9d9d9;-webkit-text-stroke:0;text-shadow:none;}
+
+      /* =========================
+         ⬇⬇⬇ 只新增：手機版排版 ⬇⬇⬇
+         ========================= */
+
+      /* 直向手機：第一行=全部/男方/女方；第二行=狀態列；第三行=工具列。
+         紅色卡片變更為上下堆疊：上(黃色) / 下(粉色)。 */
+      @media (max-width: 860px) and (orientation: portrait){
+        .bar-inner{
+          flex-direction: column;
+          align-items: stretch;
+          gap: 8px;
+        }
+        .rolebar{ order:1; }
+        #status{
+          order:2;
+          min-width: 0;
+        }
+        .toolbar{
+          order:3;
+          flex-wrap: wrap;
+          justify-content: flex-start;
+        }
+
+        .stage{
+          padding: 10px 10px var(--panel-bottom-gap);
+        }
+        .card{
+          grid-template-columns: 1fr;         /* 上下堆疊 */
+          grid-auto-rows: minmax(0, auto);
+          height: calc(100% - var(--panel-bottom-gap));
+          gap: 12px;
+        }
+        .left-wrap{
+          min-height: 46%;                    /* 上半（黃色面板） */
+        }
+        .wall-wrap{
+          min-height: 46%;                    /* 下半（粉色面板） */
+        }
+        /* 編輯區在直向時較高，避免被三顆按鈕擠壓 */
+        .editor{
+          bottom: calc(10px + var(--ctrl-h) + 14px);
+        }
+      }
+
+      /* 橫向手機：第一行=全部/男方/女方/狀態列（同一行）；第二行=工具列。
+         紅色卡片保持左右：左(黃色) / 右(粉色)。 */
+      @media (max-width: 860px) and (orientation: landscape){
+        .bar-inner{
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 10px 12px;
+        }
+        .rolebar{
+          order:1;
+          flex: 0 1 auto;
+        }
+        #status{
+          order:1;
+          flex: 1 1 50%;
+          min-width: 200px;
+        }
+        .toolbar{
+          order:2;
+          flex: 1 0 100%;    /* 佔滿第二行 */
+          justify-content: flex-start;
+        }
+
+        .stage{
+          padding: 10px 12px var(--panel-bottom-gap);
+        }
+        .card{
+          grid-template-columns: 1fr 1.2fr;   /* 左右佈局，右側稍寬 */
+          gap: 12px;
+          height: calc(100% - var(--panel-bottom-gap));
+        }
+      }
+      /* =========================
+         ⬆⬆⬆ 只新增：手機版排版 ⬆⬆⬆
+         ========================= */
     </style>
   </head>
 
@@ -341,14 +421,12 @@
 
                 img.onload = ()=>{ chip.classList.add('has-img'); chip.classList.add('locked'); };
                 img.onerror = ()=>{
-                  // 若是原始 Drive 分享網址，再嘗試一次直連；否則維持為文字提示
                   const direct = toDriveDirectUrl(src);
                   if(img.src !== direct){ img.src = direct; }
                   else { chip.classList.remove('has-img','locked'); img.removeAttribute('src'); }
                   img.onerror = null;
                 };
 
-                // 只有在確定是 dataURL 或 http(s) 才設定 src，避免空字串造成破圖
                 if(/^data:/.test(src) || /^https?:\/\//.test(src)){ img.src = src; }
               }
             }
