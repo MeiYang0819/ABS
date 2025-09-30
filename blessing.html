@@ -292,10 +292,14 @@
       }
       async function initialLoad(){ await fetchRoleAndNames(); await refreshWall(); }
 
+      /* ===(1) 新人欄加上 "Dear " + 半形空格 === */
       async function fetchRoleAndNames(){
         try{
           const j=await (await fetch(WEBHOOK+`?action=userRole&lineId=${encodeURIComponent(lineId||'')}`)).json();
-          if(j?.ok){ document.getElementById('brideLabel').textContent = j.nameLabel || '—'; }
+          if(j?.ok){
+            const name = j.nameLabel || '—';
+            document.getElementById('brideLabel').textContent = 'Dear ' + name; // ← 這行是新增點
+          }
         }catch(_){}
       }
 
@@ -303,11 +307,15 @@
       function toDriveDirectUrl(u){
         if(!u) return u;
         try{
-          const m = String(u).match(/drive\.google\.com\/file\/d\/([^/]+)/);
-          return m ? `https://drive.google.com/uc?export=view&id=${m[1]}` : u;
+          const s=String(u);
+          const m1 = s.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+          const m2 = s.match(/[?&]id=([^&]+)/);
+          const id = m1 ? m1[1] : (m2 ? m2[1] : null);
+          return id ? `https://drive.google.com/uc?export=view&id=${id}` : u;
         }catch(_){ return u; }
       }
 
+      /* ===(2) 簽名縮圖顯示修正：只在載入成功後才顯示，並處理 Drive 連結 === */
       async function preloadMyLatest(){
         if(!lineId) return;
         try{
@@ -315,13 +323,36 @@
           if(j?.ok && j.item){
             const it=j.item;
             if(it.contentHTML){ editor.innerHTML=it.contentHTML; editor.removeAttribute('data-empty'); lockEditor(); }
+
             if(it.signature){
-              const chip=document.getElementById('chipSign'); const img=document.getElementById('signThumb');
-              img.removeAttribute('alt');
-              img.onerror = ()=>{ try{ if(/drive\.google\.com\/file\/d\//.test(img.src)) img.src = toDriveDirectUrl(img.src); }catch(_){} img.onerror=null; };
-              img.src = it.signature.startsWith('data:') ? it.signature : toDriveDirectUrl(it.signature);
-              chip.classList.add('has-img'); chip.classList.add('locked');
+              const chip=document.getElementById('chipSign');
+              const img=document.getElementById('signThumb');
+
+              let src = String(it.signature||'').trim();
+              if(src){
+                src = src.startsWith('data:') ? src : toDriveDirectUrl(src);
+
+                // 先清掉狀態，等載入成功再顯示
+                chip.classList.remove('has-img','locked');
+                img.removeAttribute('src');
+                img.removeAttribute('alt');
+                img.loading = 'eager';
+                img.referrerPolicy = 'no-referrer';
+
+                img.onload = ()=>{ chip.classList.add('has-img'); chip.classList.add('locked'); };
+                img.onerror = ()=>{
+                  // 若是原始 Drive 分享網址，再嘗試一次直連；否則維持為文字提示
+                  const direct = toDriveDirectUrl(src);
+                  if(img.src !== direct){ img.src = direct; }
+                  else { chip.classList.remove('has-img','locked'); img.removeAttribute('src'); }
+                  img.onerror = null;
+                };
+
+                // 只有在確定是 dataURL 或 http(s) 才設定 src，避免空字串造成破圖
+                if(/^data:/.test(src) || /^https?:\/\//.test(src)){ img.src = src; }
+              }
             }
+
             myLastRow = Number(it.row||0) || null;
           }
         }catch(_){}
@@ -339,7 +370,7 @@
       editor.addEventListener('focus',()=>{ if(editor.hasAttribute('data-empty')){ editor.textContent=''; editor.removeAttribute('data-empty'); }});
       editor.addEventListener('blur',()=>{ if(!editor.textContent.trim()){ editor.setAttribute('data-empty',''); editor.textContent=PLACEHOLDER; }});
 
-      /* 簽名 */
+      /* 簽名（保留你的流程；新增 onload 後才顯示縮圖） */
       const sigOverlay=document.getElementById('sigOverlay'); const pad=document.getElementById('pad'); const ctx=pad.getContext('2d');
       let drawing=false,lastX=0,lastY=0;
       function fitCanvas(){ const dpr=Math.max(1,devicePixelRatio||1),w=pad.clientWidth,h=pad.clientHeight; pad.width=w*dpr; pad.height=h*dpr;
@@ -355,12 +386,14 @@
       document.getElementById('sigClear').onclick=fitCanvas;
       document.getElementById('sigCancel').onclick=()=>sigOverlay.classList.remove('show');
       document.getElementById('sigOK').onclick=()=>{
-        /* 等待一個 frame，確保畫面完成再取 DataURL（避免偶發空白/破圖） */
         requestAnimationFrame(()=>{
           signatureDataURL=pad.toDataURL('image/png');
           const chip=document.getElementById('chipSign'); const img=document.getElementById('signThumb');
-          img.removeAttribute('alt'); img.src=signatureDataURL;
-          chip.classList.add('has-img'); chip.classList.add('locked');
+          chip.classList.remove('has-img','locked');
+          img.onload = ()=>{ chip.classList.add('has-img'); chip.classList.add('locked'); img.onload=null; };
+          img.removeAttribute('alt');
+          img.loading = 'eager';
+          img.src=signatureDataURL;
           sigOverlay.classList.remove('show');
         });
       };
@@ -397,7 +430,7 @@
       document.getElementById('roleMale').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));document.getElementById('roleMale').classList.add('active');refreshWall();};
       document.getElementById('roleFemale').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));document.getElementById('roleFemale').classList.add('active');refreshWall();};
 
-      /* 編輯/送出互鎖（你已啟用的版邏輯保留） */
+      /* 編輯/送出互鎖（保留） */
       function lockEditor(){editor.classList.add('locked');editor.setAttribute('contenteditable','false');}
       function unlockEditor(){editor.classList.remove('locked');editor.setAttribute('contenteditable','true');editor.focus();}
       document.getElementById('btnEdit').onclick=()=>{ unlockEditor(); submittedOnce=false; const btn=document.getElementById('btnSend'); btn.disabled=false; btn.style.opacity=1; btn.style.pointerEvents='auto'; };
@@ -422,7 +455,7 @@
           if(j?.ok){
             submittedOnce=true; lockEditor(); await refreshWall(); if(!myLastRow) await preloadMyLatest();
             setStatus(myLastRow?'✅ 已更新並鎖定，截止日前都可以修改唷':'✅ 已送出並鎖定，截止日前都可以修改唷');
-            btnEdit.disabled=false; btnEdit.style.opacity=1; btnEdit.style.pointerEvents='auto';   // 成功後放開「再次修改」
+            btnEdit.disabled=false; btnEdit.style.opacity=1; btnEdit.style.pointerEvents='auto';
           }else if(j?.error==='deadline_passed'){
             setStatus('⛔ 已到截止日，無法送出及編輯'); lockEditor();
           }else{
