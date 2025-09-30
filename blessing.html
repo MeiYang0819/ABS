@@ -24,9 +24,18 @@
         --toolbar-gap:8px; --tool-h:36px; --editor-zoom:1rem;
 
         /* Dear 與下方三顆統一尺寸（縮短避免重疊） */
-        --ctrl-w:140px;
+        --ctrl-w:115px;
         --ctrl-h:36px;
-
+        /* 新增：讓簽名 chip 的字級、粗細與按鈕一致 */
+        .left-actions .chip{
+         font-size:1rem;     /* 跟按鈕同一條件 */
+         font-weight:800;    /* 跟按鈕一致的粗體 */
+         line-height:1;
+       }
+       .left-actions .chip .hint{
+       font-size:inherit;   /* 跟上面同大小 */
+        font-weight:800;     /* 與按鈕一致（原來是 900 會看起來更細小） */
+       }
         /* 紅卡與藍底的底部間距 */
         --panel-bottom-gap:14px;
 
