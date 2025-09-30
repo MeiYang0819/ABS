@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>❤️同心祈願❤️</title>
+    <title>💞同心祈願</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -24,8 +24,9 @@
         --toolbar-gap:8px; --tool-h:36px; --editor-zoom:1rem;
 
         /* Dear 與下方三顆統一尺寸（縮短避免重疊） */
-        --ctrl-w:115px;
+        --ctrl-w:90px;
         --ctrl-h:36px;
+        
         /* 新增：讓簽名 chip 的字級、粗細與按鈕一致 */
         .left-actions .chip{
          font-size:1rem;     /* 跟按鈕同一條件 */
@@ -40,7 +41,7 @@
         --panel-bottom-gap:14px;
 
         /* 版權（恢復並常駐背景上） */
-        --copyright-color:#6b5e52;
+        --copyright-color:#d9d9d9;
         --copyright-pad:12px;
       }
 
@@ -124,7 +125,7 @@
   </head>
 
   <body>
-    <img class="bg-notes" src="./assets/favos.png?v=4" alt="" />
+    <img class="bg-notes" src="./assets/favros.png?v=4" alt="" />
 
     <div class="panel">
       <h2>❤️同心祈願❤️</h2>
@@ -137,7 +138,7 @@
             <button type="button" class="role-btn" id="roleFemale">女方</button>
           </div>
 
-          <p id="status">📥 還在等待，待送出資料</p>
+          <p id="status">✅ 初始化完成，可以送上祝福囉</p>
 
           <div class="toolbar" role="toolbar" aria-label="文字工具">
             <button class="tool-btn" id="btnBold"      type="button">粗體</button>
@@ -164,7 +165,7 @@
         <div class="card" id="card">
           <section class="left-wrap">
             <div class="left-content">
-              <div class="chip" id="chipBride" title="新人"><span id="brideLabel">Dear —</span></div>
+              <div class="chip" id="chipBride" title="Dear "><span id="brideLabel">Dear —</span></div>
 
               <div class="editor" id="editor" contenteditable="true" aria-label="祈願內容" data-empty>
                 寫下並獻上最誠摯的祝福…💝
@@ -342,7 +343,7 @@
         try{
           const r=await fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(payload)});
           const j=await r.json().catch(()=>null);
-          if(j?.ok){ submittedOnce=true; lockEditor(); await refreshWall(); if(!myLastRow) await preloadMyLatest(); setStatus(myLastRow?'✅ 已更新並鎖定':'✅ 已送出並鎖定'); }
+          if(j?.ok){ submittedOnce=true; lockEditor(); await refreshWall(); if(!myLastRow) await preloadMyLatest(); setStatus(myLastRow?'✅ 已更新並鎖定，截止日前都可以修改唷':'✅ 已送出並鎖定，截止日前都可以修改唷'); }
           else if(j?.error==='deadline_passed'){ setStatus('⛔ 已到截止日，無法送出及編輯'); lockEditor(); }
           else{ setStatus('❌ 送出失敗，稍後再試'); sendInFlight=false; btn.disabled=false; btn.style.opacity=1; btn.style.pointerEvents='auto'; }
         }catch(_){ setStatus('❌ 送出失敗，稍後再試'); sendInFlight=false; btn.disabled=false; btn.style.opacity=1; btn.style.pointerEvents='auto'; }
