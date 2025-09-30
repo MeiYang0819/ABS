@@ -630,7 +630,7 @@
 
         let prof = null, idt = null;
         try{ prof = await liff.getProfile(); }catch(_){}
-        try{ idt  = liff.getDecodedIDToken(); }catch(_){}
+        try{ idt  = await liff.getDecodedIDToken(); }catch(_){}
 
         // 兩條路都試：getProfile 與 ID Token
         lineId      = (prof && prof.userId) || (idt && idt.sub) || '';
