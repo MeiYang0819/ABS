@@ -172,14 +172,14 @@
          ========================= */
 
       /* 直向手機：第一行=全部/男方/女方；第二行=狀態列；第三行=工具列。
-         紅色卡片變更為上下堆疊：上(黃色) / 下(粉色)。 */
+         紅色卡片上下堆疊。 */
       @media (max-width: 860px) and (orientation: portrait){
         .bar-inner{
           flex-direction: column;
           align-items: stretch;
           gap: 8px;
         }
-        .rolebar{ order:1; }
+        .rolebar{ order:1; justify-content:center; }
         #status{
           order:2;
           min-width: 0;
@@ -189,31 +189,46 @@
           order:3;
           flex-wrap: wrap;
           justify-content: flex-start;
+          gap: 6px;
+        }
+        .toolbar .tool-btn,
+        .toolbar .tool-select{
+          min-width: auto;
+          height: 32px;
+          padding: 0 10px;
+          font-size: 13px;
+          border-radius: 10px;
         }
 
-        .stage{
-          padding: 10px 10px var(--panel-bottom-gap);
+        /* 允許頁面捲動，避免內容被吃掉 */
+        html, body{ overflow:auto; }
+        .panel{
+          height:auto;
+          min-height:calc(100dvh - 110px);
         }
+        .stage{ overflow:auto; padding:10px 10px var(--panel-bottom-gap); }
+
+        /* ✅ 精準 70% / 30% 分割 */
         .card{
-          grid-template-columns: 1fr;         /* 上下堆疊 */
-          grid-auto-rows: minmax(0, auto);
+          grid-template-columns: 1fr;      /* 上下 */
+          grid-template-rows: 70% 30%;     /* 黃 70%、粉 30% */
           height: calc(100% - var(--panel-bottom-gap));
-          gap: 12px;
+          gap:12px;
         }
-        .left-wrap{
-          min-height: 46%;                    /* 上半（黃色面板） */
-        }
-        .wall-wrap{
-          min-height: 46%;                    /* 下半（粉色面板） */
-        }
+        /* 移除舊的 min-height 影響 */
+        .left-wrap,.wall-wrap{ min-height:auto; }
+
         /* 編輯區在直向時較高，避免被三顆按鈕擠壓 */
-        .editor{
-          bottom: calc(10px + var(--ctrl-h) + 14px);
-        }
+        .editor{ bottom: calc(10px + var(--ctrl-h) + 14px); }
+
+        /* 木牌縮小（粉區較小仍好排） */
+        :root{ --tile-h: 120px; }
+        .wall{ grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+        .tile{ font-size: 13px; }
       }
 
-      /* 橫向手機：第一行=全部/男方/女方/狀態列（同一行）；第二行=工具列。
-         紅色卡片保持左右：左(黃色) / 右(粉色)。 */
+      /* 橫向手機：第一行=全部/男方/女方/狀態列；第二行=工具列。
+         紅色卡片保持左右。 */
       @media (max-width: 860px) and (orientation: landscape){
         .bar-inner{
           flex-wrap: wrap;
@@ -232,7 +247,7 @@
         }
         .toolbar{
           order:2;
-          flex: 1 0 100%;    /* 佔滿第二行 */
+          flex: 1 0 100%;
           justify-content: flex-start;
         }
 
@@ -240,52 +255,13 @@
           padding: 10px 12px var(--panel-bottom-gap);
         }
         .card{
-          grid-template-columns: 1fr 1.2fr;   /* 左右佈局，右側稍寬 */
+          grid-template-columns: 1fr 1.2fr;
           gap: 12px;
           height: calc(100% - var(--panel-bottom-gap));
         }
       }
       /* =========================
-         ⬆⬆⬆ 只新增：手機版排版 ⬆⬆⬆
-         ========================= */
-
-      /* =========================
-         ⬇⬇⬇ 追加覆蓋：直向手機微調（置中、小框、可捲動、縮小木牌 & 黃大粉小） ⬇⬇⬇
-         ========================= */
-      @media (max-width: 860px) and (orientation: portrait){
-        /* 置中角色鈕 */
-        .rolebar{ justify-content: center; }
-
-        /* 工具列小框，與「顏色」一致視覺 */
-        .toolbar{ gap: 6px; }
-        .toolbar .tool-btn,
-        .toolbar .tool-select{
-          min-width: auto;
-          height: 32px;
-          padding: 0 10px;
-          font-size: 13px;
-          border-radius: 10px;
-        }
-
-        /* 允許頁面捲動，避免黃區被吃掉 */
-        html, body{ overflow: auto; }
-        .panel{
-          height: auto;
-          min-height: calc(100dvh - 110px);
-        }
-        .stage{ overflow: auto; }
-
-        /* ✅ 提高黃區比例、縮小粉區比例（剛好卡祝福牌） */
-        .left-wrap{ min-height: 62%; }  /* 黃色面板更大 */
-        .wall-wrap{ min-height: 34%; }  /* 粉色面板更小 */
-
-        /* ✅ 木牌縮小，讓較小的粉區仍能排版 */
-        :root{ --tile-h: 120px; }
-        .wall{ grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
-        .tile{ font-size: 13px; }
-      }
-      /* =========================
-         ⬆⬆⬆ 追加覆蓋：直向手機微調 ⬆⬆⬆
+         ⬆⬆⬆ 手機版排版結束 ⬆⬆⬆
          ========================= */
     </style>
   </head>
@@ -481,7 +457,7 @@
       function exec(cmd){ if(editor.hasAttribute('data-empty')||editor.classList.contains('locked')) return; document.execCommand(cmd,false,null); editor.focus(); }
       document.getElementById('btnBold').onclick=()=>exec('bold');
       document.getElementById('btnItalic').onclick=()=>exec('italic');
-      document.getElementById('btnUnderline').onclick=()=>exec('underline');
+      document.getElementById='btnUnderline'&&document.getElementById('btnUnderline').addEventListener('click',()=>exec('underline'));
       document.getElementById('colorPick').onchange=e=>{ const v=e.target.value; if(v&&!editor.classList.contains('locked')&&!editor.hasAttribute('data-empty')) document.execCommand('foreColor',false,v); e.target.blur(); };
       let globalScale=1; function setScale(s){globalScale=Math.max(.7,Math.min(1.7,s)); editor.style.setProperty('--editor-zoom',globalScale+'rem');}
       document.getElementById('btnBigger').onclick=()=>setScale(globalScale+.06);
