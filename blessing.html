@@ -23,18 +23,21 @@
 
         --toolbar-gap:8px; --tool-h:36px; --editor-zoom:1rem;
 
-        /* Dear 與下方三顆統一尺寸（不動你原來寬高） */
+        /* Dear 與下方三顆統一尺寸（縮短避免重疊） */
         --ctrl-w:90px;
         --ctrl-h:36px;
 
+        /* 紅卡與藍底的底部間距 */
         --panel-bottom-gap:25px;
 
+        /* 版權 */
         --copyright-color:#999999;
         --copyright-pad:12px;
 
-        /* 木牌尺寸/質感（保留，已移除繩子與繩結） */
+        /* 木牌視覺細節（rope/knot 變數保留、未使用） */
         --tile-w:180px; --tile-h:156px;
         --wood-grain-contrast:.9;
+        --rope-width:8px; --rope-height:42px; --knot-size:22px;
       }
 
       .bg-notes{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none;user-select:none;}
@@ -83,25 +86,30 @@
       .editor[data-empty]{opacity:1;color:rgba(15,23,42,.28);-webkit-text-stroke:0;text-shadow:none;font-style:italic;}
       .editor.locked{pointer-events:none;opacity:.85;}
 
-      /* 下方三顆：再次修改 → 送出祝福 → 畫押簽名（不改排版/尺寸） */
+      /* 下方三顆：順序 再次修改 → 送出祝福 → 畫押簽名；固定寬避免重疊 */
       .left-actions{position:absolute;left:10px;right:10px;bottom:10px;height:var(--ctrl-h);display:flex;gap:10px;justify-content:space-between;flex-wrap:nowrap;}
       .left-actions > *{flex:0 0 var(--ctrl-w);width:var(--ctrl-w);height:100%;}
       .left-actions button{background:#fff;border:1px solid var(--rim);border-radius:10px;font-weight:800;box-shadow:var(--shadow-2);cursor:pointer;white-space:nowrap;}
       .left-actions button:active{transform:translateY(1px) scale(.99);}
-      .left-actions .chip{font-size:1rem;font-weight:800;line-height:1; position:static; display:flex; align-items:center; justify-content:center; cursor:pointer;
-        background:#fff; border:1px solid var(--rim); border-radius:10px; box-shadow:var(--shadow-2); padding:0; overflow:hidden;}
+
+      /* ✦ 簽名 chip：與按鈕同字級/粗體；大小與兩顆按鈕一致 */
+      .left-actions .chip{
+        font-size:1rem;font-weight:800;line-height:1; position:static; display:flex; align-items:center; justify-content:center; cursor:pointer;
+        background:#fff; border:1px solid var(--rim); border-radius:10px; box-shadow:var(--shadow-2); padding:0; overflow:hidden;
+        width:var(--ctrl-w); height:var(--ctrl-h);
+      }
       #chipSign .hint{ font-weight:800; color:rgba(15,23,42,.38); }
       #chipSign.locked{ pointer-events:none; opacity:.9; }
       #signThumb{ display:none; width:100%; height:100%; object-fit:contain; pointer-events:none; max-width:100%; max-height:100%; }
       #chipSign.has-img #signThumb{ display:block; }
       #chipSign.has-img .hint{ display:none; }
 
-      /* 粉色框（祝福牆容器）：不常駐卷軸，內容超過時才出現 */
+      /* 粉色牆容器：沒超出不顯示捲軸，超出才會出現（桌機/行動一致） */
       .wall-wrap{
         background:linear-gradient(180deg,#f9e5ee,#f6dce7);
         border-radius:16px;border:1px solid rgba(0,0,0,.05);
         padding:12px;
-        overflow:auto; /* 只有超出才會出現捲軸 */
+        overflow:auto;
       }
       .wall{
         min-height:280px;
@@ -110,9 +118,10 @@
         grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
         gap:14px;align-content:start;
         padding:2px;
+        overflow:visible;
       }
 
-      /* 木牌（已移除繩子/繩結） */
+      /* 木牌（rope/knot 已移除；只保留上方釘孔） */
       .tile{
         position:relative;width:100%;height:var(--tile-h);padding:18px 12px 12px;cursor:pointer;overflow:hidden;display:flex;flex-direction:column;gap:6px;
         background:
@@ -146,12 +155,13 @@
       .dlg-actions{display:flex;gap:10px;justify-content:center;margin-top:12px;}
       .dlg-actions button{width:120px;height:var(--tool-h);border-radius:10px;border:1px solid var(--rim);background:#fff;cursor:pointer;font-weight:700;}
 
+      /* 版權（固定於底部背景層） */
       .footer-copyright{position:fixed;left:0;right:0;bottom:6px;z-index:0;text-align:center;padding:var(--copyright-pad) 0;
         font-size:13px;font-weight:700;color:var(--copyright-color);-webkit-text-stroke:0;text-shadow:none;}
 
       /* ========================= 手機版：直向 ========================= */
       @media (max-width: 860px) and (orientation: portrait){
-        :root{ --tool-w-m: 84px; } /* 恢復你原本的寬度設定 */
+        :root{ --tool-w-m: 84px; } /* 保留你的原值 */
         .bar-inner{ flex-direction: column; align-items: stretch; gap: 8px; }
         .rolebar{ order:1; justify-content:center; }
         #status{ order:2; min-width:0; }
@@ -163,31 +173,33 @@
         .panel{ height:auto; min-height:100dvh; }
         .stage{ overflow:visible; padding:10px 10px var(--panel-bottom-gap); }
 
-        /* 讓整張卡片「更高一些」，避免粉色區把上面文字蓋到 */
-        .card{ grid-template-columns:1fr; grid-template-rows:70% 30%; height:auto; min-height:calc(100dvh - 130px); gap:12px; }
+        /* ★ 把黃色區塊再拉高：74% / 26% */
+        .card{ grid-template-columns:1fr; grid-template-rows:74% 26%; height:auto; min-height:calc(100dvh - 160px); gap:12px; }
         .left-wrap{ min-height:0; }
-        .wall-wrap{ min-height:0; }    /* 多牌時可於粉框內滾動 */
-        .editor{ bottom: calc(10px + var(--ctrl-h) + 14px); }
+        .wall-wrap{ min-height:0; }
+        /* ★ 編輯器底部再多留 6px，避免字被按鈕遮住 */
+        .editor{ bottom: calc(10px + var(--ctrl-h) + 16px); }
+
+        /* 粉框內每列兩個，間距等距 */
+        :root{ --tile-h: 140px; }
+        .wall{ grid-template-columns: repeat(2, 1fr); gap:14px; }
+        .tile{ font-size: 14px; }
       }
 
       /* ========================= 手機版：橫向 ========================= */
       @media (max-width: 860px) and (orientation: landscape){
+        /* 讓標題與藍底可見（頁面可捲動、卡片撐開） */
+        html, body{ overflow:auto; }
+        .panel{ height:auto; min-height:100dvh; }
+        .stage{ padding:10px 12px var(--panel-bottom-gap); overflow:visible; }
+        /* ★ 撐開紅色卡片，完整顯示黃/粉兩版 */
+        .card{ grid-template-columns:1fr 1.2fr; gap:12px; height:auto; min-height:calc(100dvh - 160px); }
+
         .bar-inner{ flex-wrap:wrap; align-items:center; gap:10px 12px; }
         .rolebar{ order:1; flex:0 1 auto; }
         #status{ order:1; flex:1 1 50%; min-width:200px; }
-        .toolbar{ order:2; flex:1 0 100%; justify-content:center; } /* 置中工具列 */
-        .stage{ padding:10px 12px var(--panel-bottom-gap); }
-
-        /* 撐開紅色卡片：高度自動、至少佔滿畫面，黃/粉兩區都能完整顯示 */
-        .panel{ height:auto; min-height:100dvh; }
-        .card{ grid-template-columns:1fr 1.2fr; gap:12px; height:auto; min-height:calc(100dvh - 120px); }
-      }
-
-      /* 手機直向時木牌略矮，兩邊剛好各塞一個 */
-      @media (max-width: 860px) and (orientation: portrait){
-        :root{ --tile-h: 140px; }
-        .wall{ grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
-        .tile{ font-size: 14px; }
+        /* ★ 工具列置中 */
+        .toolbar{ order:2; flex:1 0 100%; justify-content:center; }
       }
     </style>
   </head>
