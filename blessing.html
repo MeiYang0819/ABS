@@ -171,12 +171,17 @@
         font-size:13px;font-weight:700;color:var(--copyright-color);-webkit-text-stroke:0;text-shadow:none;}
 
       /* =========================
-         ⬇⬇⬇ 手機版排版修正（直向＝真 70/30） ⬇⬇⬇
+         ⬇⬇⬇ 手機版排版修正（直向＝真 70/30） + 工具鈕等寬 ⬇⬇⬇
          ========================= */
 
       /* 直向手機：第一行=全部/男方/女方；第二行=狀態列；第三行=工具列。
          紅色卡片變更為上下堆疊：上(黃色70%) / 下(粉色30%)。 */
       @media (max-width: 860px) and (orientation: portrait){
+        :root{
+          /* 工具鈕在手機直向時的統一寬度（含「顏色」選單） */
+          --tool-w-m: 84px;
+        }
+
         .bar-inner{
           flex-direction: column;
           align-items: stretch;
@@ -193,7 +198,24 @@
         .toolbar{
           order:3;
           flex-wrap: wrap;
-          justify-content: center; /* 置中工具列（你有要求） */
+          justify-content: center;   /* 工具列置中 */
+          gap: 8px;
+        }
+
+        /* 工具鈕＋顏色選單：同高度、同寬度、同外觀 */
+        .toolbar .tool-btn,
+        .toolbar .tool-select{
+          min-width: 0;
+          width: var(--tool-w-m);
+          height: 32px;
+          padding: 0 10px;
+          font-size: 13px;
+          border-radius: 10px;
+        }
+        /* select 文字置中（盡量一致，iOS/Safari 仍保留原生箭頭） */
+        .toolbar .tool-select{
+          text-align: center;
+          text-align-last: center;
         }
 
         /* 允許頁面捲動，面板至少佔滿整個動態視窗高度 */
