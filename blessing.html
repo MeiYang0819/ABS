@@ -173,15 +173,15 @@
         .panel{ height:auto; min-height:100dvh; }
         .stage{ overflow:visible; padding:10px 10px var(--panel-bottom-gap); }
 
-        /* ★ 把黃色區塊再拉高：74% / 26% */
+        /* ★ 把黃色區塊再拉高：74% / 26%（維持） */
         .card{ grid-template-columns:1fr; grid-template-rows:74% 26%; height:auto; min-height:calc(100dvh - 160px); gap:12px; }
         .left-wrap{ min-height:0; }
         .wall-wrap{ min-height:0; }
-        /* ★ 編輯器底部再多留 6px，避免字被按鈕遮住 */
+        /* ★ 編輯器底部再多留 6px，避免字被按鈕遮住（維持） */
         .editor{ bottom: calc(10px + var(--ctrl-h) + 16px); }
 
-        /* 粉框內每列兩個，間距等距 */
-        :root{ --tile-h: 140px; }
+        /* ★ 直向：每列兩個；並把牌子高度調大到 160px 以確保首行可見 */
+        :root{ --tile-h: 160px; } /* ← 只調這個高度 */
         .wall{ grid-template-columns: repeat(2, 1fr); gap:14px; }
         .tile{ font-size: 14px; }
       }
@@ -192,14 +192,17 @@
         html, body{ overflow:auto; }
         .panel{ height:auto; min-height:100dvh; }
         .stage{ padding:10px 12px var(--panel-bottom-gap); overflow:visible; }
-        /* ★ 撐開紅色卡片，完整顯示黃/粉兩版 */
+        /* 撐開紅色卡片，完整顯示黃/粉兩版 */
         .card{ grid-template-columns:1fr 1.2fr; gap:12px; height:auto; min-height:calc(100dvh - 160px); }
 
         .bar-inner{ flex-wrap:wrap; align-items:center; gap:10px 12px; }
         .rolebar{ order:1; flex:0 1 auto; }
         #status{ order:1; flex:1 1 50%; min-width:200px; }
-        /* ★ 工具列置中 */
+        /* 工具列置中 */
         .toolbar{ order:2; flex:1 0 100%; justify-content:center; }
+
+        /* ★ 橫向：粉框一列剛好 2 個，間距等分 */
+        .wall{ grid-template-columns: repeat(2, 1fr); gap:14px; }
       }
     </style>
   </head>
@@ -411,7 +414,7 @@
       document.getElementById('chipSign').addEventListener('click',()=>{ const chip=document.getElementById('chipSign'); if(chip.classList.contains('locked')||signatureLocked) return;
         sigOverlay.classList.add('show'); setTimeout(fitCanvas,40); });
       pad.addEventListener('mousedown',start); pad.addEventListener('mousemove',move); pad.addEventListener('mouseup',end); pad.addEventListener('mouseleave',end);
-      pad.addEventListener('touchstart',start,{passive:false}); pad.addEventListener('touchmove',move,{passive:false}); pad.addEventListener('touchend',end);
+      pad.addEventListener('touchstart',start,{passive:false}); pad.addEventListener('touchmove',move',{passive:false}); pad.addEventListener('touchend',end);
       document.getElementById('sigClear').onclick=()=>{ if(signatureLocked) return; fitCanvas(); };
       document.getElementById('sigCancel').onclick=()=>sigOverlay.classList.remove('show');
       document.getElementById('sigOK').onclick=()=>{
@@ -486,7 +489,7 @@
         if(sendInFlight){ return; }
 
         sendInFlight=true;
-        setButtonsState({ canEdit:false, canSend:false, inflight:true });
+        setButtonsState({ can Edit:false, canSend:false, inflight:true });
 
         const content=editor.innerHTML.trim();
         const payload = myLastRow
