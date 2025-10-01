@@ -37,13 +37,7 @@
         /* 木牌視覺細節 */
         --tile-w:180px; --tile-h:156px;
         --wood-grain-contrast:.9;
-
-        /* rope/knot 尺寸（桌機預設較長，手機會在 media query 內縮短） */
-        --rope-core-w:6px;
-        --rope-loop-w:22px;
-        --rope-loop-h:56px;   /* 桌機：超出較多 */
-        --rope-top:-34px;     /* rope 整組頂部相對牌面向上超出的距離（負值） */
-        --knot-size:22px;
+        --rope-width:8px; --rope-height:42px; --knot-size:22px; /* 保留變數但本版不再使用 rope/knot */
       }
 
       .bg-notes{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none;user-select:none;}
@@ -110,13 +104,14 @@
       #chipSign.has-img #signThumb{ display:block; }
       #chipSign.has-img .hint{ display:none; }
 
-      /* ★ 粉色框（牆容器）裁切並允許滾動；牌子都在粉框內 */
+      /* ★ 粉色框（牆容器）：overflow:auto → 沒超出不顯示卷軸；超出才顯示（桌機/行動一致） */
       .wall-wrap{
         background:linear-gradient(180deg,#f9e5ee,#f6dce7);
         border-radius:16px;border:1px solid rgba(0,0,0,.05);
         padding:12px;
         overflow:auto;
       }
+      /* ★ 牆填滿容器高度，內部再自動捲動 */
       .wall{
         min-height:280px;
         height:100%;
@@ -124,16 +119,12 @@
         grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
         gap:14px;align-content:start;
         padding:2px;
-        overflow:visible; /* 讓繩子可在牌面上方露出（仍在粉框之內） */
+        overflow:visible;
       }
 
-      /* ===== 木牌：V 型雙圈繩＋小結（可於牌面之上微露） ===== */
+      /* ===== 木牌：移除繩子/繩結（保留上方釘孔），完整收在粉框內 ===== */
       .tile{
-        position:relative;width:100%;height:var(--tile-h);
-        padding:18px 12px 12px;
-        cursor:pointer;
-        overflow:visible; /* 允許繩結往上超出牌面 */
-        display:flex;flex-direction:column;gap:6px;
+        position:relative;width:100%;height:var(--tile-h);padding:18px 12px 12px;cursor:pointer;overflow:hidden;display:flex;flex-direction:column;gap:6px;
         background:
           linear-gradient(180deg,#f1e3cf,#e5d1b8),
           repeating-linear-gradient(14deg, rgba(0,0,0, calc(.03 + var(--wood-grain-contrast)*.10)) 0 4px, rgba(255,255,255, calc(.02 + var(--wood-grain-contrast)*.06)) 4px 9px),
@@ -143,64 +134,9 @@
         border:1px solid #cfba9b;border-radius:14px;box-shadow:0 10px 18px rgba(0,0,0,.10);
         clip-path:polygon(0 12%, 12% 0, 88% 0, 100% 12%, 100% 100%, 0 100%);
       }
-      /* 木牌上方金屬孔 */
-      .tile::before{
-        content:"";position:absolute;top:2px;left:50%;transform:translateX(-50%);
-        width:16px;height:16px;border-radius:50%;
-        background:radial-gradient(circle at 35% 35%, #fff 0 35%, #bbb 36% 60%, transparent 61%);
-        box-shadow:inset 0 1px 0 rgba(255,255,255,.9), inset 0 -1px 0 rgba(0,0,0,.15);
-      }
-
-      /* rope core（孔下小段）＋ V 型雙圈（孔上兩側） */
-      .tile .rope{
-        position:absolute; left:50%; transform:translateX(-50%);
-        top:var(--rope-top);
-        width:var(--rope-core-w); height:calc(var(--rope-loop-h) + 24px);
-      }
-      /* rope 外觀（顏色、紋理） */
-      .tile .rope,
-      .tile .rope::before,
-      .tile .rope::after{
-        background:
-          repeating-linear-gradient(90deg,#b77c3a 0 3px,#c98a45 3px 6px),
-          linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0) 60%),
-          linear-gradient(0deg,rgba(0,0,0,.12),transparent 60%);
-        border-radius:999px;
-        box-shadow:0 2px 4px rgba(0,0,0,.12);
-        content:"";
-        position:absolute;
-      }
-      /* 直條（穿過金屬孔的中間繩段） */
-      .tile .rope{ content:""; }
-      /* 左右兩個橢圓圈，形成「V」 */
-      .tile .rope::before{
-        left:calc(-1 * var(--rope-loop-w)); top:0;
-        width:var(--rope-loop-w); height:var(--rope-loop-h);
-        transform-origin:bottom right; transform:rotate(-22deg);
-      }
-      .tile .rope::after{
-        right:calc(-1 * var(--rope-loop-w)); top:0;
-        width:var(--rope-loop-w); height:var(--rope-loop-h);
-        transform-origin:bottom left; transform:rotate(22deg);
-      }
-      /* 小結（繩結主體與兩側鼓起） */
-      .tile .knot{
-        position:absolute; left:50%; transform:translateX(-50%);
-        top:calc(var(--rope-top) + 18px);
-        width:calc(var(--knot-size) * 1.08); height:calc(var(--knot-size) * .78);
-        background:linear-gradient(180deg,#cc8a3d,#a9652b);
-        border-radius:14px;
-        box-shadow:0 2px 0 rgba(0,0,0,.08), 0 6px 10px rgba(0,0,0,.10);
-        border:1px solid rgba(0,0,0,.12); z-index:3;
-      }
-      .tile .knot::before,
-      .tile .knot::after{
-        content:"";position:absolute;top:38%;width:52%;height:52%;
-        background:linear-gradient(180deg,#d09045,#b17233);
-        border-radius:999px;box-shadow:inset 0 2px 2px rgba(255,255,255,.35);
-      }
-      .tile .knot::before{left:-12px;transform:rotate(-24deg);}
-      .tile .knot::after{right:-12px;transform:rotate(24deg);}
+      /* 小圓釘（保留） */
+      .tile::before{content:"";position:absolute;top:2px;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;
+        background:radial-gradient(circle at 35% 35%, #fff 0 35%, #bbb 36% 60%, transparent 61%);box-shadow:inset 0 1px 0 rgba(255,255,255,.9), inset 0 -1px 0 rgba(0,0,0,.15);}
 
       .tile-name{font-weight:800;text-align:center;margin-top:8px;}
       .tile-sep{height:1px;background:rgba(0,0,0,.12);margin:6px 0;}
@@ -223,18 +159,11 @@
 
       /* 版權（固定於底部背景層） */
       .footer-copyright{position:fixed;left:0;right:0;bottom:6px;z-index:0;text-align:center;padding:var(--copyright-pad) 0;
-        font-size:13px;font-weight:700;color:var(--copyright-color);-webkit-text-stroke:0;text-shadow:none;}
+        font-size:13px;font-weight:700;color:#999999;-webkit-text-stroke:0;text-shadow:none;}
 
       /* ========================= 手機版（保持你先前的版面） ========================= */
       @media (max-width: 860px) and (orientation: portrait){
-        :root{
-          --tool-w-m: 84px;
-
-          /* 手機直向：繩圈短、超出少一點；粉框兩欄且三段等距 */
-          --rope-loop-h:42px;   /* 比桌機短 */
-          --rope-top:-18px;     /* 只超出一點點 */
-        }
-
+        :root{ --tool-w-m: 53px; } /* 按你的原值保留，不動 */
         .bar-inner{ flex-direction: column; align-items: stretch; gap: 8px; }
         .rolebar{ order:1; justify-content:center; }
         #status{ order:2; min-width:0; }
@@ -246,19 +175,16 @@
         .panel{ height:auto; min-height:100dvh; }
         .stage{ overflow:visible; padding:10px 10px var(--panel-bottom-gap); }
 
+        /* 黃 70% / 粉 30% */
         .card{ grid-template-columns:1fr; grid-template-rows:70% 30%; height:auto; min-height:calc(100dvh - 160px); gap:12px; }
         .left-wrap{ min-height:0; }
-        .wall-wrap{ min-height:0; }
-
-        /* 粉框內固定兩欄，左右各一個；牆內邊距與牌距等距 */
-        .wall{
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap:14px;
-          padding:14px;              /* 牆內邊距 = gap，形成「邊-牌-牌-邊」三處等距 */
-        }
-
-        /* 編輯區底邊再往上給按鈕空間 */
+        .wall-wrap{ min-height:0; }    /* 由 grid 控制比例；多牌時可於粉框內滾動 */
         .editor{ bottom: calc(10px + var(--ctrl-h) + 14px); }
+
+        /* 直向：粉框內每列放兩個，間距均等 */
+        :root{ --tile-h: 140px; }
+        .wall{ grid-template-columns: repeat(2, 1fr); gap:14px; }
+        .tile{ font-size: 14px; }
       }
 
       @media (max-width: 860px) and (orientation: landscape){
@@ -268,12 +194,6 @@
         .toolbar{ order:2; flex:1 0 100%; justify-content:flex-start; }
         .stage{ padding:10px 12px var(--panel-bottom-gap); }
         .card{ grid-template-columns:1fr 1.2fr; gap:12px; height:calc(100% - var(--panel-bottom-gap)); }
-      }
-
-      @media (max-width: 860px) and (orientation: portrait){
-        :root{ --tile-h: 140px; }
-        .wall{ grid-template-columns: repeat(2, minmax(0, 1fr)); } /* 再保險一次兩欄 */
-        .tile{ font-size: 14px; }
       }
     </style>
   </head>
@@ -502,7 +422,7 @@
 
       function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
       function tileTemplate(it){return `<div class="tile" data-row="${it.row||''}" data-owner="${it.lineId||''}">
-        <div class="rope"></div><div class="knot"></div>
+        <!-- rope/knot 移除，僅保留釘孔 -->
         <div class="tile-name">${escapeHTML(it.displayName||'—')}</div>
         <div class="tile-sep"></div>
         <div class="tile-date">${escapeHTML(fmtTaipei(it.time))}</div>
