@@ -23,7 +23,7 @@
 
         --toolbar-gap:8px; --tool-h:36px; --editor-zoom:1rem;
 
-        /* Dear 與下方三顆統一尺寸（縮短避免重疊） */
+        /* Dear 與下方三顆統一尺寸 */
         --ctrl-w:90px;
         --ctrl-h:36px;
 
@@ -31,10 +31,10 @@
         --panel-bottom-gap:25px;
 
         /* 版權 */
-        --copyright-color:#999999;
+        --copyright-color:#555555;
         --copyright-pad:12px;
 
-        /* 木牌視覺細節（rope/knot 變數保留、未使用） */
+        /* 木牌視覺細節 */
         --tile-w:180px; --tile-h:156px;
         --wood-grain-contrast:.9;
         --rope-width:8px; --rope-height:42px; --knot-size:22px;
@@ -104,13 +104,14 @@
       #chipSign.has-img #signThumb{ display:block; }
       #chipSign.has-img .hint{ display:none; }
 
-      /* 粉色牆容器：沒超出不顯示捲軸，超出才會出現（桌機/行動一致） */
+      /* ★ 粉色框（牆容器）現在會裁切內容並允許滾動（沒超出時不顯示卷軸） */
       .wall-wrap{
         background:linear-gradient(180deg,#f9e5ee,#f6dce7);
         border-radius:16px;border:1px solid rgba(0,0,0,.05);
         padding:12px;
         overflow:auto;
       }
+      /* ★ 牆填滿容器高度，內部再自動捲動 */
       .wall{
         min-height:280px;
         height:100%;
@@ -121,7 +122,7 @@
         overflow:visible;
       }
 
-      /* 木牌（rope/knot 已移除；只保留上方釘孔） */
+      /* ===== 木牌：移除繩子/繩結（保留上方釘孔） ===== */
       .tile{
         position:relative;width:100%;height:var(--tile-h);padding:18px 12px 12px;cursor:pointer;overflow:hidden;display:flex;flex-direction:column;gap:6px;
         background:
@@ -157,11 +158,11 @@
 
       /* 版權（固定於底部背景層） */
       .footer-copyright{position:fixed;left:0;right:0;bottom:6px;z-index:0;text-align:center;padding:var(--copyright-pad) 0;
-        font-size:13px;font-weight:700;color:#999999;-webkit-text-stroke:0;text-shadow:none;}
+        font-size:13px;font-weight:700;color:var(--copyright-color);-webkit-text-stroke:0;text-shadow:none;}
 
-      /* ========================= 手機版：直向 ========================= */
+      /* ========================= 手機版（保持你先前的版面） ========================= */
       @media (max-width: 860px) and (orientation: portrait){
-        :root{ --tool-w-m: 84px; } /* 保留你的原值 */
+        :root{ --tool-w-m: 53px; }
         .bar-inner{ flex-direction: column; align-items: stretch; gap: 8px; }
         .rolebar{ order:1; justify-content:center; }
         #status{ order:2; min-width:0; }
@@ -173,33 +174,26 @@
         .panel{ height:auto; min-height:100dvh; }
         .stage{ overflow:visible; padding:10px 10px var(--panel-bottom-gap); }
 
-        /* 黃 74% / 粉 26%（讓黃色再高一些） */
-        .card{ grid-template-columns:1fr; grid-template-rows:74% 26%; height:auto; min-height:calc(100dvh - 160px); gap:12px; }
+        .card{ grid-template-columns:1fr; grid-template-rows:70% 30%; height:auto; min-height:calc(100dvh - 160px); gap:12px; }
         .left-wrap{ min-height:0; }
         .wall-wrap{ min-height:0; }
-        .editor{ bottom: calc(10px + var(--ctrl-h) + 16px); }
+        .editor{ bottom: calc(10px + var(--ctrl-h) + 14px); }
 
-        /* 直向：每列兩個；牌子高度 160px 以確保首行可見 */
-        :root{ --tile-h: 160px; }
+        :root{ --tile-h: 140px; }
         .wall{ grid-template-columns: repeat(2, 1fr); gap:14px; }
         .tile{ font-size: 14px; }
       }
 
-      /* ========================= 手機版：橫向 ========================= */
       @media (max-width: 860px) and (orientation: landscape){
-        html, body{ overflow:auto; }
-        .panel{ height:auto; min-height:100dvh; }
-        .stage{ padding:10px 12px var(--panel-bottom-gap); overflow:visible; }
-        .card{ grid-template-columns:1fr 1.2fr; gap:12px; height:auto; min-height:calc(100dvh - 160px); }
-
         .bar-inner{ flex-wrap:wrap; align-items:center; gap:10px 12px; }
         .rolebar{ order:1; flex:0 1 auto; }
         #status{ order:1; flex:1 1 50%; min-width:200px; }
-        /* 工具列置中 */
-        .toolbar{ order:2; flex:1 0 100%; justify-content:center; }
+        .toolbar{ order:2; flex:1 0 100%; justify-content:flex-start; }
+        .stage{ padding:10px 12px var(--panel-bottom-gap); }
+        .card{ grid-template-columns:1fr 1.2fr; gap:12px; height:calc(100% - var(--panel-bottom-gap)); }
 
-        /* 橫向：粉框一列 2 片，間距等分 */
-        .wall{ grid-template-columns: repeat(2, 1fr); gap:14px; }
+        /* 只新增這一行：給左側內容加底部內距，讓三顆按鈕固定在黃色卡片內 */
+        .left-content{ padding-bottom: calc(var(--ctrl-h) + 18px); }
       }
     </style>
   </head>
@@ -334,7 +328,7 @@
       async function fetchRoleAndNames(){
         try{
           const j=await (await fetch(WEBHOOK+`?action=userRole&lineId=${encodeURIComponent(lineId||'')}`)).json();
-          if(j?.ok){
+        if(j?.ok){
             const name = j.nameLabel || '—';
             document.getElementById('brideLabel').textContent = 'Dear ' + name;
           }
@@ -426,14 +420,29 @@
         });
       };
 
+      /* ========= 只在前端做預覽/送出清理，避免 &nbsp; 與雜訊 ========= */
+      function cleanPreviewString(s){
+        return String(s||'')
+          .replace(/&nbsp;/g,' ')              // nbsp → 空白
+          .replace(/<br\s*\/?>/gi,' ')         // <br> → 空白
+          .replace(/<\/?(div|p|span)[^>]*>/gi,' ') // 常見區塊 → 空白
+          .replace(/\s+/g,' ')                 // 多空白縮成一個
+          .trim();
+      }
+
       function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
-      function tileTemplate(it){return `<div class="tile" data-row="${it.row||''}" data-owner="${it.lineId||''}">
-        <div class="tile-name">${escapeHTML(it.displayName||'—')}</div>
-        <div class="tile-sep"></div>
-        <div class="tile-date">${escapeHTML(fmtTaipei(it.time))}</div>
-        <div class="tile-sep"></div>
-        <div class="tile-snippet">${escapeHTML((it.preview||'').trim()||'—')}</div>
-      </div>`;}
+
+      function tileTemplate(it){
+        const prev = cleanPreviewString(it.preview || '');
+        return `<div class="tile" data-row="${it.row||''}" data-owner="${it.lineId||''}">
+          <div class="tile-name">${escapeHTML(it.displayName||'—')}</div>
+          <div class="tile-sep"></div>
+          <div class="tile-date">${escapeHTML(fmtTaipei(it.time))}</div>
+          <div class="tile-sep"></div>
+          <div class="tile-snippet">${escapeHTML(prev || '—')}</div>
+        </div>`;
+      }
+
       async function refreshWall(){
         try{
           const role=document.querySelector('.role-btn.active')?.id?.replace('role','').toLowerCase()||'all';
@@ -486,10 +495,12 @@
         if(sendInFlight){ return; }
 
         sendInFlight=true;
-        /* ← 這行修正了：canEdit（沒有空白） */
         setButtonsState({ canEdit:false, canSend:false, inflight:true });
 
-        const content=editor.innerHTML.trim();
+        // 只在送出時做輕量清理，避免表單/試算表殘留 &nbsp; 等字元
+        const raw = editor.innerHTML.trim();
+        const content = raw.replace(/&nbsp;/g,' ');
+
         const payload = myLastRow
           ? {action:'updateBlessing',row:Number(myLastRow),lineId,contentHTML:content}
           : {action:'createBlessing',lineId,displayName,pictureUrl,contentHTML:content,signaturePNG:signatureDataURL||'',extra:{}};
