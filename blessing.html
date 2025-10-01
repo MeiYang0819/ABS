@@ -81,19 +81,19 @@
       #chipBride{top:10px;left:10px;}
       #brideLabel{font-weight:800;line-height:1;}
 
-      /* ✅ 改 2：把三顆按鈕縮到虛線框正下方（把 editor 的 bottom 再拉近一點） */
+      /* ✔ 調整：把三顆按鈕更貼近虛線框底部 */
       .editor{position:absolute;top:calc(10px + var(--ctrl-h) + 16px);right:10px;bottom:calc(10px + var(--ctrl-h) + 6px);left:10px;overflow:auto;line-height:1.8;
         outline:none;background:transparent;border-radius:12px;padding:14px;font-size:var(--editor-zoom);border:1px dashed rgba(0,0,0,.12);}
       .editor[data-empty]{opacity:1;color:rgba(15,23,42,.28);-webkit-text-stroke:0;text-shadow:none;font-style:italic;}
       .editor.locked{pointer-events:none;opacity:.85;}
 
       /* 下方三顆：順序 再次修改 → 送出祝福 → 畫押簽名；固定寬避免重疊 */
-      .left-actions{position:absolute;left:10px;right:10px;bottom:10px;height:var(--ctrl-h);display:flex;gap:8px;justify-content:center;flex-wrap:nowrap;} /* ✅ 改 2：置中 + gap 變窄 */
+      .left-actions{position:absolute;left:10px;right:10px;bottom:10px;height:var(--ctrl-h);display:flex;gap:8px;justify-content:center;flex-wrap:nowrap;}
       .left-actions > *{flex:0 0 var(--ctrl-w);width:var(--ctrl-w);height:100%;}
       .left-actions button{background:#fff;border:1px solid var(--rim);border-radius:10px;font-weight:800;box-shadow:var(--shadow-2);cursor:pointer;white-space:nowrap;}
       .left-actions button:active{transform:translateY(1px) scale(.99);}
 
-      /* ✦ 簽名 chip：與按鈕同字級/粗體；大小與兩顆按鈕一致 */
+      /* 簽名 chip */
       .left-actions .chip{
         font-size:1rem;font-weight:800;line-height:1; position:static; display:flex; align-items:center; justify-content:center; cursor:pointer;
         background:#fff; border:1px solid var(--rim); border-radius:10px; box-shadow:var(--shadow-2); padding:0; overflow:hidden;
@@ -105,7 +105,7 @@
       #chipSign.has-img #signThumb{ display:block; }
       #chipSign.has-img .hint{ display:none; }
 
-      /* 粉色牆容器：沒超出不顯示捲軸，超出才會出現（桌機/行動一致） */
+      /* 粉色牆容器 */
       .wall-wrap{
         background:linear-gradient(180deg,#f9e5ee,#f6dce7);
         border-radius:16px;border:1px solid rgba(0,0,0,.05);
@@ -122,7 +122,7 @@
         overflow:visible;
       }
 
-      /* 木牌（rope/knot 已移除；只保留上方釘孔） */
+      /* 木牌 */
       .tile{
         position:relative;width:100%;height:var(--tile-h);padding:18px 12px 12px;cursor:pointer;overflow:hidden;display:flex;flex-direction:column;gap:6px;
         background:
@@ -157,7 +157,6 @@
       .dlg-actions button{width:120px;height:var(--tool-h);border-radius:10px;border:1px solid var(--rim);background:#fff;cursor:pointer;font-weight:700;}
 
       /* 版權（固定於底部背景層） */
-      <style id="copyright"></style>
       .footer-copyright{position:fixed;left:0;right:0;bottom:6px;z-index:0;text-align:center;padding:var(--copyright-pad) 0;
         font-size:13px;font-weight:700;color:#999999;-webkit-text-stroke:0;text-shadow:none;}
 
@@ -175,7 +174,7 @@
         .panel{ height:auto; min-height:100dvh; }
         .stage{ overflow:visible; padding:10px 10px var(--panel-bottom-gap); }
 
-        /* 黃 74% / 粉 26%（讓黃色再高一些） */
+        /* 黃 74% / 粉 26% */
         .card{ grid-template-columns:1fr; grid-template-rows:74% 26%; height:auto; min-height:calc(100dvh - 160px); gap:12px; }
         .left-wrap{ min-height:0; }
         .wall-wrap{ min-height:0; }
@@ -186,7 +185,7 @@
         .tile{ font-size: 14px; }
       }
 
-      /* ========================= 手機版：橫向（重點：按鈕一定收在黃色版內） ========================= */
+      /* ========================= 手機版：橫向（按鈕一定收在黃色版內） ========================= */
       @media (max-width: 860px) and (orientation: landscape){
         html, body{ overflow:auto; }
         .panel{ height:auto; min-height:100dvh; }
@@ -199,11 +198,11 @@
         .toolbar{ order:2; flex:1 0 100%; justify-content:center; }
 
         /* 讓三顆按鈕有更大容錯率，不會超出黃色區塊 */
-        :root{ --ctrl-w: 86px; }              /* 略縮寬度 */
+        :root{ --ctrl-w: 86px; }
         .left-actions{ gap:8px; right:10px; left:10px; flex-wrap:nowrap; }
         .left-actions .chip,.left-actions button{ font-size:.95rem; }
 
-        /* 粉框一列 2 片，間距等分 */
+        /* 粉框一列 2 片 */
         .wall{ grid-template-columns: repeat(2, 1fr); gap:14px; }
       }
     </style>
@@ -311,7 +310,7 @@
 
       let lineId='',displayName='',pictureUrl='',myLastRow=null,signatureDataURL='',sendInFlight=false,submittedOnce=false,signatureLocked=false;
 
-      /* ✅ 改 1：localStorage keys（保 Dear 與內文） */
+      /* 保 Dear 與內文（只加這兩個 key） */
       const LS_KEY_CONTENT='blessContent';
       const LS_KEY_NAME='nameLabel';
 
@@ -340,15 +339,13 @@
       }
       async function initialLoad(){ await fetchRoleAndNames(); await refreshWall(); }
 
-      /* ✅ 改 1：Dear 先用 localStorage 回填，之後以 API 覆寫並保存 */
       function applyNameLabel(lbl){
         const name = (lbl && String(lbl).trim()) ? lbl : (localStorage.getItem(LS_KEY_NAME)||'—');
         document.getElementById('brideLabel').textContent = 'Dear ' + (name||'—');
       }
 
       async function fetchRoleAndNames(){
-        // 先顯示 localStorage（避免剛載入時空白）
-        applyNameLabel(null);
+        applyNameLabel(null); // 先用快取
         try{
           const j=await (await fetch(WEBHOOK+`?action=userRole&lineId=${encodeURIComponent(lineId||'')}`)).json();
           if(j?.ok){
@@ -357,7 +354,6 @@
             applyNameLabel(name);
           }
         }catch(_){
-          // API 失敗時，保持 localStorage 的值
           applyNameLabel(null);
         }
       }
@@ -375,7 +371,6 @@
 
       async function preloadMyLatest(){
         if(!lineId){
-          // 還沒拿到 lineId：先用 localStorage 內容回填（保內文）
           const cached = localStorage.getItem(LS_KEY_CONTENT);
           if(cached && editor.hasAttribute('data-empty')){
             editor.removeAttribute('data-empty');
@@ -389,20 +384,18 @@
             const it=j.item;
             if(it.contentHTML){
               editor.innerHTML=it.contentHTML; editor.removeAttribute('data-empty'); lockEditor();
-              localStorage.setItem(LS_KEY_CONTENT, it.contentHTML); /* ✅ 改 1：保存 */
+              localStorage.setItem(LS_KEY_CONTENT, it.contentHTML);
             }
 
             if(it.signature){
               const chip=document.getElementById('chipSign');
               const img=document.getElementById('signThumb');
-
               let src = String(it.signature||'').trim();
               if(src){
                 src = src.startsWith('data:') ? src : toDriveDirectUrl(src);
                 chip.classList.remove('has-img','locked');
                 img.removeAttribute('src'); img.removeAttribute('alt');
                 img.loading = 'eager'; img.referrerPolicy = 'no-referrer';
-
                 img.onload = ()=>{ chip.classList.add('has-img'); chip.classList.add('locked'); signatureLocked=true; };
                 img.onerror = ()=>{ const direct = toDriveDirectUrl(src); if(img.src !== direct){ img.src = direct; } else { chip.classList.remove('has-img','locked'); img.removeAttribute('src'); } img.onerror = null; };
                 if(/^data:/.test(src) || /^https?:\/\//.test(src)){ img.src = src; }
@@ -416,7 +409,6 @@
             }
           }else{
             setButtonsState({ canEdit:true, canSend:true, inflight:false });
-            // 若雲端沒資料，用 localStorage 回填
             const cached = localStorage.getItem(LS_KEY_CONTENT);
             if(cached && editor.hasAttribute('data-empty')){
               editor.removeAttribute('data-empty');
@@ -444,7 +436,7 @@
       editor.addEventListener('focus',()=>{ if(editor.hasAttribute('data-empty')){ editor.textContent=''; editor.removeAttribute('data-empty'); }});
       editor.addEventListener('blur',()=>{ if(!editor.textContent.trim()){ editor.setAttribute('data-empty',''); editor.textContent=PLACEHOLDER; }});
 
-      /* ✅ 改 1：輸入時即時保存內容，避免重新進入消失（僅未鎖定且非 placeholder 時） */
+      /* 內文即時保存（未鎖定且非 placeholder） */
       editor.addEventListener('input',()=>{
         if(!editor.classList.contains('locked') && !editor.hasAttribute('data-empty')){
           localStorage.setItem(LS_KEY_CONTENT, editor.innerHTML);
@@ -477,7 +469,7 @@
         });
       };
 
-      /* ---------- 亂碼/空白/Enter：摘要顯示前先轉純文字並解碼 ---------- */
+      /* 牆上的摘要先轉純文字，避免 &nbsp; / <br> 亂碼 */
       function decodeEntities(s){
         if(s==null) return '';
         const el=document.createElement('textarea');
@@ -489,9 +481,7 @@
         const noTags = decoded.replace(/<\/?[^>]+>/g,'');
         return noTags.replace(/\r\n|\r/g,'\n').replace(/[ \t]+/g,' ').trim();
       }
-      function oneLinePreview(s){
-        return htmlToPlain(s).replace(/\n+/g,' ');
-      }
+      function oneLinePreview(s){ return htmlToPlain(s).replace(/\n+/g,' '); }
       function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
 
       function tileTemplate(it){
@@ -586,20 +576,18 @@
         }catch(_){
           setStatus('❌ 送出失敗，稍後再試');
           sendInFlight=false;
-          setButtonsState({ canEdit:true, canSend:true, inflight:false }); /* ✅ 修正原檔小拼字，避免整段 JS 中斷 */
+          setButtonsState({ canEdit:true, canSend:true, inflight:false });
         }
       }
       document.getElementById('btnSend').onclick=sendOrUpdate;
 
       window.addEventListener('DOMContentLoaded',()=>{
-        // 先用 localStorage 的 Dear 與內容，讓使用者「再次進入」仍看得到
         applyNameLabel(null);
         const cached = localStorage.getItem(LS_KEY_CONTENT);
         if(cached && editor.hasAttribute('data-empty')){
           editor.removeAttribute('data-empty');
           editor.innerHTML = cached;
         }
-
         if(!editor.textContent.trim()){ editor.setAttribute('data-empty',''); editor.textContent='寫下並獻上最誠摯的祝福…💝'; }
         if(window.liff) initLIFF(); else initialLoad();
       });
