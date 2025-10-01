@@ -92,7 +92,7 @@
       .left-actions button{background:#fff;border:1px solid var(--rim);border-radius:10px;font-weight:800;box-shadow:var(--shadow-2);cursor:pointer;white-space:nowrap;}
       .left-actions button:active{transform:translateY(1px) scale(.99);}
 
-      /* ✦ 簽名 chip：與按鈕同字級/粗體；縮圖不再顯示破圖文字；大小與兩顆按鈕一致 */
+      /* ✦ 簽名 chip：與按鈕同字級/粗體；大小與兩顆按鈕一致 */
       .left-actions .chip{
         font-size:1rem;font-weight:800;line-height:1; position:static; display:flex; align-items:center; justify-content:center; cursor:pointer;
         background:#fff; border:1px solid var(--rim); border-radius:10px; box-shadow:var(--shadow-2); padding:0; overflow:hidden;
@@ -107,7 +107,7 @@
       .wall-wrap{background:linear-gradient(180deg,#f9e5ee,#f6dce7);border-radius:16px;border:1px solid rgba(0,0,0,.05);padding:12px;overflow:visible;}
       .wall{min-height:280px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;align-content:start;padding:2px;overflow:visible;padding-top:28px;}
 
-      /* ===== 木牌（木紋、繩條、繩結 — 繩結再上提，像被吊著） ===== */
+      /* ===== 木牌 ===== */
       .tile{
         position:relative;width:100%;height:var(--tile-h);padding:14px 12px 12px;cursor:pointer;overflow:visible;display:flex;flex-direction:column;gap:6px;
         background:
@@ -182,7 +182,10 @@
           align-items: stretch;
           gap: 8px;
         }
-        .rolebar{ order:1; }
+        .rolebar{
+          order:1;
+          justify-content: center;   /* 回復：頂部三顆置中 */
+        }
         #status{
           order:2;
           min-width: 0;
@@ -190,7 +193,7 @@
         .toolbar{
           order:3;
           flex-wrap: wrap;
-          justify-content: center; /* 置中工具列 */
+          justify-content: center; /* 置中工具列（你有要求） */
         }
 
         /* 允許頁面捲動，面板至少佔滿整個動態視窗高度 */
@@ -221,8 +224,7 @@
         }
       }
 
-      /* 橫向手機：第一行=全部/男方/女方/狀態列（同一行）；第二行=工具列。
-         紅色卡片保持左右：左(黃色) / 右(粉色)。 */
+      /* 橫向手機：保持既有左右排版 */
       @media (max-width: 860px) and (orientation: landscape){
         .bar-inner{
           flex-wrap: wrap;
@@ -240,7 +242,7 @@
         }
         .toolbar{
           order:2;
-          flex: 1 0 100%;    /* 佔滿第二行 */
+          flex: 1 0 100%;
           justify-content: flex-start;
         }
 
@@ -248,16 +250,13 @@
           padding: 10px 12px var(--panel-bottom-gap);
         }
         .card{
-          grid-template-columns: 1fr 1.2fr;   /* 左右佈局，右側稍寬 */
+          grid-template-columns: 1fr 1.2fr;
           gap: 12px;
           height: calc(100% - var(--panel-bottom-gap));
         }
       }
-      /* =========================
-         ⬆⬆⬆ 手機版排版修正（直向＝真 70/30） ⬆⬆⬆
-         ========================= */
 
-      /* 追加覆蓋：小螢幕縮小木牌 */
+      /* 小螢幕縮小木牌 */
       @media (max-width: 860px) and (orientation: portrait){
         :root{ --tile-h: 140px; }
         .wall{ grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
@@ -371,14 +370,12 @@
       /* ====== 時間解析：強制以台北時區顯示 ====== */
       function parseSheetTimeToDate(s){
         if(!s) return new Date();
-        // 若是 "YYYY-MM-DD HH:mm:ss" 或 "YYYY-MM-DDTHH:mm:ss"（無時區），補 +08:00
         const m=/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})$/.exec(String(s).trim());
         if(m){
           const iso=`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}+08:00`;
           const d=new Date(iso);
           return isNaN(d.getTime())?new Date():d;
         }
-        // 其他情況交給內建解析
         const d=new Date(s);
         return isNaN(d.getTime())?new Date():d;
       }
@@ -456,14 +453,13 @@
             }
 
             myLastRow = Number(it.row||0) || null;
-            if(myLastRow){ // 已有資料：送出過 → 送出鍵先鎖、再次修改可用
+            if(myLastRow){
               setButtonsState({ canEdit:true, canSend:false, inflight:false });
               submittedOnce=true;
               signatureLocked=true;
               document.getElementById('chipSign').classList.add('locked');
             }
           }else{
-            // 首次進入：允許編輯與送出（送出前仍會驗證簽名與內容）
             setButtonsState({ canEdit:true, canSend:true, inflight:false });
           }
         }catch(_){}
@@ -565,7 +561,6 @@
       }
 
       document.getElementById('btnEdit').onclick=()=>{
-        // 編輯：解鎖編輯器、允許再次送出；簽名保持鎖（若已送出過）
         unlockEditor();
         submittedOnce=false;
         sendInFlight=false;
@@ -592,23 +587,20 @@
           const r=await fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(payload)});
           const j=await r.json().catch(()=>null);
           if(j?.ok){
-            // 成功：鎖住編輯器；「再次修改」開放、「送出祝福」保持鎖定
             submittedOnce=true;
             lockEditor();
             await refreshWall();
             if(!myLastRow) await preloadMyLatest();
             setStatus(myLastRow?'✅ 已更新並鎖定，截止日前都可以修改唷':'✅ 已送出並鎖定，截止日前都可以修改唷');
 
-            // 首次送出後：簽名永久鎖
             if(!signatureLocked){
               signatureLocked=true;
               document.getElementById('chipSign').classList.add('locked');
             }
 
-            // 成功後狀態：可按「再次修改」、送出先鎖
             setButtonsState({ canEdit:true, canSend:false, inflight:false });
             sendInFlight=false;
-            myLastRow = myLastRow || Number(j.row||0) || myLastRow; // 後端若未回 row，維持既有
+            myLastRow = myLastRow || Number(j.row||0) || myLastRow;
           }else if(j?.error==='deadline_passed'){
             setStatus('⛔ 已到截止日，無法送出及編輯'); lockEditor();
             setButtonsState({ canEdit:false, canSend:false, inflight:false });
