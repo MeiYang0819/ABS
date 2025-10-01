@@ -81,13 +81,14 @@
       #chipBride{top:10px;left:10px;}
       #brideLabel{font-weight:800;line-height:1;}
 
-      .editor{position:absolute;top:calc(10px + var(--ctrl-h) + 16px);right:10px;bottom:calc(10px + var(--ctrl-h) + 10px);left:10px;overflow:auto;line-height:1.8;
+      /* ✅ 改 2：把三顆按鈕縮到虛線框正下方（把 editor 的 bottom 再拉近一點） */
+      .editor{position:absolute;top:calc(10px + var(--ctrl-h) + 16px);right:10px;bottom:calc(10px + var(--ctrl-h) + 6px);left:10px;overflow:auto;line-height:1.8;
         outline:none;background:transparent;border-radius:12px;padding:14px;font-size:var(--editor-zoom);border:1px dashed rgba(0,0,0,.12);}
       .editor[data-empty]{opacity:1;color:rgba(15,23,42,.28);-webkit-text-stroke:0;text-shadow:none;font-style:italic;}
       .editor.locked{pointer-events:none;opacity:.85;}
 
       /* 下方三顆：順序 再次修改 → 送出祝福 → 畫押簽名；固定寬避免重疊 */
-      .left-actions{position:absolute;left:10px;right:10px;bottom:10px;height:var(--ctrl-h);display:flex;gap:10px;justify-content:space-between;flex-wrap:nowrap;}
+      .left-actions{position:absolute;left:10px;right:10px;bottom:10px;height:var(--ctrl-h);display:flex;gap:8px;justify-content:center;flex-wrap:nowrap;} /* ✅ 改 2：置中 + gap 變窄 */
       .left-actions > *{flex:0 0 var(--ctrl-w);width:var(--ctrl-w);height:100%;}
       .left-actions button{background:#fff;border:1px solid var(--rim);border-radius:10px;font-weight:800;box-shadow:var(--shadow-2);cursor:pointer;white-space:nowrap;}
       .left-actions button:active{transform:translateY(1px) scale(.99);}
@@ -156,12 +157,13 @@
       .dlg-actions button{width:120px;height:var(--tool-h);border-radius:10px;border:1px solid var(--rim);background:#fff;cursor:pointer;font-weight:700;}
 
       /* 版權（固定於底部背景層） */
+      <style id="copyright"></style>
       .footer-copyright{position:fixed;left:0;right:0;bottom:6px;z-index:0;text-align:center;padding:var(--copyright-pad) 0;
         font-size:13px;font-weight:700;color:#999999;-webkit-text-stroke:0;text-shadow:none;}
 
       /* ========================= 手機版：直向 ========================= */
       @media (max-width: 860px) and (orientation: portrait){
-        :root{ --tool-w-m: 53px; }
+        :root{ --tool-w-m: 84px; }
         .bar-inner{ flex-direction: column; align-items: stretch; gap: 8px; }
         .rolebar{ order:1; justify-content:center; }
         #status{ order:2; min-width:0; }
@@ -309,6 +311,10 @@
 
       let lineId='',displayName='',pictureUrl='',myLastRow=null,signatureDataURL='',sendInFlight=false,submittedOnce=false,signatureLocked=false;
 
+      /* ✅ 改 1：localStorage keys（保 Dear 與內文） */
+      const LS_KEY_CONTENT='blessContent';
+      const LS_KEY_NAME='nameLabel';
+
       function parseSheetTimeToDate(s){
         if(!s) return new Date();
         const m=/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})$/.exec(String(s).trim());
@@ -334,14 +340,26 @@
       }
       async function initialLoad(){ await fetchRoleAndNames(); await refreshWall(); }
 
+      /* ✅ 改 1：Dear 先用 localStorage 回填，之後以 API 覆寫並保存 */
+      function applyNameLabel(lbl){
+        const name = (lbl && String(lbl).trim()) ? lbl : (localStorage.getItem(LS_KEY_NAME)||'—');
+        document.getElementById('brideLabel').textContent = 'Dear ' + (name||'—');
+      }
+
       async function fetchRoleAndNames(){
+        // 先顯示 localStorage（避免剛載入時空白）
+        applyNameLabel(null);
         try{
           const j=await (await fetch(WEBHOOK+`?action=userRole&lineId=${encodeURIComponent(lineId||'')}`)).json();
-        if(j?.ok){
+          if(j?.ok){
             const name = j.nameLabel || '—';
-            document.getElementById('brideLabel').textContent = 'Dear ' + name;
+            localStorage.setItem(LS_KEY_NAME, name);
+            applyNameLabel(name);
           }
-        }catch(_){}
+        }catch(_){
+          // API 失敗時，保持 localStorage 的值
+          applyNameLabel(null);
+        }
       }
 
       function toDriveDirectUrl(u){
@@ -356,12 +374,23 @@
       }
 
       async function preloadMyLatest(){
-        if(!lineId) return;
+        if(!lineId){
+          // 還沒拿到 lineId：先用 localStorage 內容回填（保內文）
+          const cached = localStorage.getItem(LS_KEY_CONTENT);
+          if(cached && editor.hasAttribute('data-empty')){
+            editor.removeAttribute('data-empty');
+            editor.innerHTML = cached;
+          }
+          return;
+        }
         try{
           const j=await (await fetch(WEBHOOK+`?action=getLatestByLineId&lineId=${encodeURIComponent(lineId)}`)).json();
           if(j?.ok && j.item){
             const it=j.item;
-            if(it.contentHTML){ editor.innerHTML=it.contentHTML; editor.removeAttribute('data-empty'); lockEditor(); }
+            if(it.contentHTML){
+              editor.innerHTML=it.contentHTML; editor.removeAttribute('data-empty'); lockEditor();
+              localStorage.setItem(LS_KEY_CONTENT, it.contentHTML); /* ✅ 改 1：保存 */
+            }
 
             if(it.signature){
               const chip=document.getElementById('chipSign');
@@ -387,8 +416,20 @@
             }
           }else{
             setButtonsState({ canEdit:true, canSend:true, inflight:false });
+            // 若雲端沒資料，用 localStorage 回填
+            const cached = localStorage.getItem(LS_KEY_CONTENT);
+            if(cached && editor.hasAttribute('data-empty')){
+              editor.removeAttribute('data-empty');
+              editor.innerHTML = cached;
+            }
           }
-        }catch(_){}
+        }catch(_){
+          const cached = localStorage.getItem(LS_KEY_CONTENT);
+          if(cached && editor.hasAttribute('data-empty')){
+            editor.removeAttribute('data-empty');
+            editor.innerHTML = cached;
+          }
+        }
       }
 
       function exec(cmd){ if(editor.hasAttribute('data-empty')||editor.classList.contains('locked')) return; document.execCommand(cmd,false,null); editor.focus(); }
@@ -402,6 +443,13 @@
       const PLACEHOLDER='寫下並獻上最誠摯的祝福…💝';
       editor.addEventListener('focus',()=>{ if(editor.hasAttribute('data-empty')){ editor.textContent=''; editor.removeAttribute('data-empty'); }});
       editor.addEventListener('blur',()=>{ if(!editor.textContent.trim()){ editor.setAttribute('data-empty',''); editor.textContent=PLACEHOLDER; }});
+
+      /* ✅ 改 1：輸入時即時保存內容，避免重新進入消失（僅未鎖定且非 placeholder 時） */
+      editor.addEventListener('input',()=>{
+        if(!editor.classList.contains('locked') && !editor.hasAttribute('data-empty')){
+          localStorage.setItem(LS_KEY_CONTENT, editor.innerHTML);
+        }
+      });
 
       const sigOverlay=document.getElementById('sigOverlay'); const pad=document.getElementById('pad'); const ctx=pad.getContext('2d');
       let drawing=false,lastX=0,lastY=0;
@@ -437,13 +485,11 @@
         return el.value;
       }
       function htmlToPlain(s){
-        // 1) 先解碼 HTML 實體（含 &nbsp;）→ 2) 移除所有標籤 → 3) 規整空白/換行
         const decoded = decodeEntities(s).replace(/\u00A0/g,' ');
         const noTags = decoded.replace(/<\/?[^>]+>/g,'');
         return noTags.replace(/\r\n|\r/g,'\n').replace(/[ \t]+/g,' ').trim();
       }
       function oneLinePreview(s){
-        // 取純文字後，把換行變空白，避免桌機看到 &nbsp; 或 <br>
         return htmlToPlain(s).replace(/\n+/g,' ');
       }
       function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
@@ -477,7 +523,6 @@
         const j=await (await fetch(WEBHOOK+`?action=getBlessingDetail&id=${encodeURIComponent(row)}`)).json();
         if(j?.ok&&j.item){
           document.getElementById('viewMeta').textContent=`${j.item.displayName||'—'} ｜ ${fmtTaipei(j.item.time)}`;
-          // 內容仍用原本的 HTML 呈現（這裡不會出現 &nbsp; 亂碼）
           document.getElementById('viewContent').innerHTML=j.item.contentHTML||'';
           document.getElementById('viewOverlay').classList.add('show');
         }
@@ -541,12 +586,20 @@
         }catch(_){
           setStatus('❌ 送出失敗，稍後再試');
           sendInFlight=false;
-          setButtonsState({ canEdit:true, canSend,true, inflight:false });
+          setButtonsState({ canEdit:true, canSend:true, inflight:false }); /* ✅ 修正原檔小拼字，避免整段 JS 中斷 */
         }
       }
       document.getElementById('btnSend').onclick=sendOrUpdate;
 
       window.addEventListener('DOMContentLoaded',()=>{
+        // 先用 localStorage 的 Dear 與內容，讓使用者「再次進入」仍看得到
+        applyNameLabel(null);
+        const cached = localStorage.getItem(LS_KEY_CONTENT);
+        if(cached && editor.hasAttribute('data-empty')){
+          editor.removeAttribute('data-empty');
+          editor.innerHTML = cached;
+        }
+
         if(!editor.textContent.trim()){ editor.setAttribute('data-empty',''); editor.textContent='寫下並獻上最誠摯的祝福…💝'; }
         if(window.liff) initLIFF(); else initialLoad();
       });
