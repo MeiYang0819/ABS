@@ -92,7 +92,7 @@
       .left-actions button{background:#fff;border:1px solid var(--rim);border-radius:10px;font-weight:800;box-shadow:var(--shadow-2);cursor:pointer;white-space:nowrap;}
       .left-actions button:active{transform:translateY(1px) scale(.99);}
 
-      /* ✦ 簽名 chip：與按鈕同字級/粗體；縮圖不再顯示破圖文字 */
+      /* ✦ 簽名 chip：與按鈕同字級/粗體；縮圖不再顯示破圖文字；大小與兩顆按鈕一致 */
       .left-actions .chip{
         font-size:1rem;font-weight:800;line-height:1; position:static; display:flex; align-items:center; justify-content:center; cursor:pointer;
         background:#fff; border:1px solid var(--rim); border-radius:10px; box-shadow:var(--shadow-2); padding:0; overflow:hidden;
@@ -171,11 +171,11 @@
         font-size:13px;font-weight:700;color:var(--copyright-color);-webkit-text-stroke:0;text-shadow:none;}
 
       /* =========================
-         ⬇⬇⬇ 只新增：手機版排版 ⬇⬇⬇
+         ⬇⬇⬇ 手機版排版修正（直向＝真 70/30） ⬇⬇⬇
          ========================= */
 
       /* 直向手機：第一行=全部/男方/女方；第二行=狀態列；第三行=工具列。
-         紅色卡片變更為上下堆疊：上(黃色) / 下(粉色)。 */
+         紅色卡片變更為上下堆疊：上(黃色70%) / 下(粉色30%)。 */
       @media (max-width: 860px) and (orientation: portrait){
         .bar-inner{
           flex-direction: column;
@@ -193,22 +193,29 @@
           justify-content: center; /* 置中工具列 */
         }
 
+        /* 允許頁面捲動，面板至少佔滿整個動態視窗高度 */
+        html, body{ overflow: auto; }
+        .panel{
+          height: auto;
+          min-height: 100dvh;
+        }
         .stage{
+          overflow: visible;
           padding: 10px 10px var(--panel-bottom-gap);
         }
+
         .card{
           grid-template-columns: 1fr;         /* 上下堆疊 */
-          grid-auto-rows: minmax(0, auto);
-          height: calc(100% - var(--panel-bottom-gap));
+          grid-template-rows: 70% 30%;        /* 真正以 grid 行高分配比例 */
+          height: auto;
+          min-height: calc(100dvh - 160px);   /* 扣掉標題/工具列的保守空間 */
           gap: 12px;
         }
-        .left-wrap{
-          min-height: 70%;                    /* 上半（黃色面板）70% */
-        }
-        .wall-wrap{
-          min-height: 30%;                    /* 下半（粉色面板）30% */
-        }
-        /* 編輯區在直向時較高，避免被三顆按鈕擠壓 */
+        /* 由 grid 控制比例，不再用 min-height 撐比例 */
+        .left-wrap{ min-height: 0; }
+        .wall-wrap{ min-height: 0; }
+
+        /* 編輯區在直向時提高，避免被三顆按鈕擠壓 */
         .editor{
           bottom: calc(10px + var(--ctrl-h) + 14px);
         }
@@ -247,43 +254,15 @@
         }
       }
       /* =========================
-         ⬆⬆⬆ 只新增：手機版排版 ⬆⬆⬆
+         ⬆⬆⬆ 手機版排版修正（直向＝真 70/30） ⬆⬆⬆
          ========================= */
 
-      /* =========================
-         ⬇⬇⬇ 追加覆蓋：直向手機微調（置中、小框、可捲動、縮小木牌） ⬇⬇⬇
-         ========================= */
+      /* 追加覆蓋：小螢幕縮小木牌 */
       @media (max-width: 860px) and (orientation: portrait){
-        /* 置中角色鈕 */
-        .rolebar{ justify-content: center; }
-
-        /* 工具列小框，與「顏色」一致視覺 */
-        .toolbar{ gap: 6px; }
-        .toolbar .tool-btn,
-        .toolbar .tool-select{
-          min-width: auto;
-          height: 32px;
-          padding: 0 10px;
-          font-size: 13px;
-          border-radius: 10px; /* 保持你的圓角語言 */
-        }
-
-        /* 允許頁面捲動，避免黃區被吃掉 */
-        html, body{ overflow: auto; }
-        .panel{
-          height: auto;
-          min-height: calc(100dvh - 110px);
-        }
-        .stage{ overflow: auto; }
-
-        /* 木牌縮小：高度與欄寬門檻下修 */
         :root{ --tile-h: 140px; }
         .wall{ grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
         .tile{ font-size: 14px; }
       }
-      /* =========================
-         ⬆⬆⬆ 追加覆蓋：直向手機微調 ⬆⬆⬆
-         ========================= */
     </style>
   </head>
 
@@ -424,7 +403,7 @@
           const j=await (await fetch(WEBHOOK+`?action=userRole&lineId=${encodeURIComponent(lineId||'')}`)).json();
           if(j?.ok){
             const name = j.nameLabel || '—';
-            document.getElementById('brideLabel').textContent = 'Dear ' + name; // ← 這行是新增點
+            document.getElementById('brideLabel').textContent = 'Dear ' + name;
           }
         }catch(_){}
       }
@@ -441,7 +420,7 @@
         }catch(_){ return u; }
       }
 
-      /* ===(2) 簽名縮圖顯示修正：只在載入成功後才顯示，並處理 Drive 連結；首次送出後簽名永久鎖 === */
+      /* ===(2) 簽名縮圖顯示修正：只在載入成功後才顯示；首次送出後簽名永久鎖 === */
       async function preloadMyLatest(){
         if(!lineId) return;
         try{
@@ -484,7 +463,7 @@
               document.getElementById('chipSign').classList.add('locked');
             }
           }else{
-            // 首次進入：允許編輯、送出可按（會再由送出前的驗證阻擋無簽名/無內容）
+            // 首次進入：允許編輯與送出（送出前仍會驗證簽名與內容）
             setButtonsState({ canEdit:true, canSend:true, inflight:false });
           }
         }catch(_){}
@@ -502,7 +481,7 @@
       editor.addEventListener('focus',()=>{ if(editor.hasAttribute('data-empty')){ editor.textContent=''; editor.removeAttribute('data-empty'); }});
       editor.addEventListener('blur',()=>{ if(!editor.textContent.trim()){ editor.setAttribute('data-empty',''); editor.textContent=PLACEHOLDER; }});
 
-      /* 簽名（保留你的流程；新增 onload 後才顯示縮圖；送出成功後永久鎖） */
+      /* 簽名（送出成功後永久鎖） */
       const sigOverlay=document.getElementById('sigOverlay'); const pad=document.getElementById('pad'); const ctx=pad.getContext('2d');
       let drawing=false,lastX=0,lastY=0;
       function fitCanvas(){ const dpr=Math.max(1,devicePixelRatio||1),w=pad.clientWidth,h=pad.clientHeight; pad.width=w*dpr; pad.height=h*dpr;
@@ -573,13 +552,16 @@
         const btnSend=document.getElementById('btnSend');
         const btnEdit=document.getElementById('btnEdit');
 
-        btnEdit.disabled = !canEdit || !!inflight;
-        btnEdit.style.opacity = btnEdit.disabled?.6:1;
-        btnEdit.style.pointerEvents = btnEdit.disabled?'none':'auto';
+        const editDisabled = !canEdit || !!inflight;
+        const sendDisabled = !canSend || !!inflight;
 
-        btnSend.disabled = !canSend || !!inflight;
-        btnSend.style.opacity = btnSend.disabled?.6:1;
-        btnSend.style.pointerEvents = btnSend.disabled?'none':'auto';
+        btnEdit.disabled = editDisabled;
+        btnEdit.style.opacity = editDisabled ? '0.6' : '1';
+        btnEdit.style.pointerEvents = editDisabled ? 'none' : 'auto';
+
+        btnSend.disabled = sendDisabled;
+        btnSend.style.opacity = sendDisabled ? '0.6' : '1';
+        btnSend.style.pointerEvents = sendDisabled ? 'none' : 'auto';
       }
 
       document.getElementById('btnEdit').onclick=()=>{
@@ -634,7 +616,6 @@
           }else{
             setStatus('❌ 送出失敗，稍後再試');
             sendInFlight=false;
-            // 還原到可重試狀態：送出鍵可按（依你習慣可改回可編輯）
             setButtonsState({ canEdit:true, canSend:true, inflight:false });
           }
         }catch(_){
