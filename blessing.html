@@ -157,11 +157,11 @@
 
       /* 版權（固定於底部背景層） */
       .footer-copyright{position:fixed;left:0;right:0;bottom:6px;z-index:0;text-align:center;padding:var(--copyright-pad) 0;
-        font-size:13px;font-weight:700;color:var(--copyright-color);-webkit-text-stroke:0;text-shadow:none;}
+        font-size:13px;font-weight:700;color:#999999;-webkit-text-stroke:0;text-shadow:none;}
 
       /* ========================= 手機版：直向 ========================= */
       @media (max-width: 860px) and (orientation: portrait){
-        :root{ --tool-w-m: 53px; } /* 保留你的原值 */
+        :root{ --tool-w-m: 84px; } /* 保留你的原值 */
         .bar-inner{ flex-direction: column; align-items: stretch; gap: 8px; }
         .rolebar{ order:1; justify-content:center; }
         #status{ order:2; min-width:0; }
@@ -173,26 +173,23 @@
         .panel{ height:auto; min-height:100dvh; }
         .stage{ overflow:visible; padding:10px 10px var(--panel-bottom-gap); }
 
-        /* ★ 把黃色區塊再拉高：74% / 26%（維持） */
+        /* 黃 74% / 粉 26%（讓黃色再高一些） */
         .card{ grid-template-columns:1fr; grid-template-rows:74% 26%; height:auto; min-height:calc(100dvh - 160px); gap:12px; }
         .left-wrap{ min-height:0; }
         .wall-wrap{ min-height:0; }
-        /* ★ 編輯器底部再多留 6px，避免字被按鈕遮住（維持） */
         .editor{ bottom: calc(10px + var(--ctrl-h) + 16px); }
 
-        /* ★ 直向：每列兩個；並把牌子高度調大到 160px 以確保首行可見 */
-        :root{ --tile-h: 160px; } /* ← 只調這個高度 */
+        /* 直向：每列兩個；牌子高度 160px 以確保首行可見 */
+        :root{ --tile-h: 160px; }
         .wall{ grid-template-columns: repeat(2, 1fr); gap:14px; }
         .tile{ font-size: 14px; }
       }
 
       /* ========================= 手機版：橫向 ========================= */
       @media (max-width: 860px) and (orientation: landscape){
-        /* 讓標題與藍底可見（頁面可捲動、卡片撐開） */
         html, body{ overflow:auto; }
         .panel{ height:auto; min-height:100dvh; }
         .stage{ padding:10px 12px var(--panel-bottom-gap); overflow:visible; }
-        /* 撐開紅色卡片，完整顯示黃/粉兩版 */
         .card{ grid-template-columns:1fr 1.2fr; gap:12px; height:auto; min-height:calc(100dvh - 160px); }
 
         .bar-inner{ flex-wrap:wrap; align-items:center; gap:10px 12px; }
@@ -201,7 +198,7 @@
         /* 工具列置中 */
         .toolbar{ order:2; flex:1 0 100%; justify-content:center; }
 
-        /* ★ 橫向：粉框一列剛好 2 個，間距等分 */
+        /* 橫向：粉框一列 2 片，間距等分 */
         .wall{ grid-template-columns: repeat(2, 1fr); gap:14px; }
       }
     </style>
@@ -414,7 +411,7 @@
       document.getElementById('chipSign').addEventListener('click',()=>{ const chip=document.getElementById('chipSign'); if(chip.classList.contains('locked')||signatureLocked) return;
         sigOverlay.classList.add('show'); setTimeout(fitCanvas,40); });
       pad.addEventListener('mousedown',start); pad.addEventListener('mousemove',move); pad.addEventListener('mouseup',end); pad.addEventListener('mouseleave',end);
-      pad.addEventListener('touchstart',start,{passive:false}); pad.addEventListener('touchmove',move',{passive:false}); pad.addEventListener('touchend',end);
+      pad.addEventListener('touchstart',start,{passive:false}); pad.addEventListener('touchmove',move,{passive:false}); pad.addEventListener('touchend',end);
       document.getElementById('sigClear').onclick=()=>{ if(signatureLocked) return; fitCanvas(); };
       document.getElementById('sigCancel').onclick=()=>sigOverlay.classList.remove('show');
       document.getElementById('sigOK').onclick=()=>{
@@ -489,7 +486,8 @@
         if(sendInFlight){ return; }
 
         sendInFlight=true;
-        setButtonsState({ can Edit:false, canSend:false, inflight:true });
+        /* ← 這行修正了：canEdit（沒有空白） */
+        setButtonsState({ canEdit:false, canSend:false, inflight:true });
 
         const content=editor.innerHTML.trim();
         const payload = myLastRow
