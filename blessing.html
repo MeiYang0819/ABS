@@ -31,7 +31,7 @@
         --panel-bottom-gap:25px;
 
         /* 版權 */
-        --copyright-color:#000000;
+        --copyright-color:#999999;
         --copyright-pad:12px;
 
         /* 木牌視覺細節 */
@@ -93,11 +93,14 @@
       .left-actions button:active{transform:translateY(1px) scale(.99);}
 
       /* ✦ 簽名 chip：與按鈕同字級/粗體；縮圖不再顯示破圖文字 */
-      .left-actions .chip{ font-size:1rem;font-weight:800;line-height:1; position:static; display:flex; align-items:center; justify-content:center; cursor:pointer;
-        background:#fff; border:1px solid var(--rim); border-radius:10px; box-shadow:var(--shadow-2); padding:0 8px; overflow:hidden; }
+      .left-actions .chip{
+        font-size:1rem;font-weight:800;line-height:1; position:static; display:flex; align-items:center; justify-content:center; cursor:pointer;
+        background:#fff; border:1px solid var(--rim); border-radius:10px; box-shadow:var(--shadow-2); padding:0; overflow:hidden;
+        width:var(--ctrl-w); height:var(--ctrl-h);
+      }
       #chipSign .hint{ font-weight:800; color:rgba(15,23,42,.38); }
       #chipSign.locked{ pointer-events:none; opacity:.9; }
-      #signThumb{ display:none; width:100%; height:100%; object-fit:contain; pointer-events:none; }
+      #signThumb{ display:none; width:100%; height:100%; object-fit:contain; pointer-events:none; max-width:100%; max-height:100%; }
       #chipSign.has-img #signThumb{ display:block; }
       #chipSign.has-img .hint{ display:none; }
 
@@ -187,7 +190,7 @@
         .toolbar{
           order:3;
           flex-wrap: wrap;
-          justify-content: flex-start;
+          justify-content: center; /* 置中工具列 */
         }
 
         .stage{
@@ -200,10 +203,10 @@
           gap: 12px;
         }
         .left-wrap{
-          min-height: 75%;                    /* 上半（黃色面板） */
+          min-height: 70%;                    /* 上半（黃色面板）70% */
         }
         .wall-wrap{
-          min-height: 25%;                    /* 下半（粉色面板） */
+          min-height: 30%;                    /* 下半（粉色面板）30% */
         }
         /* 編輯區在直向時較高，避免被三顆按鈕擠壓 */
         .editor{
@@ -272,10 +275,6 @@
           min-height: calc(100dvh - 110px);
         }
         .stage{ overflow: auto; }
-
-        /* 提高黃區比例，粉區稍小，確保可編輯 */
-        .left-wrap{ min-height: 54%; }
-        .wall-wrap{ min-height: 40%; }
 
         /* 木牌縮小：高度與欄寬門檻下修 */
         :root{ --tile-h: 140px; }
@@ -388,13 +387,21 @@
       const editor=document.getElementById('editor'); const wallEl=document.getElementById('wall');
       function setStatus(m){ document.getElementById('status').textContent=m; }
 
-      let lineId='',displayName='',pictureUrl='',myLastRow=null,signatureDataURL='',sendInFlight=false,submittedOnce=false;
+      let lineId='',displayName='',pictureUrl='',myLastRow=null,signatureDataURL='',sendInFlight=false,submittedOnce=false,signatureLocked=false;
 
+      /* ====== 時間解析：強制以台北時區顯示 ====== */
       function parseSheetTimeToDate(s){
         if(!s) return new Date();
-        const m=/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/.exec(String(s));
-        if(m){ return new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+m[6]); }
-        const d=new Date(s); return isNaN(d.getTime())?new Date():d;
+        // 若是 "YYYY-MM-DD HH:mm:ss" 或 "YYYY-MM-DDTHH:mm:ss"（無時區），補 +08:00
+        const m=/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})$/.exec(String(s).trim());
+        if(m){
+          const iso=`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}+08:00`;
+          const d=new Date(iso);
+          return isNaN(d.getTime())?new Date():d;
+        }
+        // 其他情況交給內建解析
+        const d=new Date(s);
+        return isNaN(d.getTime())?new Date():d;
       }
       function pad2(n){return String(n).padStart(2,'0');}
       function fmtTaipei(s){ const d=parseSheetTimeToDate(s); return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())+' '+pad2(d.getHours())+':'+pad2(d.getMinutes())+':'+pad2(d.getSeconds()); }
@@ -434,7 +441,7 @@
         }catch(_){ return u; }
       }
 
-      /* ===(2) 簽名縮圖顯示修正：只在載入成功後才顯示，並處理 Drive 連結 === */
+      /* ===(2) 簽名縮圖顯示修正：只在載入成功後才顯示，並處理 Drive 連結；首次送出後簽名永久鎖 === */
       async function preloadMyLatest(){
         if(!lineId) return;
         try{
@@ -451,14 +458,13 @@
               if(src){
                 src = src.startsWith('data:') ? src : toDriveDirectUrl(src);
 
-                // 先清掉狀態，等載入成功再顯示
                 chip.classList.remove('has-img','locked');
                 img.removeAttribute('src');
                 img.removeAttribute('alt');
                 img.loading = 'eager';
                 img.referrerPolicy = 'no-referrer';
 
-                img.onload = ()=>{ chip.classList.add('has-img'); chip.classList.add('locked'); };
+                img.onload = ()=>{ chip.classList.add('has-img'); chip.classList.add('locked'); signatureLocked=true; };
                 img.onerror = ()=>{
                   const direct = toDriveDirectUrl(src);
                   if(img.src !== direct){ img.src = direct; }
@@ -471,6 +477,15 @@
             }
 
             myLastRow = Number(it.row||0) || null;
+            if(myLastRow){ // 已有資料：送出過 → 送出鍵先鎖、再次修改可用
+              setButtonsState({ canEdit:true, canSend:false, inflight:false });
+              submittedOnce=true;
+              signatureLocked=true;
+              document.getElementById('chipSign').classList.add('locked');
+            }
+          }else{
+            // 首次進入：允許編輯、送出可按（會再由送出前的驗證阻擋無簽名/無內容）
+            setButtonsState({ canEdit:true, canSend:true, inflight:false });
           }
         }catch(_){}
       }
@@ -487,27 +502,28 @@
       editor.addEventListener('focus',()=>{ if(editor.hasAttribute('data-empty')){ editor.textContent=''; editor.removeAttribute('data-empty'); }});
       editor.addEventListener('blur',()=>{ if(!editor.textContent.trim()){ editor.setAttribute('data-empty',''); editor.textContent=PLACEHOLDER; }});
 
-      /* 簽名（保留你的流程；新增 onload 後才顯示縮圖） */
+      /* 簽名（保留你的流程；新增 onload 後才顯示縮圖；送出成功後永久鎖） */
       const sigOverlay=document.getElementById('sigOverlay'); const pad=document.getElementById('pad'); const ctx=pad.getContext('2d');
       let drawing=false,lastX=0,lastY=0;
       function fitCanvas(){ const dpr=Math.max(1,devicePixelRatio||1),w=pad.clientWidth,h=pad.clientHeight; pad.width=w*dpr; pad.height=h*dpr;
         ctx.setTransform(dpr,0,0,dpr,0,0); ctx.lineCap='round'; ctx.lineJoin='round'; ctx.lineWidth=3; ctx.strokeStyle='#111'; ctx.clearRect(0,0,w,h); }
       function pos(e){ const r=pad.getBoundingClientRect(); const c=e.touches?e.touches[0]:e; return {x:c.clientX-r.left,y:c.clientY-r.top}; }
-      function start(e){ drawing=true; const p=pos(e); lastX=p.x; lastY=p.y; e.preventDefault(); }
-      function move(e){ if(!drawing)return; const p=pos(e); ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke(); lastX=p.x; lastY=p.y; e.preventDefault(); }
+      function start(e){ if(signatureLocked) return; drawing=true; const p=pos(e); lastX=p.x; lastY=p.y; e.preventDefault(); }
+      function move(e){ if(!drawing||signatureLocked)return; const p=pos(e); ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke(); lastX=p.x; lastY=p.y; e.preventDefault(); }
       function end(){ drawing=false; }
-      document.getElementById('chipSign').addEventListener('click',()=>{ const chip=document.getElementById('chipSign'); if(chip.classList.contains('locked')) return;
+      document.getElementById('chipSign').addEventListener('click',()=>{ const chip=document.getElementById('chipSign'); if(chip.classList.contains('locked')||signatureLocked) return;
         sigOverlay.classList.add('show'); setTimeout(fitCanvas,40); });
       pad.addEventListener('mousedown',start); pad.addEventListener('mousemove',move); pad.addEventListener('mouseup',end); pad.addEventListener('mouseleave',end);
       pad.addEventListener('touchstart',start,{passive:false}); pad.addEventListener('touchmove',move,{passive:false}); pad.addEventListener('touchend',end);
-      document.getElementById('sigClear').onclick=fitCanvas;
+      document.getElementById('sigClear').onclick=()=>{ if(signatureLocked) return; fitCanvas(); };
       document.getElementById('sigCancel').onclick=()=>sigOverlay.classList.remove('show');
       document.getElementById('sigOK').onclick=()=>{
+        if(signatureLocked) { sigOverlay.classList.remove('show'); return; }
         requestAnimationFrame(()=>{
           signatureDataURL=pad.toDataURL('image/png');
           const chip=document.getElementById('chipSign'); const img=document.getElementById('signThumb');
           chip.classList.remove('has-img','locked');
-          img.onload = ()=>{ chip.classList.add('has-img'); chip.classList.add('locked'); img.onload=null; };
+          img.onload = ()=>{ chip.classList.add('has-img'); img.onload=null; };
           img.removeAttribute('alt');
           img.loading = 'eager';
           img.src=signatureDataURL;
@@ -547,20 +563,44 @@
       document.getElementById('roleMale').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));document.getElementById('roleMale').classList.add('active');refreshWall();};
       document.getElementById('roleFemale').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));document.getElementById('roleFemale').classList.add('active');refreshWall();};
 
-      /* 編輯/送出互鎖（保留） */
+      /* 編輯/送出互鎖（依你的指定流程） */
       function lockEditor(){editor.classList.add('locked');editor.setAttribute('contenteditable','false');}
       function unlockEditor(){editor.classList.remove('locked');editor.setAttribute('contenteditable','true');editor.focus();}
-      document.getElementById('btnEdit').onclick=()=>{ unlockEditor(); submittedOnce=false; const btn=document.getElementById('btnSend'); btn.disabled=false; btn.style.opacity=1; btn.style.pointerEvents='auto'; };
-      function hasSignature(){return document.getElementById('chipSign').classList.contains('has-img');}
+
+      function hasSignature(){return document.getElementById('chipSign').classList.contains('has-img') || signatureLocked;}
+
+      function setButtonsState({canEdit, canSend, inflight}){
+        const btnSend=document.getElementById('btnSend');
+        const btnEdit=document.getElementById('btnEdit');
+
+        btnEdit.disabled = !canEdit || !!inflight;
+        btnEdit.style.opacity = btnEdit.disabled?.6:1;
+        btnEdit.style.pointerEvents = btnEdit.disabled?'none':'auto';
+
+        btnSend.disabled = !canSend || !!inflight;
+        btnSend.style.opacity = btnSend.disabled?.6:1;
+        btnSend.style.pointerEvents = btnSend.disabled?'none':'auto';
+      }
+
+      document.getElementById('btnEdit').onclick=()=>{
+        // 編輯：解鎖編輯器、允許再次送出；簽名保持鎖（若已送出過）
+        unlockEditor();
+        submittedOnce=false;
+        sendInFlight=false;
+        setButtonsState({ canEdit:true, canSend:true, inflight:false });
+        if(signatureLocked){
+          document.getElementById('chipSign').classList.add('locked');
+        }
+      };
 
       async function sendOrUpdate(){
         if(editor.hasAttribute('data-empty')||!editor.textContent.trim()){ alert('欸，不可能不祝福我們吧🖕️'); return; }
         if(!hasSignature()){ alert('欸，沒有畫押不准離開✍️'); return; }
-        if(sendInFlight||submittedOnce){ return; }
+        if(sendInFlight){ return; }
+
+        // 送出中：兩顆都暫時鎖
         sendInFlight=true;
-        const btnSend=document.getElementById('btnSend'); const btnEdit=document.getElementById('btnEdit');
-        btnSend.disabled=true; btnSend.style.opacity=.6; btnSend.style.pointerEvents='none';
-        btnEdit.disabled=true; btnEdit.style.opacity=.6; btnEdit.style.pointerEvents='none';
+        setButtonsState({ canEdit:false, canSend:false, inflight:true });
 
         const content=editor.innerHTML.trim();
         const payload = myLastRow
@@ -570,22 +610,37 @@
           const r=await fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(payload)});
           const j=await r.json().catch(()=>null);
           if(j?.ok){
-            submittedOnce=true; lockEditor(); await refreshWall(); if(!myLastRow) await preloadMyLatest();
+            // 成功：鎖住編輯器；「再次修改」開放、「送出祝福」保持鎖定
+            submittedOnce=true;
+            lockEditor();
+            await refreshWall();
+            if(!myLastRow) await preloadMyLatest();
             setStatus(myLastRow?'✅ 已更新並鎖定，截止日前都可以修改唷':'✅ 已送出並鎖定，截止日前都可以修改唷');
-            btnEdit.disabled=false; btnEdit.style.opacity=1; btnEdit.style.pointerEvents='auto';
+
+            // 首次送出後：簽名永久鎖
+            if(!signatureLocked){
+              signatureLocked=true;
+              document.getElementById('chipSign').classList.add('locked');
+            }
+
+            // 成功後狀態：可按「再次修改」、送出先鎖
+            setButtonsState({ canEdit:true, canSend:false, inflight:false });
+            sendInFlight=false;
+            myLastRow = myLastRow || Number(j.row||0) || myLastRow; // 後端若未回 row，維持既有
           }else if(j?.error==='deadline_passed'){
             setStatus('⛔ 已到截止日，無法送出及編輯'); lockEditor();
+            setButtonsState({ canEdit:false, canSend:false, inflight:false });
+            sendInFlight=false;
           }else{
             setStatus('❌ 送出失敗，稍後再試');
             sendInFlight=false;
-            btnSend.disabled=false; btnSend.style.opacity=1; btnSend.style.pointerEvents='auto';
-            btnEdit.disabled=false; btnEdit.style.opacity=1; btnEdit.style.pointerEvents='auto';
+            // 還原到可重試狀態：送出鍵可按（依你習慣可改回可編輯）
+            setButtonsState({ canEdit:true, canSend:true, inflight:false });
           }
         }catch(_){
           setStatus('❌ 送出失敗，稍後再試');
           sendInFlight=false;
-          btnSend.disabled=false; btnSend.style.opacity=1; btnSend.style.pointerEvents='auto';
-          btnEdit.disabled=false; btnEdit.style.opacity=1; btnEdit.style.pointerEvents='auto';
+          setButtonsState({ canEdit:true, canSend:true, inflight:false });
         }
       }
       document.getElementById('btnSend').onclick=sendOrUpdate;
