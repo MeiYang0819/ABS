@@ -8,6 +8,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
 
+  <!-- ★ 新增：防快取，避免手機吃到舊版標籤 -->
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
   <style>
     /* ====================== 外觀樣式（你能改的我都有註記） ====================== */
     /* ✅ 可更改：站內配色、欄寬、字級、陰影等 */
@@ -610,12 +615,25 @@
       return String(name||'').replace(/^[\s:：]+/, ''); // 去前導空白/半形冒號/全形冒號
     }
 
+    /* ★ 新增：強制統一三個標籤（避免手機端殘留舊字串快取） */
+    function enforceLabels(){
+      const l1 = document.querySelector('label[for="displayName"]');
+      const l2 = document.querySelector('label[for="instrument"]');
+      const l3 = document.querySelector('label[for="lastNote"]');
+      if(l1) l1.textContent = '暱稱：';
+      if(l2) l2.textContent = '樂器：';
+      if(l3) l3.textContent = '音符：';
+    }
+
     /* ====================== 初始化（畫面 / LIFF / Profile） ====================== */
     async function init(){
       renderPiano();                 // 預設先畫鋼琴
       setStatus('⏳ 等待啟用聲音…');
       validateLockBtn();
       $('#guideOverlay').classList.remove('hidden');
+
+      // ★ 確保一載入就統一標籤
+      enforceLabels();
 
       try{
         setStatus('初始化 LIFF…');
