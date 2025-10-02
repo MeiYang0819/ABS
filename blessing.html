@@ -583,11 +583,12 @@
         btnSend.disabled = sendDisabled; btnSend.style.opacity = sendDisabled ? '0.6' : '1'; btnSend.style.pointerEvents = sendDisabled ? 'none' : 'auto';
       }
 
-      // * 再次修改（解鎖） *//
+      // * 再次修改（解鎖 → 但「再次修改」自己先鎖住，直到送出成功才解鎖） *//
       document.getElementById('btnEdit').onclick=()=>{
         unlockEditor();
         submittedOnce=false; sendInFlight=false;
-        setButtonsState({ canEdit:true, canSend:true, inflight:false });
+        // ✅ 你要的邏輯：先把「再次修改」按鈕鎖住，只開放「送出祝福」
+        setButtonsState({ canEdit:false, canSend:true, inflight:false });
         if(signatureLocked){ document.getElementById('chipSign').classList.add('locked'); }
       };
 
@@ -611,6 +612,7 @@
             submittedOnce=true; lockEditor(); await refreshWall(); if(!myLastRow) await preloadMyLatest();
             setStatus(myLastRow?'✅ 已更新並鎖定，截止日前都可以修改唷':'✅ 已送出並鎖定，截止日前都可以修改唷');
             if(!signatureLocked){ signatureLocked=true; document.getElementById('chipSign').classList.add('locked'); }
+            // ✅ 送出成功後才把「再次修改」解鎖（可再按一次進入下一輪）
             setButtonsState({ canEdit:true, canSend:false, inflight:false });
             sendInFlight=false;
             myLastRow = myLastRow || Number(j.row||0) || myLastRow;
@@ -621,6 +623,7 @@
           }else{
             setStatus('❌ 送出失敗，稍後再試');
             sendInFlight=false;
+            // 失敗時允許再修再送（維持你原本流程，不改文案/結構）
             setButtonsState({ canEdit:true, canSend:true, inflight:false });
           }
         }catch(_){
