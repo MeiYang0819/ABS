@@ -8,11 +8,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
 
-  <!-- ★ 新增：防快取，避免手機吃到舊版標籤 -->
-  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-
   <style>
     /* ====================== 外觀樣式（你能改的我都有註記） ====================== */
     /* ✅ 可更改：站內配色、欄寬、字級、陰影等 */
@@ -179,8 +174,48 @@
     #lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:transparent; }
     footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
 
+    /* ======= 直向手機版排版調整（只改布局，不動文案/流程） ======= */
     @media (orientation:portrait){
-      .row-line2,.row-line3{ width:100%; gap:12px; }
+      /* 把第二區塊（暱稱/樂器/音符/按鈕）改成Grid三行 */
+      .row-line2{
+        display:grid;
+        grid-template-columns: 1fr 1fr;                 /* 第二行兩欄 */
+        grid-template-areas:
+          "nick nick"                                   /* 第一行：暱稱獨占一行 */
+          "inst note"                                   /* 第二行：樂器 | 音符 */
+          "acts acts";                                  /* 第三行：三顆按鈕 */
+        gap: 12px;
+        width:100%;
+      }
+
+      /* 指派各區塊到對應的grid area（依DOM順序：pair1=暱稱，pair2=樂器，pair3=音符） */
+      .row-line2 > .pair:nth-of-type(1){ grid-area: nick; }
+      .row-line2 > .pair:nth-of-type(2){ grid-area: inst; }
+      .row-line2 > .pair:nth-of-type(3){ grid-area: note; }
+      .row-line2 > .actions-inline{ grid-area: acts; }
+
+      /* 行內標籤與輸入框更靠近：縮短標籤寬、讓輸入可彈性延展 */
+      .row-line2 .pair{ display:flex; align-items:center; width:100%; }
+      .row-line2 .pair label{ width:auto; margin-right:8px; }   /* 暱稱＋框框靠近 */
+      .row-line2 .pair input,
+      .row-line2 .pair select{ flex:1; min-width:0; }
+
+      /* 第二行兩欄的對齊與寬度 */
+      .row-line2 > .pair:nth-of-type(2),
+      .row-line2 > .pair:nth-of-type(3){
+        width:100%;
+      }
+
+      /* 按鈕列：維持原順序（重設／鎖定／先點我查看好咪），並排顯示 */
+      .row-line2 > .actions-inline{
+        display:flex;
+        justify-content:flex-start;
+        flex-wrap:nowrap;
+        gap:10px;
+      }
+
+      /* 原本的直向預設保留（第三行容器若有用到） */
+      .row-line3{ width:100%; gap:12px; }
       .pair{ display:flex; align-items:center; gap:var(--gap); width:100%; }
       .actions-inline{ display:flex; gap:var(--gap); }
       .row-line2 .pair, .row-line3 .pair, .row-line3 .actions-inline{ flex:0 0 100%; }
