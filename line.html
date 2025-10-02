@@ -33,16 +33,13 @@
       --stroke:rgba(0,0,0,.18);   /* ✅ 可更改：字描邊 */
       --glow:rgba(255,255,255,.65); /* ✅ 可更改：字高光 */
 
-      --w-hintbtn: 160px; /* ✅ 可更改：備註按鈕寬（預設；行動版會被覆寫為等寬） */
+      --w-hintbtn: 120px; /* ✅ 可更改：備註按鈕寬（調成與操作說明一致） */
       --hint-fz: 12px;    /* ✅ 可更改：備註字級 */
       --hint-maxw: 520px; /* ✅ 可更改：備註最大寬 */
 
-      /* ✅ 新增：桌機暱稱寬 & 行動橫向/桌機的按鈕寬度（兩顆說明類同寬） */
-      --w-displayName-desktop: 260px; /* 桌機暱稱欄，稍短以避免被擠換行 */
-      --action-w-desk: 120px;         /* 桌機「重設／鎖定」寬 */
-      --action-w-desk-wide: 140px;    /* 桌機「操作說明／查看備注」寬（兩顆同寬） */
-      --action-h: 38px;               /* 四顆按鈕高 */
-      --action-w-landscape: 136px;    /* 手機橫向四顆固定寬，便於置中 */
+      /* ✅ 新增：四顆動作按鈕統一尺寸（可自行調整） */
+      --action-w-desk: 120px; /* 桌機四顆按鈕寬 */
+      --action-h: 38px;       /* 四顆按鈕高（與既有一致） */
     }
 
     *{
@@ -79,9 +76,9 @@
 
     /* 按鈕 */
     .row button{ width:120px; cursor:pointer; font-weight:700; transition: transform .08s ease, box-shadow .08s ease, filter .08s ease;
-                 box-shadow: 0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06); white-space:nowrap; }
+                 box-shadow: 0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06); }
     .btn-compact{ width:60px !important; } /* ✅ 可更改：縮版按鈕寬 */
-    #hintBtn{ width: var(--w-hintbtn) !important; } /* 備註按鈕寬（預設；行動/桌機會被覆寫為等寬） */
+    #hintBtn{ width: var(--w-hintbtn) !important; } /* 備註按鈕寬 */
 
     .row button:disabled{ opacity:.55; cursor:not-allowed; }
     .row button:active, .row button.pressed{ transform: translateY(1px) scale(.99); box-shadow: 0 1px 0 rgba(0,0,0,.18), 0 1px 4px rgba(0,0,0,.06); filter: brightness(.98); }
@@ -208,7 +205,6 @@
       .row label{ width:auto; }
       #displayName,#instrument,#lastNote{ width:100%; }
 
-      /* 第三排四顆同寬，不出界 */
       .actions-inline{
         display:grid;
         grid-template-columns: repeat(4, 1fr);
@@ -220,24 +216,24 @@
         width: 100%;
         height: var(--action-h);
       }
-      .actions-inline > #hintBtn{ width:100% !important; } /* 與操作說明保持同寬 */
+      /* 讓查看備注在手機直向也與其他按鈕同寬 */
+      #hintBtn{ width:100% !important; }
 
       .align-to-email{ margin-left:0 !important; }
       #lastNote{ width:var(--w-lastNote-m); }
     }
 
-    /* ======= 小浮層不超版，兩者同規格 ======= */
+    /* ======= 加長小浮層但不超版 ======= */
     .hint-popover{ max-width: clamp(320px, 48vw, 680px); }
 
-    /* 桌機：同一排 + 同寬；把暱稱稍微縮短避免擠行 */
+    /* 電腦版：同一排 + 同寬 */
     @media (min-width: 861px){
-      #displayName{ width: var(--w-displayName-desktop); }
       .row-line2{
         display:grid;
         grid-template-areas: "nick inst note acts";
-        grid-template-columns: minmax(220px, var(--w-displayName-desktop)) minmax(140px, 220px) minmax(180px, 1fr) auto;
+        grid-template-columns: minmax(260px, 1fr) minmax(160px, 220px) minmax(200px, 1fr) auto;
         align-items:center;
-        gap: 8px;
+        gap: var(--gap);
         width:100%;
       }
       .row-line2 > .pair:nth-child(1){ grid-area: nick; }
@@ -252,27 +248,47 @@
         align-items: center;
         gap: var(--gap);
       }
-      /* 重設／鎖定：一般寬；操作說明／查看備注：同寬加長 */
-      #resetBtn,#lockBtn{ width: var(--action-w-desk); height: var(--action-h); }
-      #helpBtn,#hintBtn{ width: var(--action-w-desk-wide) !important; height: var(--action-h); }
+      .actions-inline > button{
+        flex: 0 0 auto;
+        width: var(--action-w-desk);
+        height: var(--action-h);
+      }
       .hint-popover{ max-width: min(720px, calc(100vw - 96px)); }
     }
 
-    /* 手機橫向：四顆同寬、整排置中 */
+    /* 手機橫向：第二行置中、同寬 */
     @media (max-width: 860.98px) and (orientation: landscape){
+      /* 兩行配置：第二行放四顆按鈕 */
+      .row-line2{
+        display:grid;
+        grid-template-areas:
+          "nick inst"
+          "note acts";
+        grid-template-columns: 1fr 1fr;
+        align-items:center;
+        gap: var(--gap);
+        width:100%;
+      }
+      .row-line2 > .pair:nth-child(1){ grid-area: nick; }
+      .row-line2 > .pair:nth-child(2){ grid-area: inst; }
+      .row-line2 > .pair:nth-child(3){ grid-area: note; }
+      .row-line2 > .actions-inline{ grid-area: acts; }
+
       .actions-inline{
         display:grid;
-        grid-auto-flow: column;
-        grid-auto-columns: var(--action-w-landscape);
+        grid-template-columns: repeat(4, minmax(110px, 1fr));
         justify-content: center;
-        gap: 10px;
+        justify-items: center;
+        gap: var(--gap);
         width:100%;
       }
       .actions-inline > button{
         width: 100%;
         height: var(--action-h);
       }
-      .actions-inline > #hintBtn{ width:100% !important; }
+      /* 讓查看備注在手機橫向也與其他按鈕同寬 */
+      #hintBtn{ width:100% !important; }
+
       .hint-popover{ max-width: min(80vw, 680px); }
     }
 
@@ -304,17 +320,17 @@
         <input id="lastNote" placeholder="— , — , —" readonly />
       </div>
 
+      <!-- 第三行：四顆按鈕 -->
       <div class="actions-inline">
         <button id="resetBtn" type="button" class="btn-compact">重設</button>
         <button id="lockBtn"  type="button" class="btn-compact" disabled>鎖定</button>
 
-        <button id="helpBtn"  type="button" class="btn-compact" aria-expanded="false" aria-controls="helpPopover" title="點我查看操作說明">操作說明</button>
+        <button id="helpBtn"  type="button" class="btn-compact" aria-expanded="false" aria-controls="helpPopover" title="⚙️操作說明">操作說明</button>
         <div id="helpPopover" class="hint-popover" role="note" aria-live="polite">
           按「鎖定」後請稍候，本人有缺陷導致速度較慢🥲<br>確認送出成功，下方「狀態列」會立即通知您溜🎉
         </div>
 
-        <!-- 按鈕文字已改為「查看備注」 -->
-        <button id="hintBtn"  type="button" class="btn-compact" aria-expanded="false" aria-controls="hintPopover" title="點我查看備註">查看備注</button>
+        <button id="hintBtn"  type="button" class="btn-compact" aria-expanded="false" aria-controls="hintPopover" title="🥺 查看備註">查看備注</button>
         <div id="hintPopover" class="hint-popover" role="note" aria-live="polite">
           按「鎖定」後請稍候，本人有缺陷導致速度較慢🥲<br>確認送出成功，下方「狀態列」會立即通知您溜🎉
         </div>
@@ -709,7 +725,7 @@
       $('#lockScreen').style.display='block';
     }
 
-    /* ====================== 對話框流程 ====================== */
+    /* ====================== 對話框流程（保留你的原本委派寫法） ====================== */
     ['click','touchend'].forEach(evt=>{
       document.addEventListener(evt,(e)=>{
         const t=e.target;
@@ -745,19 +761,17 @@
         await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser: true });
 
         if(!liff.isLoggedIn()){
-          // ✅ 要求 openid + profile scope，避免取不到 userId / displayName
           liff.login({ scope: ['openid','profile'] });
-          return; // 會重新導回本頁
+          return;
         }
-        if(liff.ready){ await liff.ready; } // 某些瀏覽器需要等 ready
+        if(liff.ready){ await liff.ready; }
 
         let prof = null, idt = null;
         try{ prof = await liff.getProfile(); }catch(_){}
         try{ idt  = await liff.getDecodedIDToken(); }catch(_){}
 
-        // 兩條路都試：getProfile 與 ID Token
         lineId      = (prof && prof.userId) || (idt && idt.sub) || '';
-        displayName = sanitizeName( (prof && prof.displayName) || (idt and (idt.name || idt.nickname)) || '' );
+        displayName = sanitizeName( (prof && prof.displayName) || (idt && (idt.name || idt.nickname)) || '' );
         pictureUrl  = (prof && prof.pictureUrl) || '';
 
         if(!lineId){
