@@ -654,46 +654,24 @@
       $('#lockScreen').style.display='block';
     }
 
-    <script>
-  /* ====================== 對話框流程（改為直接監聽按鈕） ====================== */
-  (function(){
-    const guideOverlay   = document.getElementById('guideOverlay');
-    const unlockOverlay  = document.getElementById('unlockOverlay');
-    const btnGuideOk     = document.getElementById('guideOk');
-    const btnCancelUnlock= document.getElementById('cancelUnlock');
-    const btnConfirmUnlock= document.getElementById('confirmUnlock');
-
-    // 直接綁定「了解」按鈕
-    if (btnGuideOk) {
-      btnGuideOk.addEventListener('click', function(e){
-        e.stopPropagation();
-        e.preventDefault();
-        guideOverlay.classList.add('hidden');
-        unlockOverlay.classList.remove('hidden');
-      }, { passive:false });
-    }
-
-    // 直接綁定「取消」
-    if (btnCancelUnlock) {
-      btnCancelUnlock.addEventListener('click', function(e){
-        e.stopPropagation();
-        e.preventDefault();
-        unlockOverlay.classList.add('hidden');
-      }, { passive:false });
-    }
-
-    // 直接綁定「確定」
-    if (btnConfirmUnlock) {
-      btnConfirmUnlock.addEventListener('click', function(e){
-        e.stopPropagation();
-        e.preventDefault();
-        unlockAudio();
-        unlockOverlay.classList.add('hidden');
-      }, { passive:false });
-    }
-  })();
-</script>
-
+    /* ====================== 對話框流程 ====================== */
+    ['click','touchend'].forEach(evt=>{
+      document.addEventListener(evt,(e)=>{
+        const t=e.target;
+        if(t.id==='guideOk'){
+          document.getElementById('guideOverlay').classList.add('hidden');
+          document.getElementById('unlockOverlay').classList.remove('hidden');
+          e.preventDefault();
+        }else if(t.id==='cancelUnlock'){
+          document.getElementById('unlockOverlay').classList.add('hidden');
+          e.preventDefault();
+        }else if(t.id==='confirmUnlock'){
+          unlockAudio();
+          document.getElementById('unlockOverlay').classList.add('hidden');
+          e.preventDefault();
+        }
+      }, {passive:true});
+    });
 
     /* ========= 小工具：去掉暱稱前面跑出來的「:」或「：」 ========= */
     function sanitizeName(name){
