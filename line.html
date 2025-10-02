@@ -222,7 +222,7 @@
       /* ✅ 操作說明與查看備注同寬（覆蓋任何預設寬度） */
       #helpBtn, #hintBtn{ width:100% !important; }
 
-      .align-to-email{ margin-left:0 !important; }
+      .align-to-email{ margin-left:0 !麼; }
       #lastNote{ width:var(--w-lastNote-m); }
     }
 
@@ -247,7 +247,8 @@
       /* ✅ 縮短標籤與暱稱欄位，避免把音符擠到下一行 */
       .row label{ width:72px; }               /* 暱稱/樂器/音符標籤略縮 */
       #displayName{ width:190px; }            /* 暱稱框略縮 */
-      #lastNote{ width:220px; }
+      /* ⬇️ 依你要求：音符旁邊的框框再小一點 */
+      #lastNote{ width:180px; }               /* 原 220 → 180，讓暱稱與音符框都能上來 */
 
       .actions-inline{
         display:flex;
@@ -284,22 +285,20 @@
       .row-line2 > .pair:nth-child(3){ grid-area: note; }
       .row-line2 > .actions-inline{ grid-area: acts; }
 
-      /* ✅ 為了讓三欄都進第一行：縮短暱稱標籤與輸入框 */
-      .row label{ width:68px; }
-      #displayName{ width:160px; }  /* 暱稱框更短，讓音符也能回到第一行 */
-      #instrument{ width:110px; }
-      #lastNote{ width:200px; }
+      /* ✅ 只縮「音符旁邊的框框」讓格子能跑上來（其餘不動） */
+      #lastNote{ width:170px; }               /* 原 200 → 170 */
 
       .actions-inline{
         display:grid;
         grid-template-columns: repeat(4, 1fr);
-        justify-content: center;
-        justify-items: center;
         gap: var(--action-gap-narrow);        /* ✅ 間距統一縮窄 */
         width:100%;
+        max-width: 560px;                     /* ⬅️ 與手機直向視覺等長度區塊 */
+        margin: 0 auto;                       /* ⬅️ 置中整組按鈕 */
+        justify-items: stretch;
       }
       .actions-inline > button{
-        width: 100% !important;               /* ✅ 四顆同寬 */
+        width: 100% !important;               /* ✅ 四顆同寬，與直向一致 */
         height: var(--action-h);
       }
       /* ✅ 操作說明與查看備注同寬 */
