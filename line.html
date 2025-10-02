@@ -33,13 +33,17 @@
       --stroke:rgba(0,0,0,.18);   /* ✅ 可更改：字描邊 */
       --glow:rgba(255,255,255,.65); /* ✅ 可更改：字高光 */
 
-      --w-hintbtn: 160px; /* ✅ 可更改：備註按鈕寬 */
+      --w-hintbtn: 160px; /* ✅ 可更改：備註按鈕寬（預設） */
       --hint-fz: 12px;    /* ✅ 可更改：備註字級 */
       --hint-maxw: 520px; /* ✅ 可更改：備註最大寬 */
 
-      /* ✅ 新增：四顆動作按鈕統一尺寸（可自行調整） */
-      --action-w-desk: 120px; /* 桌機四顆按鈕寬 */
-      --action-h: 38px;       /* 四顆按鈕高（與既有一致） */
+      /* ✅ 新增：桌機用微調寬度／行為，讓同一行不擠掉 */
+      --w-displayName-desktop: 260px; /* 「暱稱」在桌機的寬（可再調小一點點） */
+      --action-w-desk: 120px;        /* 桌機四顆按鈕寬 */
+      --action-h: 38px;              /* 四顆按鈕高 */
+
+      /* ✅ 新增：手機橫向時的按鈕固定寬，便於置中對齊 */
+      --action-w-landscape: 136px;
     }
 
     *{
@@ -78,7 +82,7 @@
     .row button{ width:120px; cursor:pointer; font-weight:700; transition: transform .08s ease, box-shadow .08s ease, filter .08s ease;
                  box-shadow: 0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06); }
     .btn-compact{ width:60px !important; } /* ✅ 可更改：縮版按鈕寬 */
-    #hintBtn{ width: var(--w-hintbtn) !important; } /* 備註按鈕寬 */
+    #hintBtn{ width: var(--w-hintbtn) !important; } /* 備註按鈕寬（預設） */
 
     .row button:disabled{ opacity:.55; cursor:not-allowed; }
     .row button:active, .row button.pressed{ transform: translateY(1px) scale(.99); box-shadow: 0 1px 0 rgba(0,0,0,.18), 0 1px 4px rgba(0,0,0,.06); filter: brightness(.98); }
@@ -205,6 +209,7 @@
       .row label{ width:auto; }
       #displayName,#instrument,#lastNote{ width:100%; }
 
+      /* 第三排四顆同長，不出界 */
       .actions-inline{
         display:grid;
         grid-template-columns: repeat(4, 1fr);
@@ -216,22 +221,25 @@
         width: 100%;
         height: var(--action-h);
       }
+      /* 讓原本被設定比較寬的 #hintBtn 也跟著等寬 */
+      .actions-inline > #hintBtn{ width:100% !important; }
 
       .align-to-email{ margin-left:0 !important; }
       #lastNote{ width:var(--w-lastNote-m); }
     }
 
-    /* ======= 加長小浮層但不超版 ======= */
+    /* ======= 小浮層不超版，兩者同規格 ======= */
     .hint-popover{ max-width: clamp(320px, 48vw, 680px); }
 
-    /* 電腦版：同一排 + 同寬 */
+    /* 桌機：同一排 + 同寬；把暱稱稍微縮短避免擠行 */
     @media (min-width: 861px){
+      #displayName{ width: var(--w-displayName-desktop); } /* ← 你可自行再調小一點 */
       .row-line2{
         display:grid;
         grid-template-areas: "nick inst note acts";
-        grid-template-columns: minmax(260px, 1fr) minmax(160px, 220px) minmax(200px, 1fr) auto;
+        grid-template-columns: minmax(220px, var(--w-displayName-desktop)) minmax(140px, 220px) minmax(180px, 1fr) auto;
         align-items:center;
-        gap: var(--gap);
+        gap: 8px; /* 稍微縮小間距，避免被擠掉 */
         width:100%;
       }
       .row-line2 > .pair:nth-child(1){ grid-area: nick; }
@@ -251,23 +259,26 @@
         width: var(--action-w-desk);
         height: var(--action-h);
       }
+      /* 使「操作說明」與「查看備注」同長：覆寫掉原本 #hintBtn 的特例寬 */
+      .actions-inline > #hintBtn{ width: var(--action-w-desk) !important; }
       .hint-popover{ max-width: min(720px, calc(100vw - 96px)); }
     }
 
-    /* 手機橫向：第三行置中、同寬 */
+    /* 手機橫向：四顆同長、整排置中，不再太開 */
     @media (max-width: 860.98px) and (orientation: landscape){
       .actions-inline{
         display:grid;
-        grid-template-columns: repeat(4, minmax(110px, 1fr));
+        grid-auto-flow: column;
+        grid-auto-columns: var(--action-w-landscape);
         justify-content: center;
-        justify-items: center;
-        gap: var(--gap);
+        gap: 10px;
         width:100%;
       }
       .actions-inline > button{
         width: 100%;
         height: var(--action-h);
       }
+      .actions-inline > #hintBtn{ width:100% !important; } /* 與操作說明同長 */
       .hint-popover{ max-width: min(80vw, 680px); }
     }
 
@@ -299,17 +310,16 @@
         <input id="lastNote" placeholder="— , — , —" readonly />
       </div>
 
-      <!-- 第三行：四顆按鈕 -->
       <div class="actions-inline">
         <button id="resetBtn" type="button" class="btn-compact">重設</button>
         <button id="lockBtn"  type="button" class="btn-compact" disabled>鎖定</button>
 
-        <button id="helpBtn"  type="button" class="btn-compact" aria-expanded="false" aria-controls="helpPopover" title="⚙️操作說明">操作說明</button>
+        <button id="helpBtn"  type="button" class="btn-compact" aria-expanded="false" aria-controls="helpPopover" title="點我查看操作說明">操作說明</button>
         <div id="helpPopover" class="hint-popover" role="note" aria-live="polite">
-          等樂器載入後即可選擇三個音<br>確認送出成功，下方「狀態列」會立即通知您溜🎉
+          按「鎖定」後請稍候，本人有缺陷導致速度較慢🥲<br>確認送出成功，下方「狀態列」會立即通知您溜🎉
         </div>
 
-        <button id="hintBtn"  type="button" class="btn-compact" aria-expanded="false" aria-controls="hintPopover" title="🥺 查看備註">查看備注</button>
+        <button id="hintBtn"  type="button" class="btn-compact" aria-expanded="false" aria-controls="hintPopover" title="點我查看備註">先點我查看好咪🥺</button>
         <div id="hintPopover" class="hint-popover" role="note" aria-live="polite">
           按「鎖定」後請稍候，本人有缺陷導致速度較慢🥲<br>確認送出成功，下方「狀態列」會立即通知您溜🎉
         </div>
@@ -704,7 +714,7 @@
       $('#lockScreen').style.display='block';
     }
 
-    /* ====================== 對話框流程（保留你的原本委派寫法） ====================== */
+    /* ====================== 對話框流程 ====================== */
     ['click','touchend'].forEach(evt=>{
       document.addEventListener(evt,(e)=>{
         const t=e.target;
@@ -740,15 +750,17 @@
         await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser: true });
 
         if(!liff.isLoggedIn()){
+          // ✅ 要求 openid + profile scope，避免取不到 userId / displayName
           liff.login({ scope: ['openid','profile'] });
-          return;
+          return; // 會重新導回本頁
         }
-        if(liff.ready){ await liff.ready; }
+        if(liff.ready){ await liff.ready; } // 某些瀏覽器需要等 ready
 
         let prof = null, idt = null;
         try{ prof = await liff.getProfile(); }catch(_){}
         try{ idt  = await liff.getDecodedIDToken(); }catch(_){}
 
+        // 兩條路都試：getProfile 與 ID Token
         lineId      = (prof && prof.userId) || (idt && idt.sub) || '';
         displayName = sanitizeName( (prof && prof.displayName) || (idt && (idt.name || idt.nickname)) || '' );
         pictureUrl  = (prof && prof.pictureUrl) || '';
