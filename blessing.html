@@ -487,7 +487,7 @@
         }
       });
 
-      ///* ======================= 簽名板（畫押） ======================= *///
+      ///* 簽名板（畫押） *///
       const sigOverlay=document.getElementById('sigOverlay'); const pad=document.getElementById('pad'); const ctx=pad.getContext('2d');
       let drawing=false,lastX=0,lastY=0;
       function fitCanvas(){ const dpr=Math.max(1,devicePixelRatio||1),w=pad.clientWidth,h=pad.clientHeight; pad.width=w*dpr; pad.height=h*dpr;
@@ -579,6 +579,11 @@
         const btnEdit=document.getElementById('btnEdit');
         const editDisabled = !canEdit || !!inflight;
         const sendDisabled = !canSend || !!inflight;
+
+        // 新增：可送出時顯示「鎖定」，其他情況顯示「送出祝福」
+        btnSend.textContent = (!sendDisabled ? '鎖定' : '送出祝福');
+        btnSend.setAttribute('aria-label', btnSend.textContent);
+
         btnEdit.disabled = editDisabled; btnEdit.style.opacity = editDisabled ? '0.6' : '1'; btnEdit.style.pointerEvents = editDisabled ? 'none' : 'auto';
         btnSend.disabled = sendDisabled; btnSend.style.opacity = sendDisabled ? '0.6' : '1'; btnSend.style.pointerEvents = sendDisabled ? 'none' : 'auto';
       }
@@ -591,7 +596,7 @@
         if(signatureLocked){ document.getElementById('chipSign').classList.add('locked'); }
       };
 
-      ///* 送出／更新 *///
+      ///* 送出／更新（按「鎖定」→ 顯示等待 → 成功訊息） *///
       async function sendOrUpdate(){
         if(editor.hasAttribute('data-empty')||!editor.textContent.trim()){ alert('欸，不可能不祝福我們吧🖕️'); return; }
         if(!hasSignature()){ alert('欸，沒有畫押不准離開✍️'); return; }
@@ -599,6 +604,7 @@
 
         sendInFlight=true;
         setButtonsState({ canEdit:false, canSend:false, inflight:true });
+        setStatus('⏳ 送出中．請稍後...'); /* 新增：送出鎖定期間顯示等待中 */
 
         const content=editor.innerHTML.trim();
         const payload = myLastRow
