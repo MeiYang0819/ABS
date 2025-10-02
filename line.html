@@ -20,10 +20,13 @@
       --rim:#E4E4E4;     /* ✅ 可更改：輸入框邊框色 */
       --ink:#0f172a;     /* ✅ 可更改：正文字色 */
 
-      --w-displayName: 220px; /* ✅ 可更改：暱稱欄寬（唯讀） */
-      --w-instrument:  96px;  /* ✅ 可更改：樂器選單寬 */
-      --w-lastNote:    160px; /* ✅ 可更改：三音顯示寬 */
-      --w-lastNote-m:  180px; /* ✅ 可更改：手機寬 */
+      --w-displayName: 240px; /* ✅ 可更改：暱稱欄寬（桌機預設） */
+      --w-instrument:  120px; /* ✅ 可更改：樂器選單寬（桌機預設） */
+      --w-lastNote:    180px; /* ✅ 可更改：三音顯示寬（桌機預設） */
+
+      --w-displayName-m: 220px; /* ✅ 可更改：暱稱欄寬（手機預設） */
+      --w-instrument-m:  140px; /* ✅ 可更改：樂器選單寬（手機預設） */
+      --w-lastNote-m:    200px; /* ✅ 可更改：三音顯示寬（手機預設） */
 
       --label-w:88px; /* ✅ 可更改：左側標籤寬 */
       --gap:10px;     /* ✅ 可更改：欄位間距 */
@@ -63,9 +66,11 @@
     }
     .row input,.row select{ box-shadow: 0 2px 0 rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.04); }
 
-    #displayName{ width:var(--w-displayName); } /* 暱稱唯讀 */
-    #instrument{  width:var(--w-instrument); }
-    #lastNote{ width:var(--w-lastNote); text-align:center; letter-spacing:.3px; }
+    /* ✅ 給三個框框各自的 class，方便你之後單獨調長度 */
+    .nickname-input{ width: var(--w-displayName); max-width:100%; }
+    .instrument-select{ width: var(--w-instrument); max-width:100%; }
+    .note-display{ width: var(--w-lastNote); max-width:100%; text-align:center; letter-spacing:.3px; }
+
     #lastNote::placeholder{ text-align:center; }
 
     @media (min-width: 861px){ .align-to-email{ margin-left: 0; } }
@@ -179,7 +184,7 @@
       /* 把第二區塊（暱稱/樂器/音符/按鈕）改成Grid三行 */
       .row-line2{
         display:grid;
-        grid-template-columns: 1fr 1fr;                 /* 第二行兩欄 */
+        grid-template-columns: 0.4fr 0.6fr;            /* ★ 你要的 40% / 60% */
         grid-template-areas:
           "nick nick"                                   /* 第一行：暱稱獨占一行 */
           "inst note"                                   /* 第二行：樂器 | 音符 */
@@ -194,17 +199,14 @@
       .row-line2 > .pair:nth-of-type(3){ grid-area: note; }
       .row-line2 > .actions-inline{ grid-area: acts; }
 
-      /* 行內標籤與輸入框更靠近：縮短標籤寬、讓輸入可彈性延展 */
+      /* 行內標籤與輸入框更靠近：縮短標籤寬、讓輸入可依變數決定基準寬 */
       .row-line2 .pair{ display:flex; align-items:center; width:100%; }
-      .row-line2 .pair label{ width:auto; margin-right:8px; }   /* 暱稱＋框框靠近 */
-      .row-line2 .pair input,
-      .row-line2 .pair select{ flex:1; min-width:0; }
+      .row-line2 .pair label{ width:auto; margin-right:8px; }
 
-      /* 第二行兩欄的對齊與寬度 */
-      .row-line2 > .pair:nth-of-type(2),
-      .row-line2 > .pair:nth-of-type(3){
-        width:100%;
-      }
+      /* ★ 手機版：三個框框用各自的變數做 flex-basis，方便你自己調長度 */
+      .nickname-input{ flex: 0 1 var(--w-displayName-m); }
+      .instrument-select{ flex: 0 1 var(--w-instrument-m); }
+      .note-display{ flex: 0 1 var(--w-lastNote-m); }
 
       /* 按鈕列：維持原順序（重設／鎖定／先點我查看好咪），並排顯示 */
       .row-line2 > .actions-inline{
@@ -220,7 +222,7 @@
       .actions-inline{ display:flex; gap:var(--gap); }
       .row-line2 .pair, .row-line3 .pair, .row-line3 .actions-inline{ flex:0 0 100%; }
       .align-to-email{ margin-left:0 !important; }
-      #lastNote{ width:var(--w-lastNote-m); }
+      #lastNote{ width:auto; } /* 交給 .note-display 控制 */
     }
   </style>
 </head>
@@ -233,18 +235,18 @@
     <div class="row row-line2">
       <div class="pair">
         <label for="displayName">暱稱：</label>
-        <input id="displayName" readonly aria-readonly="true" placeholder="等待載入…" />
+        <input id="displayName" class="nickname-input" readonly aria-readonly="true" placeholder="等待載入…" />
       </div>
       <div class="pair">
         <label for="instrument">樂器：</label>
-        <select id="instrument">
+        <select id="instrument" class="instrument-select">
           <option value="piano" selected>鋼琴</option>
           <option value="guitar">吉他</option>
         </select>
       </div>
       <div class="pair">
         <label for="lastNote" class="align-to-email">音符：</label>
-        <input id="lastNote" placeholder="— , — , —" readonly />
+        <input id="lastNote" class="note-display" placeholder="— , — , —" readonly />
       </div>
       <div class="actions-inline">
         <button id="resetBtn" type="button" class="btn-compact">重設</button>
@@ -330,8 +332,8 @@
     let selectedNotes=[], selectedInsts=[];
 
     /* ✅ 可更改：音色檔路徑與檔名表 */
-    const PIANO_BASE = new URL('./piano/', location.href).href;   // ✅ 可更改
-    const GUITAR_BASE = new URL('./guitar/', location.href).href; // ✅ 可更改
+    const PIANO_BASE = new URL('./piano/', location.href).href;   /* ✅ 可更改 */
+    const GUITAR_BASE = new URL('./guitar/', location.href).href; /* ✅ 可更改 */
     const PIANO_URLS = {'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3','C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3','C4':'C4.mp3','D#4':'Ds4.mp3','F#4':'Fs4.mp3','A4':'A4.mp3','C5':'C5.mp3'};
     /* ✅ 可更改：吉他若有多採樣可補齊對映，沒有就以開放弦近似 */
     const GUITAR_URLS = {'E2':'E2.wav','A2':'A2.wav','D3':'D3.wav','G3':'G3.wav','B3':'B3.wav','E4':'E4.wav'};
@@ -687,7 +689,7 @@
 
         // 兩條路都試：getProfile 與 ID Token
         lineId      = (prof && prof.userId) || (idt && idt.sub) || '';
-        displayName = sanitizeName( (prof && prof.displayName) || (idt && (idt.name || idt.nickname)) || '' );
+        displayName = sanitizeName( (prof and prof.displayName) || (idt and (idt.name || idt.nickname)) || '' );
         pictureUrl  = (prof && prof.pictureUrl) || '';
 
         if(!lineId){
