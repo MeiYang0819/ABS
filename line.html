@@ -36,6 +36,10 @@
       --w-hintbtn: 160px; /* ✅ 可更改：備註按鈕寬 */
       --hint-fz: 12px;    /* ✅ 可更改：備註字級 */
       --hint-maxw: 520px; /* ✅ 可更改：備註最大寬 */
+
+      /* ✅ 新增：動作按鈕一致尺寸（可自行調整） */
+      --action-w-desk: 120px; /* 桌機四顆按鈕寬 */
+      --action-h: 38px;       /* 四顆按鈕高（跟既有一致） */
     }
 
     *{
@@ -85,7 +89,7 @@
       text-align:center; color: var(--accent) !important; font-weight:700; -webkit-text-stroke:.35px rgba(0,0,0,.10);
       text-shadow:0 1px 0 rgba(255,255,255,.85), 0 3px 6px rgba(0,0,0,.04);
     }
-    #status.ok,#status.busy,#status.err{ color: var(--accent) !important; font-weight:700; -webkit-text-stroke:.35px rgba(0,0,0,.10);
+    #status.ok,#status.busy,#status.err{ color: var(--accent) !重要; font-weight:700; -webkit-text-stroke:.35px rgba(0,0,0,.10);
                                          text-shadow:0 1px 0 rgba(255,255,255,.85), 0 3px 6px rgba(0,0,0,.04); }
 
     /* 備註/說明小浮層 */
@@ -204,11 +208,17 @@
       .row label{ width:auto; } /* 手機不固定標籤寬 */
       #displayName,#instrument,#lastNote{ width:100%; } /* 手機讓欄位自動撐滿 */
 
-      /* 按鈕列：四顆並排可自動換行 */
+      /* 第三排四顆按鈕：均分一列、不超出框框 */
       .actions-inline{
-        display:flex;
-        flex-wrap:wrap;
-        gap:var(--gap);
+        display:grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--gap);
+        justify-items: stretch;
+        align-items: stretch;
+      }
+      .actions-inline > button{
+        width: 100%;
+        height: var(--action-h);
       }
 
       .align-to-email{ margin-left:0 !important; }
@@ -224,55 +234,61 @@
       right: 0;
     }
 
-    /* 電腦版（寬螢幕）：第三行 4 顆同一排；小浮層再寬但不破版 */
+    /* 電腦版（寬螢幕）：所有欄位與按鈕同一排；四顆按鈕一致寬度 */
     @media (min-width: 861px){
+      .row-line2{
+        display:grid;
+        grid-template-areas: "nick inst note acts";
+        grid-template-columns: minmax(260px, 1fr) minmax(160px, 220px) minmax(200px, 1fr) auto;
+        align-items:center;
+        gap: var(--gap);
+        width:100%;
+      }
+      .row-line2 > .pair:nth-child(1){ grid-area: nick; }
+      .row-line2 > .pair:nth-child(2){ grid-area: inst; }
+      .row-line2 > .pair:nth-child(3){ grid-area: note; }
+      .row-line2 > .actions-inline{ grid-area: acts; }
+
       .actions-inline{
         display:flex;
         flex-wrap: nowrap;
-        justify-content: flex-start;
+        justify-content: flex-end;
         align-items: center;
         gap: var(--gap);
       }
       .actions-inline > button{
         flex: 0 0 auto;
+        width: var(--action-w-desk);
+        height: var(--action-h);
       }
       .hint-popover{
         max-width: min(720px, calc(100vw - 96px));
       }
     }
 
-    /* 手機直向：第三行不超出框框；小浮層加長不超版 */
-    @media (max-width: 860.98px) and (orientation: portrait){
-      .actions-inline{
-        display:flex;
-        flex-wrap: wrap;
-        justify-content: flex-start;
-        gap: var(--gap);
-      }
-      .actions-inline > button{
-        flex: 1 1 calc(33.33% - var(--gap));
-        min-width: 96px;
-        max-width: 180px;
-      }
-      .hint-popover{
-        max-width: min(92vw, 620px);
-      }
-    }
-
-    /* 手機橫向：第三行置中；小浮層加長不超畫面 */
+    /* 手機橫向：第三行置中、四顆同寬 */
     @media (max-width: 860.98px) and (orientation: landscape){
       .actions-inline{
-        display:flex;
-        flex-wrap: wrap;
+        display:grid;
+        grid-template-columns: repeat(4, minmax(110px, 1fr));
         justify-content: center; /* 置中 */
+        justify-items: center;
         gap: var(--gap);
+        width:100%;
       }
       .actions-inline > button{
-        flex: 0 1 auto;
-        min-width: 110px;
+        width: 100%;
+        height: var(--action-h);
       }
       .hint-popover{
         max-width: min(80vw, 680px);
+      }
+    }
+
+    /* 手機直向：小浮層加長但不超版（已在上方排版固定第三排） */
+    @media (max-width: 860.98px) and (orientation: portrait){
+      .hint-popover{
+        max-width: min(92vw, 620px);
       }
     }
   </style>
@@ -488,8 +504,8 @@
       // 6 條弦（由上→下為細→粗；我們的點擊邏輯會把 index 轉為 5-idx 取音高，確保「粗弦在下方」）
       for(let s=0;s<6;s++){
         const y=(s+1)*(100/7);
-        const str=document.createElement('div'); str.className='string'; str.dataset.s=String(s); str.style.top = `${y}%`; kb.appendChild(str);
-        const hline=document.createElement('div'); hline.className='head-line'; hline.dataset.s=String(s); hline.style.top = `${y}%`; kb.appendChild(hline);
+        const str=document.createElement('div'); str.className='string'; str.dataset{s}=String(s); str.style.top = `${y}%`; kb.appendChild(str);
+        const hline=document.createElement('div'); hline.className='head-line'; hline.dataset{s}=String(s); hline.style.top = `${y}%`; kb.appendChild(hline);
       }
 
       // 13 個欄位（0~12 品）
@@ -780,7 +796,7 @@
 
         // 兩條路都試：getProfile 與 ID Token
         lineId      = (prof && prof.userId) || (idt && idt.sub) || '';
-        displayName = sanitizeName( (prof && prof.displayName) || (idt && (idt.name || idt.nickname)) || '' );
+        displayName = sanitizeName( (prof && prof.displayName) || (idt and (idt.name || idt.nickname)) || '' );
         pictureUrl  = (prof && prof.pictureUrl) || '';
 
         if(!lineId){
