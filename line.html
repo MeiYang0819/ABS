@@ -33,13 +33,14 @@
       --stroke:rgba(0,0,0,.18);   /* ✅ 可更改：字描邊 */
       --glow:rgba(255,255,255,.65); /* ✅ 可更改：字高光 */
 
-      --w-hintbtn: 120px; /* ✅ 可更改：備註按鈕寬（調成與操作說明一致） */
+      --w-hintbtn: 160px; /* ✅ 可更改：備註按鈕寬（與操作說明同寬用） */
       --hint-fz: 12px;    /* ✅ 可更改：備註字級 */
       --hint-maxw: 520px; /* ✅ 可更改：備註最大寬 */
 
-      /* ✅ 新增：四顆動作按鈕統一尺寸（可自行調整） */
-      --action-w-desk: 120px; /* 桌機四顆按鈕寬 */
+      /* ✅ 新增：四顆動作按鈕統一尺寸（桌機用） */
+      --action-w-desk: 108px; /* 桌機四顆按鈕寬（稍微縮小，讓不超框） */
       --action-h: 38px;       /* 四顆按鈕高（與既有一致） */
+      --action-gap-narrow: 6px; /* ✅ 統一縮窄用間距 */
     }
 
     *{
@@ -77,8 +78,10 @@
     /* 按鈕 */
     .row button{ width:120px; cursor:pointer; font-weight:700; transition: transform .08s ease, box-shadow .08s ease, filter .08s ease;
                  box-shadow: 0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06); }
-    .btn-compact{ width:60px !important; } /* ✅ 可更改：縮版按鈕寬 */
-    #hintBtn{ width: var(--w-hintbtn) !important; } /* 備註按鈕寬 */
+    .btn-compact{ width:60px !important; } /* ✅ 可更改：縮版按鈕寬（會被各媒體查詢覆蓋） */
+    #hintBtn{ width: var(--w-hintbtn) !important; } /* 備註按鈕寬（桌機預設） */
+    /* 讓「操作說明」與「查看備注」在任何版面都能保持同寬：在各媒體查詢中同步覆蓋寬度 */
+    #helpBtn{ width: var(--w-hintbtn) !important; }
 
     .row button:disabled{ opacity:.55; cursor:not-allowed; }
     .row button:active, .row button.pressed{ transform: translateY(1px) scale(.99); box-shadow: 0 1px 0 rgba(0,0,0,.18), 0 1px 4px rgba(0,0,0,.06); filter: brightness(.98); }
@@ -178,7 +181,7 @@
     #lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:transparent; }
     footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
 
-    /* ====================== 手機直向：重排 ====================== */
+    /* ====================== 手機直向：重排（按鈕在第三行） ====================== */
     @media (orientation:portrait){
       .row-line2{
         display:grid;
@@ -208,16 +211,16 @@
       .actions-inline{
         display:grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: var(--gap);
+        gap: var(--action-gap-narrow); /* ✅ 間距統一縮窄 */
         justify-items: stretch;
         align-items: stretch;
       }
       .actions-inline > button{
-        width: 100%;
+        width: 100% !important;  /* ✅ 四顆同寬 */
         height: var(--action-h);
       }
-      /* 讓查看備注在手機直向也與其他按鈕同寬 */
-      #hintBtn{ width:100% !important; }
+      /* ✅ 操作說明與查看備注同寬（覆蓋任何預設寬度） */
+      #helpBtn, #hintBtn{ width:100% !important; }
 
       .align-to-email{ margin-left:0 !important; }
       #lastNote{ width:var(--w-lastNote-m); }
@@ -226,12 +229,12 @@
     /* ======= 加長小浮層但不超版 ======= */
     .hint-popover{ max-width: clamp(320px, 48vw, 680px); }
 
-    /* 電腦版：同一排 + 同寬 */
+    /* ====================== 電腦版：同一排 + 同寬（查看備注略小） ====================== */
     @media (min-width: 861px){
       .row-line2{
         display:grid;
         grid-template-areas: "nick inst note acts";
-        grid-template-columns: minmax(260px, 1fr) minmax(160px, 220px) minmax(200px, 1fr) auto;
+        grid-template-columns: minmax(240px, 1fr) minmax(150px, 200px) minmax(220px, 1fr) auto;
         align-items:center;
         gap: var(--gap);
         width:100%;
@@ -240,31 +243,38 @@
       .row-line2 > .pair:nth-child(2){ grid-area: inst; }
       .row-line2 > .pair:nth-child(3){ grid-area: note; }
       .row-line2 > .actions-inline{ grid-area: acts; }
+
+      /* ✅ 縮短標籤與暱稱欄位，避免把音符擠到下一行 */
+      .row label{ width:72px; }               /* 暱稱/樂器/音符標籤略縮 */
+      #displayName{ width:190px; }            /* 暱稱框略縮 */
+      #lastNote{ width:220px; }
 
       .actions-inline{
         display:flex;
         flex-wrap: nowrap;
         justify-content: flex-end;
         align-items: center;
-        gap: var(--gap);
+        gap: var(--action-gap-narrow);        /* ✅ 間距統一縮窄 */
       }
       .actions-inline > button{
         flex: 0 0 auto;
-        width: var(--action-w-desk);
+        width: var(--action-w-desk);          /* ✅ 四顆同寬（查看備注略小化） */
         height: var(--action-h);
       }
+      /* ✅ 操作說明與查看備注同寬 */
+      #helpBtn, #hintBtn{ width: var(--action-w-desk) !important; }
+
       .hint-popover{ max-width: min(720px, calc(100vw - 96px)); }
     }
 
-    /* 手機橫向：第二行置中、同寬 */
+    /* ====================== 手機橫向：第一行塞入暱稱/樂器/音符；第二行四顆按鈕置中 ====================== */
     @media (max-width: 860.98px) and (orientation: landscape){
-      /* 兩行配置：第二行放四顆按鈕 */
       .row-line2{
         display:grid;
         grid-template-areas:
-          "nick inst"
-          "note acts";
-        grid-template-columns: 1fr 1fr;
+          "nick inst note"
+          "acts acts acts";
+        grid-template-columns: 1fr 1fr 1fr;
         align-items:center;
         gap: var(--gap);
         width:100%;
@@ -274,20 +284,26 @@
       .row-line2 > .pair:nth-child(3){ grid-area: note; }
       .row-line2 > .actions-inline{ grid-area: acts; }
 
+      /* ✅ 為了讓三欄都進第一行：縮短暱稱標籤與輸入框 */
+      .row label{ width:68px; }
+      #displayName{ width:160px; }  /* 暱稱框更短，讓音符也能回到第一行 */
+      #instrument{ width:110px; }
+      #lastNote{ width:200px; }
+
       .actions-inline{
         display:grid;
-        grid-template-columns: repeat(4, minmax(110px, 1fr));
+        grid-template-columns: repeat(4, 1fr);
         justify-content: center;
         justify-items: center;
-        gap: var(--gap);
+        gap: var(--action-gap-narrow);        /* ✅ 間距統一縮窄 */
         width:100%;
       }
       .actions-inline > button{
-        width: 100%;
+        width: 100% !important;               /* ✅ 四顆同寬 */
         height: var(--action-h);
       }
-      /* 讓查看備注在手機橫向也與其他按鈕同寬 */
-      #hintBtn{ width:100% !important; }
+      /* ✅ 操作說明與查看備注同寬 */
+      #helpBtn, #hintBtn{ width:100% !important; }
 
       .hint-popover{ max-width: min(80vw, 680px); }
     }
