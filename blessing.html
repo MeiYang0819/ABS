@@ -371,7 +371,7 @@
           await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser:true });
           if(!liff.isLoggedIn()){ liff.login(); return; }
           await liff.ready;
-          const prof=await liff.getProfile(); const idt=await liff.getDecodedIDToken();
+          const prof=await liff.getProfile(); const idt=liff.getDecodedIDToken();
           lineId=prof.userId||idt.sub||''; displayName=prof.displayName||idt.name||''; pictureUrl=prof.pictureUrl||'';
         }catch(_){}
         await fetchRoleAndNames(); await preloadMyLatest(); await refreshWall();
@@ -529,9 +529,9 @@
       function oneLinePreview(s){ return htmlToPlain(s).replace(/\n+/g,' '); }
       function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
 
-      ///* 生成木牌（右側牆） *///  /* ← 增強：支援純文字欄位 content / text */
+      ///* 生成木牌（右側牆） *///
       function tileTemplate(it){
-        const raw = (it.preview ?? it.contentHTML ?? it.content ?? it.text ?? '');
+        const raw = (it.preview ?? it.contentHTML ?? '');
         const snippet = oneLinePreview(raw) || '—';
         return `<div class="tile" data-row="${it.row||''}" data-owner="${it.lineId||''}">
           <div class="tile-name">${escapeHTML(it.displayName||'—')}</div>
@@ -542,19 +542,14 @@
         </div>`;
       }
 
-      ///* 讀取列表 + 點擊木牌開窗 *///  /* ← 增強：若目前角色為空列表則自動回退 all */
+      ///* 讀取列表 + 點擊木牌開窗 *///
       async function refreshWall(){
         try{
           const role=document.querySelector('.role-btn.active')?.id?.replace('role','').toLowerCase()||'all';
           const j=await (await fetch(WEBHOOK+`?action=listblessings&role=${role}`)).json();
           if(j?.ok){
-            let arr=(j.items||[]);
-            if((!arr || arr.length===0) && role!=='all'){
-              const j2 = await (await fetch(WEBHOOK+`?action=listblessings&role=all`)).json().catch(()=>null);
-              if(j2?.ok) arr = j2.items||[];
-            }
-            const sorted=(arr||[]).slice().sort((a,b)=>parseSheetTimeToDate(b.time)-parseSheetTimeToDate(a.time));
-            wallEl.innerHTML=sorted.map(tileTemplate).join('');
+            const arr=(j.items||[]).slice().sort((a,b)=>parseSheetTimeToDate(b.time)-parseSheetTimeToDate(a.time));
+            wallEl.innerHTML=arr.map(tileTemplate).join('');
             bindTileClicks();
           }
         }catch(_){}
