@@ -20,13 +20,10 @@
       --rim:#E4E4E4;     /* ✅ 可更改：輸入框邊框色 */
       --ink:#0f172a;     /* ✅ 可更改：正文字色 */
 
-      --w-displayName: 240px; /* ✅ 可更改：暱稱欄寬（桌機預設） */
-      --w-instrument:  120px; /* ✅ 可更改：樂器選單寬（桌機預設） */
-      --w-lastNote:    180px; /* ✅ 可更改：三音顯示寬（桌機預設） */
-
-      --w-displayName-m: 150px; /* ✅ 可更改：暱稱欄寬（手機預設） */
-      --w-instrument-m:  140px; /* ✅ 可更改：樂器選單寬（手機預設） */
-      --w-lastNote-m:    140px; /* ✅ 可更改：三音顯示寬（手機預設） */
+      --w-displayName: 220px; /* ✅ 可更改：暱稱欄寬（唯讀） */
+      --w-instrument:  96px;  /* ✅ 可更改：樂器選單寬 */
+      --w-lastNote:    160px; /* ✅ 可更改：三音顯示寬 */
+      --w-lastNote-m:  180px; /* ✅ 可更改：手機寬 */
 
       --label-w:88px; /* ✅ 可更改：左側標籤寬 */
       --gap:10px;     /* ✅ 可更改：欄位間距 */
@@ -66,11 +63,9 @@
     }
     .row input,.row select{ box-shadow: 0 2px 0 rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.04); }
 
-    /* ✅ 給三個框框各自的 class，方便你之後單獨調長度 */
-    .nickname-input{ width: var(--w-displayName); max-width:100%; }
-    .instrument-select{ width: var(--w-instrument); max-width:100%; }
-    .note-display{ width: var(--w-lastNote); max-width:100%; text-align:center; letter-spacing:.3px; }
-
+    #displayName{ width:var(--w-displayName); } /* 暱稱唯讀 */
+    #instrument{  width:var(--w-instrument); }
+    #lastNote{ width:var(--w-lastNote); text-align:center; letter-spacing:.3px; }
     #lastNote::placeholder{ text-align:center; }
 
     @media (min-width: 861px){ .align-to-email{ margin-left: 0; } }
@@ -93,8 +88,8 @@
     #status.ok,#status.busy,#status.err{ color: var(--accent) !important; font-weight:700; -webkit-text-stroke:.35px rgba(0,0,0,.10);
                                          text-shadow:0 1px 0 rgba(255,255,255,.85), 0 3px 6px rgba(0,0,0,.04); }
 
-    /* 備註小浮層 */
-    .actions-inline{ display:flex; gap:var(--gap); position:relative; }
+    /* 備註/說明小浮層 */
+    .actions-inline{ display:flex; gap:var(--gap); position:relative; flex-wrap:wrap; }
     .hint-popover{ position:absolute; right:0; top:44px; z-index:50; max-width: var(--hint-maxw); min-width: 260px; padding:10px 12px; font-size:var(--hint-fz);
                    line-height:1.45; color:var(--accent); background:#fff; border:1px solid var(--accent); border-radius:12px;
                    box-shadow:0 8px 24px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.06); display:none; white-space:normal; --arrow-x: calc(100% - 24px); }
@@ -179,50 +174,44 @@
     #lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:transparent; }
     footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
 
-    /* ======= 直向手機版排版調整（只改布局，不動文案/流程） ======= */
+    /* ====================== 手機直向：重排 ====================== */
     @media (orientation:portrait){
-      /* 把第二區塊（暱稱/樂器/音符/按鈕）改成Grid三行 */
+      /* 讓 row-line2 變成三列網格：暱稱 / (樂器,音符) / 按鈕們 */
       .row-line2{
         display:grid;
-        grid-template-columns: 0.4fr 0.6fr;            /* ★ 你要的 40% / 60% */
         grid-template-areas:
-          "nick nick"                                   /* 第一行：暱稱獨占一行 */
-          "inst note"                                   /* 第二行：樂器 | 音符 */
-          "acts acts";                                  /* 第三行：三顆按鈕 */
-        gap: 12px;
+          "nick nick"
+          "inst note"
+          "acts acts";
+        grid-template-columns: 1fr 1fr;
+        gap:12px;
         width:100%;
       }
-
-      /* 指派各區塊到對應的grid area（依DOM順序：pair1=暱稱，pair2=樂器，pair3=音符） */
-      .row-line2 > .pair:nth-of-type(1){ grid-area: nick; }
-      .row-line2 > .pair:nth-of-type(2){ grid-area: inst; }
-      .row-line2 > .pair:nth-of-type(3){ grid-area: note; }
+      .row-line2 > .pair:nth-child(1){ grid-area: nick; }
+      .row-line2 > .pair:nth-child(2){ grid-area: inst; }
+      .row-line2 > .pair:nth-child(3){ grid-area: note; }
       .row-line2 > .actions-inline{ grid-area: acts; }
 
-      /* 行內標籤與輸入框更靠近：縮短標籤寬、讓輸入可依變數決定基準寬 */
-      .row-line2 .pair{ display:flex; align-items:center; width:100%; }
-      .row-line2 .pair label{ width:auto; margin-right:8px; }
+      /* 讓每個 pair 的 label 與輸入更貼近（減少距離） */
+      .pair{
+        display:grid;
+        grid-template-columns: auto 1fr;
+        align-items:center;
+        column-gap:8px; /* 調這個就能再縮近 */
+        width:100%;
+      }
+      .row label{ width:auto; } /* 手機不固定標籤寬 */
+      #displayName,#instrument,#lastNote{ width:100%; } /* 手機讓欄位自動撐滿 */
 
-      /* ★ 手機版：三個框框用各自的變數做 flex-basis，方便你自己調長度 */
-      .nickname-input{ flex: 0 1 var(--w-displayName-m); }
-      .instrument-select{ flex: 0 1 var(--w-instrument-m); }
-      .note-display{ flex: 0 1 var(--w-lastNote-m); }
-
-      /* 按鈕列：維持原順序（重設／鎖定／先點我查看好咪），並排顯示 */
-      .row-line2 > .actions-inline{
+      /* 按鈕列：四顆並排可自動換行 */
+      .actions-inline{
         display:flex;
-        justify-content:flex-start;
-        flex-wrap:nowrap;
-        gap:10px;
+        flex-wrap:wrap;
+        gap:var(--gap);
       }
 
-      /* 原本的直向預設保留（第三行容器若有用到） */
-      .row-line3{ width:100%; gap:12px; }
-      .pair{ display:flex; align-items:center; gap:var(--gap); width:100%; }
-      .actions-inline{ display:flex; gap:var(--gap); }
-      .row-line2 .pair, .row-line3 .pair, .row-line3 .actions-inline{ flex:0 0 100%; }
       .align-to-email{ margin-left:0 !important; }
-      #lastNote{ width:auto; } /* 交給 .note-display 控制 */
+      #lastNote{ width:var(--w-lastNote-m); }
     }
   </style>
 </head>
@@ -235,22 +224,32 @@
     <div class="row row-line2">
       <div class="pair">
         <label for="displayName">暱稱：</label>
-        <input id="displayName" class="nickname-input" readonly aria-readonly="true" placeholder="等待載入…" />
+        <input id="displayName" readonly aria-readonly="true" placeholder="等待載入…" />
       </div>
       <div class="pair">
         <label for="instrument">樂器：</label>
-        <select id="instrument" class="instrument-select">
+        <select id="instrument">
           <option value="piano" selected>鋼琴</option>
           <option value="guitar">吉他</option>
         </select>
       </div>
       <div class="pair">
         <label for="lastNote" class="align-to-email">音符：</label>
-        <input id="lastNote" class="note-display" placeholder="— , — , —" readonly />
+        <input id="lastNote" placeholder="— , — , —" readonly />
       </div>
+
+      <!-- 第三行：四顆按鈕（新增「操作說明」按鈕＋原本的「先點我查看好咪🥺」= 查看備註） -->
       <div class="actions-inline">
         <button id="resetBtn" type="button" class="btn-compact">重設</button>
         <button id="lockBtn"  type="button" class="btn-compact" disabled>鎖定</button>
+
+        <!-- 新增：操作說明（行為與備註按鈕相同，開小浮層） -->
+        <button id="helpBtn"  type="button" class="btn-compact" aria-expanded="false" aria-controls="helpPopover" title="點我查看操作說明">操作說明</button>
+        <div id="helpPopover" class="hint-popover" role="note" aria-live="polite">
+          （這裡是「操作說明」的小浮層內容，先放和備註相同類型的說明，你之後可以自行改文字）
+        </div>
+
+        <!-- 原：先點我查看好咪🥺（= 查看備註） -->
         <button id="hintBtn"  type="button" class="btn-compact" aria-expanded="false" aria-controls="hintPopover" title="點我查看備註">先點我查看好咪🥺</button>
         <div id="hintPopover" class="hint-popover" role="note" aria-live="polite">
           按「鎖定」後請稍候，本人有缺陷導致速度較慢🥲<br>確認送出成功，下方「狀態列」會立即通知您溜🎉
@@ -262,7 +261,7 @@
     <div class="kb-wrap"><div id="keyboard"></div></div>
   </div>
 
-  <!-- 操作說明 -->
+  <!-- 操作說明（全頁型步驟對話框，保持原功能不變） -->
   <div id="guideOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
     <div class="dialog">
       <h3 id="guideTitle">📍操作說明📍</h3>
@@ -332,8 +331,8 @@
     let selectedNotes=[], selectedInsts=[];
 
     /* ✅ 可更改：音色檔路徑與檔名表 */
-    const PIANO_BASE = new URL('./piano/', location.href).href;   /* ✅ 可更改 */
-    const GUITAR_BASE = new URL('./guitar/', location.href).href; /* ✅ 可更改 */
+    const PIANO_BASE = new URL('./piano/', location.href).href;   // ✅ 可更改
+    const GUITAR_BASE = new URL('./guitar/', location.href).href; // ✅ 可更改
     const PIANO_URLS = {'A1':'A1.mp3','C2':'C2.mp3','D#2':'Ds2.mp3','F#2':'Fs2.mp3','A2':'A2.mp3','C3':'C3.mp3','D#3':'Ds3.mp3','F#3':'Fs3.mp3','A3':'A3.mp3','C4':'C4.mp3','D#4':'Ds4.mp3','F#4':'Fs4.mp3','A4':'A4.mp3','C5':'C5.mp3'};
     /* ✅ 可更改：吉他若有多採樣可補齊對映，沒有就以開放弦近似 */
     const GUITAR_URLS = {'E2':'E2.wav','A2':'A2.wav','D3':'D3.wav','G3':'G3.wav','B3':'B3.wav','E4':'E4.wav'};
@@ -497,29 +496,56 @@
       if(selectedNotes.length>0){ selectedNotes.pop(); selectedInsts.pop(); refreshNotesDisplay(); validateLockBtn(); }
     });
 
-    /* 備註小浮層 */
+    /* ====== 備註小浮層（原） ====== */
     const hintBtn=$('#hintBtn'), hintPop=$('#hintPopover');
-    function positionArrow(){
-      const popRect=hintPop.getBoundingClientRect(), btnRect=hintBtn.getBoundingClientRect();
+    function positionArrow(pop, btn){
+      const popRect=pop.getBoundingClientRect(), btnRect=btn.getBoundingClientRect();
       const x=(btnRect.left+btnRect.width/2)-popRect.left;
       const clamped=Math.max(16, Math.min(popRect.width-16, x));
-      hintPop.style.setProperty('--arrow-x', clamped+'px');
+      pop.style.setProperty('--arrow-x', clamped+'px');
     }
-    function closeHint(){ hintPop.classList.remove('show'); hintBtn.setAttribute('aria-expanded','false'); }
+    function closeHint(pop, btn){ pop.classList.remove('show'); btn.setAttribute('aria-expanded','false'); }
     hintBtn.addEventListener('click', (e)=>{
       const showing=hintPop.classList.toggle('show');
       hintBtn.setAttribute('aria-expanded', showing?'true':'false');
-      if(showing){ positionArrow(); }
+      if(showing){ positionArrow(hintPop, hintBtn); }
       e.stopPropagation();
     });
-    document.addEventListener('click', (e)=>{
-      if(!hintPop.classList.contains('show')) return;
-      const within=hintPop.contains(e.target)||hintBtn.contains(e.target);
-      if(!within) closeHint();
+
+    /* ====== 新增：操作說明小浮層（與備註同邏輯） ====== */
+    const helpBtn=$('#helpBtn'), helpPop=$('#helpPopover');
+    helpBtn.addEventListener('click', (e)=>{
+      const showing=helpPop.classList.toggle('show');
+      helpBtn.setAttribute('aria-expanded', showing?'true':'false');
+      if(showing){ positionArrow(helpPop, helpBtn); }
+      e.stopPropagation();
     });
-    window.addEventListener('resize', ()=>{ if(hintPop.classList.contains('show')) positionArrow(); });
-    window.addEventListener('orientationchange', ()=>{ setTimeout(()=>{ if(hintPop.classList.contains('show')) positionArrow(); }, 250); });
-    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeHint(); });
+
+    /* 點外面關閉任一浮層 */
+    document.addEventListener('click', (e)=>{
+      // 備註
+      if(hintPop.classList.contains('show')){
+        const within=hintPop.contains(e.target)||hintBtn.contains(e.target);
+        if(!within) closeHint(hintPop, hintBtn);
+      }
+      // 操作說明
+      if(helpPop.classList.contains('show')){
+        const within2=helpPop.contains(e.target)||helpBtn.contains(e.target);
+        if(!within2) closeHint(helpPop, helpBtn);
+      }
+    });
+
+    window.addEventListener('resize', ()=>{
+      if(hintPop.classList.contains('show')) positionArrow(hintPop, hintBtn);
+      if(helpPop.classList.contains('show')) positionArrow(helpPop, helpBtn);
+    });
+    window.addEventListener('orientationchange', ()=>{
+      setTimeout(()=>{
+        if(hintPop.classList.contains('show')) positionArrow(hintPop, hintBtn);
+        if(helpPop.classList.contains('show')) positionArrow(helpPop, helpBtn);
+      }, 250);
+    });
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ closeHint(hintPop, hintBtn); closeHint(helpPop, helpBtn); } });
 
     /* ====================== 鎖定送出 ====================== */
     let lineId='', displayName='', pictureUrl='';
@@ -652,25 +678,12 @@
       return String(name||'').replace(/^[\s:：]+/, ''); // 去前導空白/半形冒號/全形冒號
     }
 
-    /* ★ 新增：強制統一三個標籤（避免手機端殘留舊字串快取） */
-    function enforceLabels(){
-      const l1 = document.querySelector('label[for="displayName"]');
-      const l2 = document.querySelector('label[for="instrument"]');
-      const l3 = document.querySelector('label[for="lastNote"]');
-      if(l1) l1.textContent = '暱稱：';
-      if(l2) l2.textContent = '樂器：';
-      if(l3) l3.textContent = '音符：';
-    }
-
     /* ====================== 初始化（畫面 / LIFF / Profile） ====================== */
     async function init(){
       renderPiano();                 // 預設先畫鋼琴
       setStatus('⏳ 等待啟用聲音…');
       validateLockBtn();
       $('#guideOverlay').classList.remove('hidden');
-
-      // ★ 確保一載入就統一標籤
-      enforceLabels();
 
       try{
         setStatus('初始化 LIFF…');
@@ -689,7 +702,7 @@
 
         // 兩條路都試：getProfile 與 ID Token
         lineId      = (prof && prof.userId) || (idt && idt.sub) || '';
-        displayName = sanitizeName( (prof and prof.displayName) || (idt and (idt.name || idt.nickname)) || '' );
+        displayName = sanitizeName( (prof && prof.displayName) || (idt && (idt.name || idt.nickname)) || '' );
         pictureUrl  = (prof && prof.pictureUrl) || '';
 
         if(!lineId){
