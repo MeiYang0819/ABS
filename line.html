@@ -37,9 +37,9 @@
       --hint-fz: 12px;    /* ✅ 可更改：備註字級 */
       --hint-maxw: 520px; /* ✅ 可更改：備註最大寬 */
 
-      /* ✅ 新增：動作按鈕一致尺寸（可自行調整） */
+      /* ✅ 新增：四顆動作按鈕統一尺寸（可自行調整） */
       --action-w-desk: 120px; /* 桌機四顆按鈕寬 */
-      --action-h: 38px;       /* 四顆按鈕高（跟既有一致） */
+      --action-h: 38px;       /* 四顆按鈕高（與既有一致） */
     }
 
     *{
@@ -89,11 +89,11 @@
       text-align:center; color: var(--accent) !important; font-weight:700; -webkit-text-stroke:.35px rgba(0,0,0,.10);
       text-shadow:0 1px 0 rgba(255,255,255,.85), 0 3px 6px rgba(0,0,0,.04);
     }
-    #status.ok,#status.busy,#status.err{ color: var(--accent) !重要; font-weight:700; -webkit-text-stroke:.35px rgba(0,0,0,.10);
+    #status.ok,#status.busy,#status.err{ color: var(--accent) !important; font-weight:700; -webkit-text-stroke:.35px rgba(0,0,0,.10);
                                          text-shadow:0 1px 0 rgba(255,255,255,.85), 0 3px 6px rgba(0,0,0,.04); }
 
-    /* 備註/說明小浮層 */
-    .actions-inline{ display:flex; gap:var(--gap); position:relative; flex-wrap:wrap; }
+    /* 備註小浮層 */
+    .actions-inline{ display:flex; gap:var(--gap); position:relative; }
     .hint-popover{ position:absolute; right:0; top:44px; z-index:50; max-width: var(--hint-maxw); min-width: 260px; padding:10px 12px; font-size:var(--hint-fz);
                    line-height:1.45; color:var(--accent); background:#fff; border:1px solid var(--accent); border-radius:12px;
                    box-shadow:0 8px 24px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.06); display:none; white-space:normal; --arrow-x: calc(100% - 24px); }
@@ -176,12 +176,10 @@
     .dialog button.primary{ background:#fff; }
 
     #lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:transparent; }
-
     footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
 
     /* ====================== 手機直向：重排 ====================== */
     @media (orientation:portrait){
-      /* 讓 row-line2 變成三列網格：暱稱 / (樂器,音符) / 按鈕們 */
       .row-line2{
         display:grid;
         grid-template-areas:
@@ -197,18 +195,16 @@
       .row-line2 > .pair:nth-child(3){ grid-area: note; }
       .row-line2 > .actions-inline{ grid-area: acts; }
 
-      /* 讓每個 pair 的 label 與輸入更貼近（減少距離） */
       .pair{
         display:grid;
         grid-template-columns: auto 1fr;
         align-items:center;
-        column-gap:8px; /* 調這個就能再縮近 */
+        column-gap:8px;
         width:100%;
       }
-      .row label{ width:auto; } /* 手機不固定標籤寬 */
-      #displayName,#instrument,#lastNote{ width:100%; } /* 手機讓欄位自動撐滿 */
+      .row label{ width:auto; }
+      #displayName,#instrument,#lastNote{ width:100%; }
 
-      /* 第三排四顆按鈕：均分一列、不超出框框 */
       .actions-inline{
         display:grid;
         grid-template-columns: repeat(4, 1fr);
@@ -225,16 +221,10 @@
       #lastNote{ width:var(--w-lastNote-m); }
     }
 
-    /* ======= 版面微調 for 按鈕列 + 小浮層寬度（不改文案/流程） ======= */
+    /* ======= 加長小浮層但不超版 ======= */
+    .hint-popover{ max-width: clamp(320px, 48vw, 680px); }
 
-    /* 基礎：讓小浮層更寬，但仍不超過面板與視窗 */
-    .hint-popover{
-      max-width: clamp(320px, 48vw, 680px);
-      inset-inline-end: 0;
-      right: 0;
-    }
-
-    /* 電腦版（寬螢幕）：所有欄位與按鈕同一排；四顆按鈕一致寬度 */
+    /* 電腦版：同一排 + 同寬 */
     @media (min-width: 861px){
       .row-line2{
         display:grid;
@@ -261,17 +251,15 @@
         width: var(--action-w-desk);
         height: var(--action-h);
       }
-      .hint-popover{
-        max-width: min(720px, calc(100vw - 96px));
-      }
+      .hint-popover{ max-width: min(720px, calc(100vw - 96px)); }
     }
 
-    /* 手機橫向：第三行置中、四顆同寬 */
+    /* 手機橫向：第三行置中、同寬 */
     @media (max-width: 860.98px) and (orientation: landscape){
       .actions-inline{
         display:grid;
         grid-template-columns: repeat(4, minmax(110px, 1fr));
-        justify-content: center; /* 置中 */
+        justify-content: center;
         justify-items: center;
         gap: var(--gap);
         width:100%;
@@ -280,16 +268,11 @@
         width: 100%;
         height: var(--action-h);
       }
-      .hint-popover{
-        max-width: min(80vw, 680px);
-      }
+      .hint-popover{ max-width: min(80vw, 680px); }
     }
 
-    /* 手機直向：小浮層加長但不超版（已在上方排版固定第三排） */
     @media (max-width: 860.98px) and (orientation: portrait){
-      .hint-popover{
-        max-width: min(92vw, 620px);
-      }
+      .hint-popover{ max-width: min(92vw, 620px); }
     }
   </style>
 </head>
@@ -316,18 +299,16 @@
         <input id="lastNote" placeholder="— , — , —" readonly />
       </div>
 
-      <!-- 第三行：四顆按鈕（新增「操作說明」按鈕＋原本的「先點我查看好咪🥺」= 查看備註） -->
+      <!-- 第三行：四顆按鈕（新增「操作說明」＋原本「先點我查看好咪🥺」） -->
       <div class="actions-inline">
         <button id="resetBtn" type="button" class="btn-compact">重設</button>
         <button id="lockBtn"  type="button" class="btn-compact" disabled>鎖定</button>
 
-        <!-- 新增：操作說明（行為與備註按鈕相同，開小浮層） -->
         <button id="helpBtn"  type="button" class="btn-compact" aria-expanded="false" aria-controls="helpPopover" title="點我查看操作說明">操作說明</button>
         <div id="helpPopover" class="hint-popover" role="note" aria-live="polite">
-          （這裡是「操作說明」的小浮層內容，先放和備註相同類型的說明，你之後可以自行改文字）
+          按「鎖定」後請稍候，本人有缺陷導致速度較慢🥲<br>確認送出成功，下方「狀態列」會立即通知您溜🎉
         </div>
 
-        <!-- 原：先點我查看好咪🥺（= 查看備註） -->
         <button id="hintBtn"  type="button" class="btn-compact" aria-expanded="false" aria-controls="hintPopover" title="點我查看備註">先點我查看好咪🥺</button>
         <div id="hintPopover" class="hint-popover" role="note" aria-live="polite">
           按「鎖定」後請稍候，本人有缺陷導致速度較慢🥲<br>確認送出成功，下方「狀態列」會立即通知您溜🎉
@@ -339,7 +320,7 @@
     <div class="kb-wrap"><div id="keyboard"></div></div>
   </div>
 
-  <!-- 操作說明（全頁型步驟對話框，保持原功能不變） -->
+  <!-- 操作說明 -->
   <div id="guideOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
     <div class="dialog">
       <h3 id="guideTitle">📍操作說明📍</h3>
@@ -496,29 +477,24 @@
     function renderGuitar(){
       const kb=$('#keyboard'); kb.innerHTML=''; kb.className='fretboard'; kb.style.height='var(--kb-h)';
 
-      // 頭、上枕、橋
       const head=document.createElement('div'); head.className='head'; kb.appendChild(head);
       const nut =document.createElement('div');  nut.className='nut';  kb.appendChild(nut);
       const bridge=document.createElement('div'); bridge.className='bridge'; kb.appendChild(bridge);
 
-      // 6 條弦（由上→下為細→粗；我們的點擊邏輯會把 index 轉為 5-idx 取音高，確保「粗弦在下方」）
       for(let s=0;s<6;s++){
         const y=(s+1)*(100/7);
-        const str=document.createElement('div'); str.className='string'; str.dataset{s}=String(s); str.style.top = `${y}%`; kb.appendChild(str);
-        const hline=document.createElement('div'); hline.className='head-line'; hline.dataset{s}=String(s); hline.style.top = `${y}%`; kb.appendChild(hline);
+        const str=document.createElement('div'); str.className='string'; str.dataset.s=String(s); str.style.top = `${y}%`; kb.appendChild(str);
+        const hline=document.createElement('div'); hline.className='head-line'; hline.dataset.s=String(s); hline.style.top = `${y}%`; kb.appendChild(hline);
       }
 
-      // 13 個欄位（0~12 品）
       for(let f=1; f<=13; f++){
         const col=document.createElement('div'); col.className='fret-col';
 
-        // 每欄 6 條點擊列
         for(let s=0; s<6; s++){
           const y=(s+1)*(100/7);
           const hit=document.createElement('div'); hit.className='hit-row'; hit.style.top = `${y}%`; col.appendChild(hit);
         }
 
-        // 品記號
         if([4,6,8,10].includes(f)){
           const dot=document.createElement('div');
           dot.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:#dbc6a4;opacity:.9;box-shadow:0 1px 0 rgba(0,0,0,.35);pointer-events:none;';
@@ -535,11 +511,11 @@
           const rect = col.getBoundingClientRect();
           const y = ev.clientY - rect.top;
           const slot = rect.height/7;
-          let idx = Math.round(y/slot - 1); // 0=最上細弦, 5=最下粗弦（視覺）
+          let idx = Math.round(y/slot - 1);
           idx = Math.max(0, Math.min(5, idx));
 
           if(f<=12){
-            const midi = TUNING_MIDI[5-idx] + f; // 轉為音高索引：5-idx 才是 E2..E4
+            const midi = TUNING_MIDI[5-idx] + f;
             const note = NOTE_NAMES[midi % 12] + (Math.floor(midi/12) - 1);
             trigger(note);
           }
@@ -574,24 +550,24 @@
       if(selectedNotes.length>0){ selectedNotes.pop(); selectedInsts.pop(); refreshNotesDisplay(); validateLockBtn(); }
     });
 
-    /* ====== 備註小浮層（原） ====== */
+    /* 備註／操作說明小浮層（共用邏輯） */
     const hintBtn=$('#hintBtn'), hintPop=$('#hintPopover');
+    const helpBtn=$('#helpBtn'), helpPop=$('#helpPopover');
+
     function positionArrow(pop, btn){
       const popRect=pop.getBoundingClientRect(), btnRect=btn.getBoundingClientRect();
       const x=(btnRect.left+btnRect.width/2)-popRect.left;
       const clamped=Math.max(16, Math.min(popRect.width-16, x));
       pop.style.setProperty('--arrow-x', clamped+'px');
     }
-    function closeHint(pop, btn){ pop.classList.remove('show'); btn.setAttribute('aria-expanded','false'); }
+    function closePop(pop, btn){ pop.classList.remove('show'); btn.setAttribute('aria-expanded','false'); }
+
     hintBtn.addEventListener('click', (e)=>{
       const showing=hintPop.classList.toggle('show');
       hintBtn.setAttribute('aria-expanded', showing?'true':'false');
       if(showing){ positionArrow(hintPop, hintBtn); }
       e.stopPropagation();
     });
-
-    /* ====== 新增：操作說明小浮層（與備註同邏輯） ====== */
-    const helpBtn=$('#helpBtn'), helpPop=$('#helpPopover');
     helpBtn.addEventListener('click', (e)=>{
       const showing=helpPop.classList.toggle('show');
       helpBtn.setAttribute('aria-expanded', showing?'true':'false');
@@ -599,17 +575,14 @@
       e.stopPropagation();
     });
 
-    /* 點外面關閉任一浮層 */
     document.addEventListener('click', (e)=>{
-      // 備註
       if(hintPop.classList.contains('show')){
         const within=hintPop.contains(e.target)||hintBtn.contains(e.target);
-        if(!within) closeHint(hintPop, hintBtn);
+        if(!within) closePop(hintPop, hintBtn);
       }
-      // 操作說明
       if(helpPop.classList.contains('show')){
         const within2=helpPop.contains(e.target)||helpBtn.contains(e.target);
-        if(!within2) closeHint(helpPop, helpBtn);
+        if(!within2) closePop(helpPop, helpBtn);
       }
     });
 
@@ -623,7 +596,7 @@
         if(helpPop.classList.contains('show')) positionArrow(helpPop, helpBtn);
       }, 250);
     });
-    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ closeHint(hintPop, hintBtn); closeHint(helpPop, helpBtn); } });
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ closePop(hintPop, hintBtn); closePop(helpPop, helpBtn); } });
 
     /* ====================== 鎖定送出 ====================== */
     let lineId='', displayName='', pictureUrl='';
@@ -631,7 +604,6 @@
       if(hardLocked) return;
       if(selectedNotes.length!==3){ alert('請彈滿 3 個音再鎖定'); return; }
 
-      /* --- 先快速 ping 一下 GAS 是否可達 --- */
       try {
         const ping = await fetch(WEBHOOK + '?action=ping', { method:'GET', cache:'no-store' });
         const t = await ping.text().catch(()=> '');
@@ -646,11 +618,11 @@
 
       setStatus('⏳ 送出中…');
       const payload = {
-        action: 'submitNotes',                    // ★ 後端對齊（GAS 會 toLowerCase）
-        lineId, displayName, pictureUrl,          // ★ logs B,C,D
-        instrumentsCSV: selectedInsts.join(','),  // ★ logs E
-        notesCSV:       selectedNotes.join(','),  // ★ logs F
-        extraMessage                              // ★ 預留：logs G
+        action: 'submitNotes',
+        lineId, displayName, pictureUrl,
+        instrumentsCSV: selectedInsts.join(','),
+        notesCSV:       selectedNotes.join(','),
+        extraMessage
       };
 
       const controller=new AbortController();
@@ -732,40 +704,24 @@
       $('#lockScreen').style.display='block';
     }
 
-    /* ====================== 對話框流程（直接綁定按鈕） ====================== */
-    (function(){
-      const guideOverlay   = document.getElementById('guideOverlay');
-      const unlockOverlay  = document.getElementById('unlockOverlay');
-      const btnGuideOk     = document.getElementById('guideOk');
-      const btnCancelUnlock= document.getElementById('cancelUnlock');
-      const btnConfirmUnlock= document.getElementById('confirmUnlock');
-
-      if (btnGuideOk) {
-        btnGuideOk.addEventListener('click', function(e){
-          e.stopPropagation();
+    /* ====================== 對話框流程（保留你的原本委派寫法） ====================== */
+    ['click','touchend'].forEach(evt=>{
+      document.addEventListener(evt,(e)=>{
+        const t=e.target;
+        if(t.id==='guideOk'){
+          document.getElementById('guideOverlay').classList.add('hidden');
+          document.getElementById('unlockOverlay').classList.remove('hidden');
           e.preventDefault();
-          guideOverlay.classList.add('hidden');
-          unlockOverlay.classList.remove('hidden');
-        }, { passive:false });
-      }
-
-      if (btnCancelUnlock) {
-        btnCancelUnlock.addEventListener('click', function(e){
-          e.stopPropagation();
+        }else if(t.id==='cancelUnlock'){
+          document.getElementById('unlockOverlay').classList.add('hidden');
           e.preventDefault();
-          unlockOverlay.classList.add('hidden');
-        }, { passive:false });
-      }
-
-      if (btnConfirmUnlock) {
-        btnConfirmUnlock.addEventListener('click', function(e){
-          e.stopPropagation();
-          e.preventDefault();
+        }else if(t.id==='confirmUnlock'){
           unlockAudio();
-          unlockOverlay.classList.add('hidden');
-        }, { passive:false });
-      }
-    })();
+          document.getElementById('unlockOverlay').classList.add('hidden');
+          e.preventDefault();
+        }
+      }, {passive:true});
+    });
 
     /* ========= 小工具：去掉暱稱前面跑出來的「:」或「：」 ========= */
     function sanitizeName(name){
@@ -784,19 +740,17 @@
         await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser: true });
 
         if(!liff.isLoggedIn()){
-          // ✅ 要求 openid + profile scope，避免取不到 userId / displayName
           liff.login({ scope: ['openid','profile'] });
-          return; // 會重新導回本頁
+          return;
         }
-        if(liff.ready){ await liff.ready; } // 某些瀏覽器需要等 ready
+        if(liff.ready){ await liff.ready; }
 
         let prof = null, idt = null;
         try{ prof = await liff.getProfile(); }catch(_){}
         try{ idt  = await liff.getDecodedIDToken(); }catch(_){}
 
-        // 兩條路都試：getProfile 與 ID Token
         lineId      = (prof && prof.userId) || (idt && idt.sub) || '';
-        displayName = sanitizeName( (prof && prof.displayName) || (idt and (idt.name || idt.nickname)) || '' );
+        displayName = sanitizeName( (prof && prof.displayName) || (idt && (idt.name || idt.nickname)) || '' );
         pictureUrl  = (prof && prof.pictureUrl) || '';
 
         if(!lineId){
