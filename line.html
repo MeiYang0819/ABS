@@ -46,6 +46,43 @@
       --action-w-landscape: 136px;
     }
 
+/* === 只調「操作說明 / 查看備注」兩顆按鈕的寬度，不影響其它 === */
+
+/* 桌機：讓兩顆說明類按鈕更寬，維持同寬 */
+:root{
+  --action-w-desk: 110px;            /* 可微調：讓「暱稱框」能稍短、整排更塞得下 */
+  --action-w-desk-wide: 140px;       /* ← 新增：說明/備注兩顆按鈕寬度(桌機) */
+}
+.actions-inline > #helpBtn,
+.actions-inline > #hintBtn{
+  width: var(--action-w-desk-wide);
+}
+
+/* 2) 共用：避免文字換行擠出高度 */
+.row button{ white-space: nowrap; }
+
+/* 3) 手機「直向」：第三排四顆同寬，不超版面 */
+@media (orientation:portrait){
+  .actions-inline{
+    grid-template-columns: repeat(4, minmax(128px, 1fr)); /* ← 四顆都有最小寬度，且不超出容器 */
+    justify-items: stretch;
+  }
+}
+
+/* 4) 手機「橫向」：第三排四顆同寬、置中、不要太分散 */
+@media (max-width: 860.98px) and (orientation: landscape){
+  .actions-inline{
+    grid-template-columns: repeat(4, minmax(140px, 1fr)); /* ← 同寬、稍長一點 */
+    justify-content: center;   /* 整組置中 */
+    justify-items: center;     /* 每顆置中 */
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+    
     *{
       box-sizing:border-box;
       font-family:"Zen Maru Gothic","Noto Sans TC",system-ui,-apple-system,sans-serif !important;
