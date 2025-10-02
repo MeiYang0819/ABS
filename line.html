@@ -172,6 +172,7 @@
     .dialog button.primary{ background:#fff; }
 
     #lockScreen{ position:fixed; inset:0; z-index:9998; display:none; background:transparent; }
+
     footer{ max-width:1060px;margin:8px auto 22px; text-align:center; color:#6b5e52; font-size:12px; opacity:.9; }
 
     /* ====================== 手機直向：重排 ====================== */
@@ -212,6 +213,67 @@
 
       .align-to-email{ margin-left:0 !important; }
       #lastNote{ width:var(--w-lastNote-m); }
+    }
+
+    /* ======= 版面微調 for 按鈕列 + 小浮層寬度（不改文案/流程） ======= */
+
+    /* 基礎：讓小浮層更寬，但仍不超過面板與視窗 */
+    .hint-popover{
+      max-width: clamp(320px, 48vw, 680px);
+      inset-inline-end: 0;
+      right: 0;
+    }
+
+    /* 電腦版（寬螢幕）：第三行 4 顆同一排；小浮層再寬但不破版 */
+    @media (min-width: 861px){
+      .actions-inline{
+        display:flex;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        align-items: center;
+        gap: var(--gap);
+      }
+      .actions-inline > button{
+        flex: 0 0 auto;
+      }
+      .hint-popover{
+        max-width: min(720px, calc(100vw - 96px));
+      }
+    }
+
+    /* 手機直向：第三行不超出框框；小浮層加長不超版 */
+    @media (max-width: 860.98px) and (orientation: portrait){
+      .actions-inline{
+        display:flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        gap: var(--gap);
+      }
+      .actions-inline > button{
+        flex: 1 1 calc(33.33% - var(--gap));
+        min-width: 96px;
+        max-width: 180px;
+      }
+      .hint-popover{
+        max-width: min(92vw, 620px);
+      }
+    }
+
+    /* 手機橫向：第三行置中；小浮層加長不超畫面 */
+    @media (max-width: 860.98px) and (orientation: landscape){
+      .actions-inline{
+        display:flex;
+        flex-wrap: wrap;
+        justify-content: center; /* 置中 */
+        gap: var(--gap);
+      }
+      .actions-inline > button{
+        flex: 0 1 auto;
+        min-width: 110px;
+      }
+      .hint-popover{
+        max-width: min(80vw, 680px);
+      }
     }
   </style>
 </head>
@@ -654,24 +716,40 @@
       $('#lockScreen').style.display='block';
     }
 
-    /* ====================== 對話框流程 ====================== */
-    ['click','touchend'].forEach(evt=>{
-      document.addEventListener(evt,(e)=>{
-        const t=e.target;
-        if(t.id==='guideOk'){
-          document.getElementById('guideOverlay').classList.add('hidden');
-          document.getElementById('unlockOverlay').classList.remove('hidden');
+    /* ====================== 對話框流程（直接綁定按鈕） ====================== */
+    (function(){
+      const guideOverlay   = document.getElementById('guideOverlay');
+      const unlockOverlay  = document.getElementById('unlockOverlay');
+      const btnGuideOk     = document.getElementById('guideOk');
+      const btnCancelUnlock= document.getElementById('cancelUnlock');
+      const btnConfirmUnlock= document.getElementById('confirmUnlock');
+
+      if (btnGuideOk) {
+        btnGuideOk.addEventListener('click', function(e){
+          e.stopPropagation();
           e.preventDefault();
-        }else if(t.id==='cancelUnlock'){
-          document.getElementById('unlockOverlay').classList.add('hidden');
+          guideOverlay.classList.add('hidden');
+          unlockOverlay.classList.remove('hidden');
+        }, { passive:false });
+      }
+
+      if (btnCancelUnlock) {
+        btnCancelUnlock.addEventListener('click', function(e){
+          e.stopPropagation();
           e.preventDefault();
-        }else if(t.id==='confirmUnlock'){
+          unlockOverlay.classList.add('hidden');
+        }, { passive:false });
+      }
+
+      if (btnConfirmUnlock) {
+        btnConfirmUnlock.addEventListener('click', function(e){
+          e.stopPropagation();
+          e.preventDefault();
           unlockAudio();
-          document.getElementById('unlockOverlay').classList.add('hidden');
-          e.preventDefault();
-        }
-      }, {passive:true});
-    });
+          unlockOverlay.classList.add('hidden');
+        }, { passive:false });
+      }
+    })();
 
     /* ========= 小工具：去掉暱稱前面跑出來的「:」或「：」 ========= */
     function sanitizeName(name){
