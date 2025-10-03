@@ -163,7 +163,8 @@
       .dlg-actions{display:flex;gap:10px;justify-content:center;margin-top:12px;}
       .dlg-actions button{width:120px;height:var(--tool-h);border-radius:10px;border:1px solid var(--rim);background:#fff;cursor:pointer;font-weight:700;}
 
-      .footeropyright{position:fixed;left:0;right:0;bottom:6px;z-index:0;text-align:center;padding:var(--copyright-pad) 0;
+      /* 修正 class 名稱：footer-copyright */
+      .footer-copyright{position:fixed;left:0;right:0;bottom:6px;z-index:0;text-align:center;padding:var(--copyright-pad) 0;
         font-size:13px;font-weight:700;color:var(--copyright-color);-webkit-text-stroke:0;text-shadow:none;}
 
       @media (max-width: 860px) and (orientation: portrait){
@@ -274,7 +275,10 @@
       </div>
     </div>
 
-    <div class="footeropyright" id="copyright">© Copyright 2025 MY‘s System</div>
+    <!-- 修正這裡的 class 名稱與上面一致 -->
+    <div class="footer-copyright" id="copyright">
+      © Copyright 2025 MY‘s System
+    </div>
 
     <div id="viewOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="viewTitle">
       <div class="dialog">
@@ -297,6 +301,7 @@
       </div>
     </div>
 
+    <!-- ///* LINE LIFF SDK */// -->
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
     <script>
@@ -339,7 +344,7 @@
       function applyNameLabel(lbl){
         const name = (lbl && String(lbl).trim()) ? lbl : (localStorage.getItem(LS_KEY_NAME)||'—');
         document.getElementById('brideLabel').textContent = 'Dear ' + (name||'—');
-        // ✅ 新人欄位加長一點點（不改 CSS，僅執行期設定）
+        // 新人欄位加長一點點（不改 CSS，執行期設定）
         const chip=document.getElementById('chipBride');
         chip.style.width='110px'; chip.style.minWidth='110px';
       }
@@ -354,7 +359,7 @@
             applyNameLabel(name);
           }
         }catch(_){
-            applyNameLabel(null);
+          applyNameLabel(null);
         }
       }
 
@@ -450,7 +455,7 @@
           signatureDataURL=pad.toDataURL('image/png');
           const chip=document.getElementById('chipSign'); const img=document.getElementById('signThumb');
           chip.classList.remove('has-img','locked');
-          img.onload = ()=>{ chip.classList.add('has-img'); img.onload=null; };
+          img.onload = ()=>{ chip.classList.add('has-img'); chip.classList.add('locked'); signatureLocked=true; img.onload=null; };
           img.removeAttribute('alt'); img.loading='eager'; img.src=signatureDataURL;
           sigOverlay.classList.remove('show');
         });
@@ -470,7 +475,7 @@
       function oneLinePreview(s){ return htmlToPlain(s).replace(/\n+/g,' '); }
       function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
 
-      // ✅ 恢復原狀：相容多種欄位
+      // 恢復原狀：相容多種欄位
       function tileTemplate(it){
         const raw = (it.preview ?? it.contentHTML ?? it.content ?? it.text ?? '');
         const snippet = oneLinePreview(raw) || '—';
@@ -483,7 +488,7 @@
         </div>`;
       }
 
-      // ✅ 角色列表若是空，自動回退 all，保證木牌會出現
+      // 角色列表若是空，自動回退 all，保證木牌會出現
       async function refreshWall(){
         try{
           const role=document.querySelector('.role-btn.active')?.id?.replace('role','').toLowerCase()||'all';
@@ -528,7 +533,7 @@
         btnSend.disabled = sendDisabled; btnSend.style.opacity = sendDisabled ? '0.6' : '1'; btnSend.style.pointerEvents = sendDisabled ? 'none' : 'auto';
       }
 
-      // ✅ 鎖定互動：點「再次修改」→ 自身先鎖、鎖定(送出)可按；成功送出後才解鎖「再次修改」
+      // 鎖定互動：點「再次修改」→ 自身先鎖、鎖定(送出)可按；成功送出後才解鎖「再次修改」
       document.getElementById('btnEdit').onclick=()=>{
         unlockEditor();
         submittedOnce=false; sendInFlight=false;
