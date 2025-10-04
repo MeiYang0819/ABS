@@ -327,7 +327,7 @@
         try{
           const s=String(u);
           const m1 = s.match(/drive\.google\.com\/file\/d\/([^/]+)/);
-          const m2 = s.match(/[?&]id=([^&]+)/);
+        const m2 = s.match(/[?&]id=([^&]+)/);
           const id = m1 ? m1[1] : (m2 ? m2[1] : null);
           return id ? `https://drive.google.com/uc?export=view&id=${id}` : u;
         }catch(_){ return u; }
@@ -500,6 +500,7 @@
 
         sendInFlight=true;
         setButtonsState({ canEdit:false, canSend:false, inflight:true });
+        setStatus('⏳ 送出中，請稍後'); /* ← 新增：送出過程顯示等待狀態 */
 
         const content=editor.innerHTML.trim();
         const payload = myLastRow
