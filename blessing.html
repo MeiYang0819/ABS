@@ -11,29 +11,61 @@
     <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand:wght@400&family=Sacramento:wght@400;700&display=swap" rel="stylesheet" />
 
     <style>
+      /* ///======================= 全域 CSS 變數（可調參數） =======================/// */
       :root{
-        --brand-bg:#c9daf8; --title:#A68A7C; --ink:#0f172a; --accent:#A68A7C; --rim:#E4E4E4; --soft:#F5F1EC;
-        --panel-grad-from:#b7d2f6; --panel-grad-to:#cfe1fb;
-        --panel-maxw:1320px; --card-maxw:1200px;
-        --radius-xl:16px; --radius-md:12px;
-        --shadow-1:0 10px 26px rgba(0,0,0,.10); --shadow-2:0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06);
-        --toolbar-gap:8px; --tool-h:36px; --editor-zoom:1rem;
-        --ctrl-w:90px; --ctrl-h:36px;
+        --brand-bg:#c9daf8;
+        --title:#A68A7C;
+        --ink:#0f172a;
+        --accent:#A68A7C;
+        --rim:#E4E4E4;
+        --soft:#F5F1EC;
+
+        --panel-grad-from:#b7d2f6;
+        --panel-grad-to:#cfe1fb;
+
+        --panel-maxw:1320px;
+        --card-maxw:1200px;
+
+        --radius-xl:16px;
+        --radius-md:12px;
+
+        --shadow-1:0 10px 26px rgba(0,0,0,.10);
+        --shadow-2:0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06);
+
+        --toolbar-gap:8px;
+        --tool-h:36px;
+        --editor-zoom:1rem;
+
+        --ctrl-w:90px;
+        --ctrl-h:36px;
+
         --panel-bottom-gap:25px;
-        --copyright-color:#444444; --copyright-pad:12px;
-        --tile-w:180px; --tile-h:156px; --wood-grain-contrast:.9; --rope-width:8px; --rope-height:42px; --knot-size:22px;
+
+        --copyright-color:#444444;
+        --copyright-pad:12px;
+
+        --tile-w:180px;
+        --tile-h:156px;
+        --wood-grain-contrast:.9;
+        --rope-width:8px;
+        --rope-height:42px;
+        --knot-size:22px;
       }
+
       .bg-notes{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none;user-select:none;}
+
       *{box-sizing:border-box;}
       html,body{height:100%;margin:0;overflow:hidden;color:var(--ink);background:var(--brand-bg);
         font-family:"Patrick Hand","Noto Sans TC",system-ui,-apple-system,sans-serif;
         -webkit-text-stroke:.35px rgba(0,0,0,.18); text-shadow:0 1px 0 rgba(255,255,255,.65);}
+
       .panel{position:relative;z-index:1;max-width:var(--panel-maxw);
         height:calc(100vh - 110px);margin:26px auto;background:linear-gradient(135deg,var(--panel-grad-from),var(--panel-grad-to));
         border:1px solid var(--rim);border-radius:16px;box-shadow:var(--shadow-1);display:flex;flex-direction:column;overflow:hidden;}
       h2{position:relative;left:50%;transform:translateX(-50%);margin:12px 0 6px;text-align:center;width:max-content;max-width:90%;
         font-family:"Sacramento",cursive;font-weight:700;font-size:2.8rem;color:var(--title);
         -webkit-text-stroke:.6px rgba(0,0,0,.12);text-shadow:0 3px 4px rgba(255,255,255,.75);}
+
       .bar{padding:6px 22px 8px;}
       .bar-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:12px;}
       .toolbar{display:flex;gap:var(--toolbar-gap);filter:drop-shadow(0 2px 0 rgba(0,0,0,.08));}
@@ -41,38 +73,63 @@
         border-radius:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:var(--shadow-2);cursor:pointer;}
       .tool-select{min-width:auto;padding:0 10px;}
       .tool-btn:active{transform:translateY(1px) scale(.99);}
+
       .rolebar{display:flex;gap:var(--toolbar-gap);}
       .role-btn{min-width:64px;height:var(--tool-h);padding:0 12px;background:#fff;border:1px solid var(--rim);border-radius:12px;
         font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-2);cursor:pointer;}
       .role-btn.active{outline:2px solid rgba(0,0,0,.15);}
       #status{flex:1 1 auto;min-width:240px;background:#F5F1EC;border:1px solid #E4E4E4;border-radius:12px;padding:8px 10px;
         font-size:14px;text-align:center;color:#A68A7C;font-weight:700;}
+
       .stage{flex:1 1 auto;padding:14px 22px var(--panel-bottom-gap);display:flex;justify-content:center;align-items:flex-start;overflow:hidden;}
       .card{position:relative;width:100%;max-width:var(--card-maxw);border:1px solid rgba(0,0,0,.05);border-radius:16px;box-shadow:0 10px 26px rgba(0,0,0,.08);
         padding:22px;height:calc(100% - var(--panel-bottom-gap));display:grid;grid-template-columns:1fr 2fr;gap:14px;background:#e6b8af;}
+
       .left-wrap{position:relative;background:linear-gradient(180deg, rgba(255,242,204,.98), rgba(255,242,204,.92));border-radius:16px;border:1px solid rgba(0,0,0,.05);padding:12px;overflow:hidden;}
       .left-content{position:relative;height:100%;}
+
       .chip{position:absolute;min-width:var(--ctrl-w);width:var(--ctrl-w);height:var(--ctrl-h);background:#fff;border:1px solid var(--rim);border-radius:10px;
         box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;gap:8px;padding:0 10px;user-select:none;}
       #chipBride{top:10px;left:10px;}
       #brideLabel{font-weight:800;line-height:1;}
+
       .editor{position:absolute;top:calc(10px + var(--ctrl-h) + 16px);right:10px;bottom:calc(10px + var(--ctrl-h) + 6px);left:10px;overflow:auto;line-height:1.8;
         outline:none;background:transparent;border-radius:12px;padding:14px;font-size:var(--editor-zoom);border:1px dashed rgba(0,0,0,.12);}
       .editor[data-empty]{opacity:1;color:rgba(15,23,42,.28);-webkit-text-stroke:0;text-shadow:none;font-style:italic;}
       .editor.locked{pointer-events:none;opacity:.85;}
+
       .left-actions{position:absolute;left:10px;right:10px;bottom:10px;height:var(--ctrl-h);display:flex;gap:8px;justify-content:center;flex-wrap:nowrap;}
       .left-actions > *{flex:0 0 var(--ctrl-w);width:var(--ctrl-w);height:100%;}
       .left-actions button{background:#fff;border:1px solid var(--rim);border-radius:10px;font-weight:800;box-shadow:var(--shadow-2);cursor:pointer;white-space:nowrap;}
       .left-actions button:active{transform:translateY(1px) scale(.99);}
-      .left-actions .chip{font-size:1rem;font-weight:800;line-height:1; position:static; display:flex; align-items:center; justify-content:center; cursor:pointer;
-        background:#fff; border:1px solid var(--rim); border-radius:10px; box-shadow:var(--shadow-2); padding:0; overflow:hidden; width:var(--ctrl-w); height:var(--ctrl-h);}
+
+      .left-actions .chip{
+        font-size:1rem;font-weight:800;line-height:1; position:static; display:flex; align-items:center; justify-content:center; cursor:pointer;
+        background:#fff; border:1px solid var(--rim); border-radius:10px; box-shadow:var(--shadow-2); padding:0; overflow:hidden;
+        width:var(--ctrl-w); height:var(--ctrl-h);
+      }
       #chipSign .hint{ font-weight:800; color:rgba(15,23,42,.38); }
       #chipSign.locked{ pointer-events:none; opacity:.9; }
       #signThumb{ display:none; width:100%; height:100%; object-fit:contain; pointer-events:none; max-width:100%; max-height:100%; }
       #chipSign.has-img #signThumb{ display:block; }
       #chipSign.has-img .hint{ display:none; }
-      .wall-wrap{background:linear-gradient(180deg,#f9e5ee,#f6dce7); border-radius:16px;border:1px solid rgba(0,0,0,.05); padding:12px; overflow:auto;}
-      .wall{min-height:280px;height:100%;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;align-content:start;padding:2px;overflow:visible;}
+
+      .wall-wrap{
+        background:linear-gradient(180deg,#f9e5ee,#f6dce7);
+        border-radius:16px;border:1px solid rgba(0,0,0,.05);
+        padding:12px;
+        overflow:auto;
+      }
+      .wall{
+        min-height:280px;
+        height:100%;
+        display:grid;
+        grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+        gap:14px;align-content:start;
+        padding:2px;
+        overflow:visible;
+      }
+
       .tile{
         position:relative;width:100%;height:var(--tile-h);padding:18px 12px 12px;cursor:pointer;overflow:hidden;display:flex;flex-direction:column;gap:6px;
         background:
@@ -86,10 +143,12 @@
       }
       .tile::before{content:"";position:absolute;top:2px;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;
         background:radial-gradient(circle at 35% 35%, #fff 0 35%, #bbb 36% 60%, transparent 61%);box-shadow:inset 0 1px 0 rgba(255,255,255,.9), inset 0 -1px 0 rgba(0,0,0,.15);}
+
       .tile-name{font-weight:800;text-align:center;margin-top:8px;}
       .tile-sep{height:1px;background:rgba(0,0,0,.12);margin:6px 0;}
       .tile-date{font-size:12px;opacity:.85;text-align:center;font-weight:800;}
       .tile-snippet{font-size:14px;line-height:1.6;text-align:left;word-break:break-word;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;}
+
       .overlay{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:rgba(17,24,39,.35);backdrop-filter:blur(3px);}
       .overlay.show{display:flex;}
       .dialog{width:min(92vw,680px);max-height:82vh;background:#F5F1EC;border:1px solid var(--rim);border-radius:14px;padding:16px;box-shadow:0 18px 44px rgba(0,0,0,.18);overflow:auto;}
@@ -98,12 +157,15 @@
       .view-content{background:#fff;border:1px solid #ddd;border-radius:12px;padding:12px;line-height:1.8;}
       .view-actions{display:flex;gap:10px;justify-content:center;margin-top:12px;}
       .view-actions button{min-width:120px;height:var(--tool-h);border-radius:10px;border:1px solid var(--rim);background:#fff;cursor:pointer;font-weight:700;}
+
       #sigOverlay .dialog{width:min(92vw,520px);}
       #pad{width:100%;height:260px;background:#fff;border:1px solid #ddd;border-radius:12px;touch-action:none;}
       .dlg-actions{display:flex;gap:10px;justify-content:center;margin-top:12px;}
       .dlg-actions button{width:120px;height:var(--tool-h);border-radius:10px;border:1px solid var(--rim);background:#fff;cursor:pointer;font-weight:700;}
+
       .footer-copyright{position:fixed;left:0;right:0;bottom:6px;z-index:0;text-align:center;padding:var(--copyright-pad) 0;
         font-size:13px;font-weight:700;color:var(--copyright-color);-webkit-text-stroke:0;text-shadow:none;}
+
       @media (max-width: 860px) and (orientation: portrait){
         :root{ --tool-w-m: 53px; }
         .bar-inner{ flex-direction: column; align-items: stretch; gap: 8px; }
@@ -112,29 +174,36 @@
         .toolbar{ order:3; flex-wrap:wrap; justify-content:center; gap:8px; }
         .toolbar .tool-btn,.toolbar .tool-select{ min-width:0; width:var(--tool-w-m); height:32px; padding:0 10px; font-size:13px; border-radius:10px; }
         .toolbar .tool-select{ text-align:center; text-align-last:center; }
+
         html, body{ overflow:auto; }
         .panel{ height:auto; min-height:100dvh; }
         .stage{ overflow:visible; padding:10px 10px var(--panel-bottom-gap); }
+
         .card{ grid-template-columns:1fr; grid-template-rows:74% 26%; height:auto; min-height:calc(100dvh - 160px); gap:12px; }
         .left-wrap{ min-height:0; }
         .wall-wrap{ min-height:0; }
         .editor{ bottom: calc(10px + var(--ctrl-h) + 16px); }
+
         :root{ --tile-h: 160px; }
         .wall{ grid-template-columns: repeat(2, 1fr); gap:14px; }
         .tile{ font-size: 14px; }
       }
+
       @media (max-width: 860px) and (orientation: landscape){
         html, body{ overflow:auto; }
         .panel{ height:auto; min-height:100dvh; }
         .stage{ padding:10px 12px var(--panel-bottom-gap); overflow:visible; }
         .card{ grid-template-columns:1fr 1.2fr; gap:12px; height:auto; min-height:calc(100dvh - 160px); }
+
         .bar-inner{ flex-wrap:wrap; align-items:center; gap:10px 12px; }
         .rolebar{ order:1; flex:0 1 auto; }
         #status{ order:1; flex:1 1 50%; min-width:200px; }
         .toolbar{ order:2; flex:1 0 100%; justify-content:center; }
+
         :root{ --ctrl-w: 86px; }
         .left-actions{ gap:8px; right:10px; left:10px; flex-wrap:nowrap; }
         .left-actions .chip,.left-actions button{ font-size:.95rem; }
+
         .wall{ grid-template-columns: repeat(2, 1fr); gap:14px; }
       }
     </style>
@@ -242,46 +311,6 @@
       const LS_KEY_CONTENT='blessContent';
       const LS_KEY_NAME='nameLabel';
 
-      /* ================= 容錯工具：智慧 fetch ================= */
-      function addBust(url){
-        const u=new URL(url);
-        u.searchParams.set('_t', Date.now().toString());
-        return u.toString();
-      }
-      async function quickPing(){
-        try{
-          const url=addBust(`${WEBHOOK}?action=ping`);
-          const r=await fetch(url,{method:'GET',cache:'no-store',credentials:'omit',redirect:'follow'});
-          return r.ok; // 只要 200 就當 OK（不強制 JSON）
-        }catch(_){ return false; }
-      }
-      async function safeFetch(url, opts={}, wantJSON=true){
-        // 自動加 cache-bust；失敗重試一次
-        async function once(u, o){
-          const r=await fetch(addBust(u), Object.assign({cache:'no-store',redirect:'follow'}, o||{}));
-          let data=null, ctype=r.headers.get('content-type')||'';
-          if(wantJSON){
-            if(ctype.includes('application/json')){ data=await r.json().catch(()=>null); }
-            else{
-              const txt=await r.text().catch(()=> '');
-              try{ data=JSON.parse(txt); }catch(_){ data = r.ok ? {ok:true,_text:txt} : null; }
-            }
-          }else{
-            data = await r.text().catch(()=> '');
-          }
-          return {ok:r.ok, status:r.status, data};
-        }
-        // 先 ping（GET 類呼叫前特別有用；POST 也迅速檢查外網可達）
-        await quickPing();
-        let res=await once(url,opts);
-        if(!(res.ok && res.data)) {
-          // 重試一次
-          res=await once(url, Object.assign({},opts,{keepalive:true}));
-        }
-        return res;
-      }
-      /* ===================================================== */
-
       function parseSheetTimeToDate(s){
         if(!s) return new Date();
         const m=/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})$/.exec(String(s).trim());
@@ -310,19 +339,23 @@
       function applyNameLabel(lbl){
         const name = (lbl && String(lbl).trim()) ? lbl : (localStorage.getItem(LS_KEY_NAME)||'—');
         document.getElementById('brideLabel').textContent = 'Dear ' + (name||'—');
-        const chip=document.getElementById('chipBride'); chip.style.width='110px'; chip.style.minWidth='110px';
+        // ✅ 新人欄位加長一點點（不改 CSS，僅執行期設定）
+        const chip=document.getElementById('chipBride');
+        chip.style.width='110px'; chip.style.minWidth='110px';
       }
 
       async function fetchRoleAndNames(){
         applyNameLabel(null);
         try{
-          const {ok,data}=await safeFetch(`${WEBHOOK}?action=userRole&lineId=${encodeURIComponent(lineId||'')}`, {method:'GET'});
-          if(ok && data && data.ok){
-            const name = data.nameLabel || '—';
+          const j=await (await fetch(WEBHOOK+`?action=userRole&lineId=${encodeURIComponent(lineId||'')}`)).json();
+          if(j?.ok){
+            const name = j.nameLabel || '—';
             localStorage.setItem(LS_KEY_NAME, name);
             applyNameLabel(name);
           }
-        }catch(_){ applyNameLabel(null); }
+        }catch(_){
+          applyNameLabel(null);
+        }
       }
 
       function toDriveDirectUrl(u){
@@ -337,22 +370,25 @@
       }
 
       async function preloadMyLatest(){
+        // 先把快取顯示出來（避免手機端因登入/權限延遲看不到）
         const cached = localStorage.getItem(LS_KEY_CONTENT);
         if(cached && editor.hasAttribute('data-empty')){
-          editor.removeAttribute('data-empty'); editor.innerHTML = cached;
+          editor.removeAttribute('data-empty');
+          editor.innerHTML = cached;
         }
 
         if(!lineId){ return; }
         try{
-          const {ok,data}=await safeFetch(`${WEBHOOK}?action=getLatestByLineId&lineId=${encodeURIComponent(lineId)}`, {method:'GET'});
-          if(ok && data && data.ok && data.item){
-            const it=data.item;
+          const j=await (await fetch(WEBHOOK+`?action=getLatestByLineId&lineId=${encodeURIComponent(lineId)}`)).json();
+          if(j?.ok && j.item){
+            const it=j.item;
             if(it.contentHTML){
               editor.innerHTML=it.contentHTML; editor.removeAttribute('data-empty'); lockEditor();
               localStorage.setItem(LS_KEY_CONTENT, it.contentHTML);
             }
             if(it.signature){
-              const chip=document.getElementById('chipSign'); const img=document.getElementById('signThumb');
+              const chip=document.getElementById('chipSign');
+              const img=document.getElementById('signThumb');
               let src = String(it.signature||'').trim();
               if(src){
                 src = src.startsWith('data:') ? src : toDriveDirectUrl(src);
@@ -434,6 +470,7 @@
       function oneLinePreview(s){ return htmlToPlain(s).replace(/\n+/g,' '); }
       function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
 
+      // ✅ 恢復原狀：相容多種欄位
       function tileTemplate(it){
         const raw = (it.preview ?? it.contentHTML ?? it.content ?? it.text ?? '');
         const snippet = oneLinePreview(raw) || '—';
@@ -446,16 +483,18 @@
         </div>`;
       }
 
+      // ✅ 角色列表若是空，自動回退 all，保證木牌會出現
       async function refreshWall(){
         try{
           const role=document.querySelector('.role-btn.active')?.id?.replace('role','').toLowerCase()||'all';
-          let {ok,data}=await safeFetch(`${WEBHOOK}?action=listblessings&role=${role}`, {method:'GET'});
-          if(!(ok && data && data.ok)){
-            // 角色無資料或取不到就回退 all
-            ({ok,data}=await safeFetch(`${WEBHOOK}?action=listblessings&role=all`, {method:'GET'}));
-          }
-          if(ok && data && data.ok){
-            const sorted=(data.items||[]).slice().sort((a,b)=>parseSheetTimeToDate(b.time)-parseSheetTimeToDate(a.time));
+          const j=await (await fetch(WEBHOOK+`?action=listblessings&role=${role}`)).json();
+          if(j?.ok){
+            let arr=(j.items||[]);
+            if((!arr || arr.length===0) && role!=='all'){
+              const j2 = await (await fetch(WEBHOOK+`?action=listblessings&role=all`)).json().catch(()=>null);
+              if(j2?.ok) arr = j2.items||[];
+            }
+            const sorted=(arr||[]).slice().sort((a,b)=>parseSheetTimeToDate(b.time)-parseSheetTimeToDate(a.time));
             wallEl.innerHTML=sorted.map(tileTemplate).join('');
             bindTileClicks();
           }
@@ -464,10 +503,10 @@
       function bindTileClicks(){ document.querySelectorAll('.tile').forEach(t=>t.addEventListener('click',()=>openView(t))); }
       async function openView(el){
         const row=el.getAttribute('data-row');
-        const {ok,data}=await safeFetch(`${WEBHOOK}?action=getBlessingDetail&id=${encodeURIComponent(row)}`, {method:'GET'});
-        if(ok && data && data.ok && data.item){
-          document.getElementById('viewMeta').textContent=`${data.item.displayName||'—'} ｜ ${fmtTaipei(data.item.time)}`;
-          document.getElementById('viewContent').innerHTML=data.item.contentHTML||'';
+        const j=await (await fetch(WEBHOOK+`?action=getBlessingDetail&id=${encodeURIComponent(row)}`)).json();
+        if(j?.ok&&j.item){
+          document.getElementById('viewMeta').textContent=`${j.item.displayName||'—'} ｜ ${fmtTaipei(j.item.time)}`;
+          document.getElementById('viewContent').innerHTML=j.item.contentHTML||'';
           document.getElementById('viewOverlay').classList.add('show');
         }
       }
@@ -489,6 +528,8 @@
         btnSend.disabled = sendDisabled; btnSend.style.opacity = sendDisabled ? '0.6' : '1'; btnSend.style.pointerEvents = sendDisabled ? 'none' : 'auto';
       }
 
+      // ✅ 你的鎖定邏輯（完整落實）
+      // 點「再次修改」：解鎖編輯區，但「再次修改」先鎖住，只開放「鎖定(送出)」
       document.getElementById('btnEdit').onclick=()=>{
         unlockEditor();
         submittedOnce=false; sendInFlight=false;
@@ -503,30 +544,30 @@
 
         sendInFlight=true;
         setButtonsState({ canEdit:false, canSend:false, inflight:true });
-        setStatus('⏳ 送出中，請稍後');
 
         const content=editor.innerHTML.trim();
         const payload = myLastRow
           ? {action:'updateBlessing',row:Number(myLastRow),lineId,contentHTML:content}
           : {action:'createBlessing',lineId,displayName,pictureUrl,contentHTML:content,signaturePNG:signatureDataURL||'',extra:{}};
-
         try{
-          const {ok,data}=await safeFetch(WEBHOOK, {
-            method:'POST',
-            headers:{'Content-Type':'text/plain;charset=UTF-8'},
-            body: JSON.stringify(payload),
-            keepalive:true
-          });
-          if(ok && data && (data.ok || data._text)){ // 接受 JSON ok:true 或純文字成功場合
+          const r=await fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(payload)});
+          const j=await r.json().catch(()=>null);
+          if(j?.ok){
             submittedOnce=true; lockEditor(); await refreshWall(); if(!myLastRow) await preloadMyLatest();
             setStatus(myLastRow?'✅ 已更新並鎖定，截止日前都可以修改唷':'✅ 已送出並鎖定，截止日前都可以修改唷');
             if(!signatureLocked){ signatureLocked=true; document.getElementById('chipSign').classList.add('locked'); }
+            // 成功後：再次修改可見可按；鎖定不可按
             setButtonsState({ canEdit:true, canSend:false, inflight:false });
             sendInFlight=false;
-            if(data && data.row) myLastRow = myLastRow || Number(data.row||0) || myLastRow;
+            myLastRow = myLastRow || Number(j.row||0) || myLastRow;
+          }else if(j?.error==='deadline_passed'){
+            setStatus('⛔ 已到截止日，無法送出及編輯'); lockEditor();
+            setButtonsState({ canEdit:false, canSend:false, inflight:false });
+            sendInFlight=false;
           }else{
             setStatus('❌ 送出失敗，稍後再試');
             sendInFlight=false;
+            // 失敗時允許再修再送：再次修改維持鎖 → 使用者可直接按「鎖定」重送；若要改，再按一次「再次修改」開編輯。
             setButtonsState({ canEdit:false, canSend:true, inflight:false });
           }
         }catch(_){
@@ -541,7 +582,8 @@
         applyNameLabel(null);
         const cached = localStorage.getItem(LS_KEY_CONTENT);
         if(cached && editor.hasAttribute('data-empty')){
-          editor.removeAttribute('data-empty'); editor.innerHTML = cached;
+          editor.removeAttribute('data-empty');
+          editor.innerHTML = cached;
         }
         if(!editor.textContent.trim()){ editor.setAttribute('data-empty',''); editor.textContent='寫下並獻上最誠摯的祝福…💝'; }
         if(window.liff) initLIFF(); else initialLoad();
