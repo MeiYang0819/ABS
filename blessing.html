@@ -1,653 +1,680 @@
-<!doctype html>
-<html lang="zh-Hant">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>💞同心祈願</title>
+//******************************* 同心祈願 + 互動音符 *******************************//
+//* 試算表工作表（主本 / 副本結構相同） *//
+//*  - guests: A=man(新郎), B=woman(新娘), C=deadline(可選) *//
+//*  - logs  : A=time, B=lineId, C=pictureUrl, D=friend(role), *//
+//*            E=displayName, F=instruments, G=notes *//
+//*  - blessings: *//
+//*      A=time, B=lineId, C=displayName, D=pictureUrl, E=role, *//
+//*      F=contentHTML(實際存純文字), G=signature, H=signatureType, I=extraJSON *//
+//*******************************************************************************//
 
-    <!-- ///* 字型預載：Google Fonts */// -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand:wght@400&family=Sacramento:wght@400;700&display=swap" rel="stylesheet" />
+/** ── 最小化：LINE Verify 專用 ───────────────────────── **/
+// ★ 合併為唯一的 doPost：同時滿足 Verify（立即 200）與前端/Webhook 分流
+function doPost(e){
+  try{
+    // 先解析 body（沒有就給空物件）
+    var body = {};
+    try{ body = JSON.parse(e && e.postData && e.postData.contents || '{}'); }catch(_){ body = {}; }
 
-    <style>
-      /* ///======================= 全域 CSS 變數（可調參數） =======================/// */
-      :root{
-        --brand-bg:#c9daf8;           /* 背景底色（藍紫） 可調 */
-        --title:#A68A7C;              /* 主標題字色 可調 */
-        --ink:#0f172a;                /* 內文主字色 可調 */
-        --accent:#A68A7C;             /* 重點/點綴色 可調 */
-        --rim:#E4E4E4;                /* 邊框線顏色 可調 */
-        --soft:#F5F1EC;               /* 柔和底色（淺米） 可調 */
+    // 1) LINE Webhook（互動音符 + 同心祈願入口）
+    if (body && Array.isArray(body.events)) {
+      return handleLineWebhook_(body); // 直接回 JSON；LINE 只要求 200 即可
+    }
 
-        --panel-grad-from:#b7d2f6;    /* 面板漸層 起色 可調 */
-        --panel-grad-to:#cfe1fb;      /* 面板漸層 末色 可調 */
+    // 2) 前端/LIFF 的 action 分流（維持你原本的流程）
+    var act = String(body.action || '').toLowerCase();
+    if (act === 'createblessing') return handleCreateBlessing_(body);
+    if (act === 'updateblessing') return handleUpdateBlessing_(body);
+    if (act === 'submitnotes')    return handleLiffSubmit_(body);
 
-        --panel-maxw:1320px;          /* 外層面板 最大寬度 可調 */
-        --card-maxw:1200px;           /* 內容卡片 最大寬度 可調 */
+    // 3) 未知情境：仍回 200，避免 Verify 逾時/302
+    return J({ok:true});
+  }catch(err){
+    return J({ok:false, error: String(err)});
+  }
+}
+/** ───────────────────────────────────────────────────── **/
 
-        --radius-xl:16px;             /* 大圓角 可調 */
-        --radius-md:12px;             /* 中圓角 可調 */
+//* ==================== 必改參數（請填你自己的） ==================== *//
+const SPREADSHEET_ID_MAIN   = '1loTbnXfQ90AN3tGUdpEsR3AGZUFHvaijBSctOUSZQFs'; // 主本：Google 試算表 ID（必填）
+const SPREADSHEET_ID_PUBLIC = '18hxRoLU_TFV6Dc4fNAxQFEv9VAYoSbeVZvfIZ17MHPQ'; // 副本（公開）：Google 試算表 ID（必填）
 
-        --shadow-1:0 10px 26px rgba(0,0,0,.10);               /* 大陰影 可調 */
-        --shadow-2:0 2px 0 rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.06); /* 小陰影 可調 */
+//* 若你同時用「互動音符」頁，也請在 LINE Bot 的 Script Properties 放入 CHANNEL_TOKEN *//
+const LIFF_URL_NOTES        = 'https://liff.line.me/2008149060-ZGVdAvGo';     // 互動音符 LIFF（使用者進入點）
+const LIFF_URL_BLESSING     = 'https://liff.line.me/2008149060-Djoe6jKp';     // 同心祈願 LIFF（藍色；使用者進入點）
 
-        --toolbar-gap:8px;            /* 工具列按鈕間距 可調 */
-        --tool-h:36px;                /* 工具列按鈕高度 可調 */
-        --editor-zoom:1rem;           /* 內文字級倍率（放大/縮小使用） 可調 */
+//* 簽名檔存法：true=存到雲端硬碟並在表寫 URL；false=直接把 base64 存表 *//
+const SAVE_SIGNATURE_TO_DRIVE = true;  // true：將簽名圖片存到 Google Drive；false：直接把 base64 文字寫進表
+const DRIVE_FOLDER_ID         = '';    // 指定資料夾 ID；留空＝自動建立「Blessing-Signatures」並開放「持連結者可閱」
 
-        /* Dear 與下方三顆統一尺寸（縮短避免重疊） */
-        --ctrl-w:90px;                /* 三顆按鈕寬度 可調 數字越大越寬 */
-        --ctrl-h:36px;                /* 三顆按鈕高度 可調 */
+//* 關鍵字觸發（兩組分開） *//
+const KWS_PORTAL_NOTES  = ['互動','音符','🎵']; // 觸發「互動音符」入口的關鍵字陣列
+const KWS_PORTAL_BLESS  = ['祝福','祈願','📝']; // 觸發「同心祈願」入口的關鍵字陣列
 
-        /* 紅卡與藍底的底部間距 */
-        --panel-bottom-gap:25px;      /* 面板底部預留高度 可調 */
+//* 歡迎音檔（互動音符） *//
+const WELCOME_AUDIO_URL = 'https://drive.google.com/file/d/1Voif_FluZuNUMSjVeA6NitAb6skxnnFp/view?usp=drive_link'; // 加好友時要播放的音檔（分享連結或檔案 ID）
+/* const WELCOME_AUDIO_URL 也可填「檔案ID」，本檔會自動轉成直連（toDirectDriveUrl_） */
+const WELCOME_AUDIO_MS  = 19000; // 播放長度（毫秒），★ 這裡設定為 19 秒
 
-        /* 版權（只在下方使用 color:var(--copyright-color)） */
-        --copyright-color:#444444;    /* 版權字顏色 可調（較深，避免被背景吃掉） */
-        --copyright-pad:12px;         /* 版權上下內距 可調 */
+//* 全局截止日（到當日 23:59:59，台北時區） *//
+const GLOBAL_DEADLINE_ISO = '2025-10-31'; // 例：2025-10-31 代表當天的 23:59:59 +08:00 會截止
 
-        /* 木牌視覺細節（rope/knot 變數保留、未使用） */
-        --tile-w:180px;               /* 單個牌子最小寬（grid 用） 可調 */
-        --tile-h:156px;               /* 木牌高度 可調 */
-        --wood-grain-contrast:.9;     /* 木紋對比 可調 */
-        --rope-width:8px;             /* （保留）繩寬 */
-        --rope-height:42px;           /* （保留）繩高 */
-        --knot-size:22px;             /* （保留）結大小 */
+//* Flex 主題（一般 / 祝福 / 提醒） *//
+const FLEX_COLORS = { 
+  body:'#E4E4E4',    // 內容區背景（一般卡）－顏色可調
+  footer:'#E4E4E4',  // 底部區背景（一般卡）－顏色可調
+  title:'#0f172a',   // 標題文字色（一般卡）－顏色可調
+  accent:'#A68A7C',  // 重點色/邊框色（一般卡）－顏色可調
+  linkBg:'#F5F1EC'   // 連結按鈕底色（一般卡）－顏色可調
+};
+
+const BLESS_THEME = { 
+  body:'#c9daf8',    // 內容區背景（祝福卡）－顏色可調
+  footer:'#c9daf8',  // 底部區背景（祝福卡）－顏色可調
+  title:'#0f172a',   // 標題文字色（祝福卡）－顏色可調
+  text:'#0f172a',    // 內容文字色（祝福卡）－顏色可調
+  linkBg:'#F5F1EC'   // 連結按鈕底色（祝福卡）－顏色可調
+};
+
+const ALERT_THEME = { 
+  body:'#FDE7EA',    // 內容區背景（提醒/警示卡）－顏色可調
+  footer:'#FDE7EA',  // 底部區背景（提醒/警示卡）－顏色可調
+  title:'#7A1D2A',   // 標題文字色（提醒/警示卡）－顏色可調
+  text:'#7A1D2A',    // 內容文字色（提醒/警示卡）－顏色可調
+  linkBg:'#FFF1F3'   // 連結按鈕底色（提醒/警示卡）－顏色可調
+};
+
+const SHEET_GUESTS   = 'guests';     // 工作表名稱：新人姓名
+const SHEET_LOGS     = 'logs';       // 工作表名稱：互動音符紀錄 / 綁定資訊
+const SHEET_BLESSING = 'blessings';  // 工作表名稱：同心祈願紀錄
+
+const TZ           = 'Asia/Taipei';             // 伺服器時區設定（台北）
+const TIME_FMT     = 'yyyy-MM-dd HH:mm:ss';     // 輸出時間格式
+const HEADER_ROWS  = 1;                         // 表頭列數（固定為第 1 列）
+
+const ROLE_MALE_FRIEND   = 'MALE_FRIEND';       // 角色代碼：男方親友
+const ROLE_FEMALE_FRIEND = 'FEMALE_FRIEND';     // 角色代碼：女方親友
+
+//* 快捷 *//
+const J = (o)=>ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); // 回傳 JSON
+const T = (s)=>ContentService.createTextOutput(String(s||'')).setMimeType(ContentService.MimeType.TEXT);     // 回傳純文字
+const nowStr = ()=>Utilities.formatDate(new Date(), TZ, TIME_FMT);                                           // 取得台北時區的現在字串
+
+//* ==================== 工具：Drive 直連轉換（for LINE audio） ==================== *//
+//* 將 Google Drive 檔案「預覽/分享」網址或檔案ID → 直連下載網址（uc?export=download&id=...） *//
+function toDirectDriveUrl_(urlOrId){ // ★ 將分享連結或檔案 ID 轉為可供 LINE 音訊播放的直連 URL
+  const s = String(urlOrId||'').trim();
+  if(!s) return '';
+  // 若直接給 ID
+  if(!/^https?:\/\//i.test(s)){
+    return 'https://drive.google.com/uc?export=download&id=' + encodeURIComponent(s); // 由檔案 ID 組直連
+  }
+  // 一般分享/預覽網址抽 ID
+  const m1 = s.match(/\/d\/([A-Za-z0-9_-]{25,})/);     // 匹配 /d/{id}/ 形式
+  const m2 = s.match(/[?&]id=([A-Za-z0-9_-]{25,})/);   // 匹配 ?id={id} 形式
+  const m3 = s.match(/\/([A-Za-z0-9_-]{25,})(?:[/?#]|$)/); // 其他可能形式
+  const id = (m1 && m1[1]) || (m2 && m2[1]) || (m3 && m3[1]) || '';
+  return id ? ('https://drive.google.com/uc?export=download&id=' + id) : s; // 有抓到 ID 就轉直連，否則回原字串
+}
+
+//* ========== 開表/表頭 ========== *//
+function openMain_(){   return SpreadsheetApp.openById(SPREADSHEET_ID_MAIN); }   // 開主本
+function openPublic_(){ return SpreadsheetApp.openById(SPREADSHEET_ID_PUBLIC); } // 開副本（公開）
+
+//* ★ 強化：第 1 列若全空 / 長度不符 / 內容不符 → 直接重寫表頭 *//
+function ensureHeaderAtRow1_(sh, expectedHeader){
+  const last = sh.getLastRow();
+  let needWrite = false;
+
+  if (last === 0) { // 尚無任何列
+    needWrite = true;
+  } else {
+    const rng = sh.getRange(1, 1, 1, expectedHeader.length);
+    const vals = rng.getValues()[0];
+    const allEmpty = vals.every(v => String(v||'').trim() === '');                                // 判斷是否整列空白
+    const same = expectedHeader.every((h,i)=> String(vals[i]||'').toLowerCase() === String(h).toLowerCase()); // 判斷表頭是否相同（不分大小寫）
+    if (allEmpty || !same) needWrite = true;
+  }
+
+  if (needWrite) {
+    sh.getRange(1,1,1,expectedHeader.length).setValues([expectedHeader]); // 覆寫第 1 列為期望表頭
+  }
+}
+
+function ensureLogs_(ss){
+  let sh=ss.getSheetByName(SHEET_LOGS); if(!sh) sh=ss.insertSheet(SHEET_LOGS); // 若無 logs 表則建立
+  const header=['time','lineId','pictureUrl','friend','displayName','instruments','notes']; // 移除 message 欄（固定 7 欄）
+  ensureHeaderAtRow1_(sh, header);
+  return sh;
+}
+function ensureBlessings_(ss){
+  let sh=ss.getSheetByName(SHEET_BLESSING); if(!sh) sh=ss.insertSheet(SHEET_BLESSING); // 若無 blessings 表則建立
+  const header=['time','lineId','displayName','pictureUrl','role','contentHTML','signature','signatureType','extraJSON']; // A~I 固定（9 欄）
+  ensureHeaderAtRow1_(sh, header);
+  return sh;
+}
+
+//* 讀 guests：回傳新郎/新娘名字 *//
+function getGuests_(ss){
+  const sh = ss.getSheetByName(SHEET_GUESTS);
+  if(!sh) return {man:'',woman:''};
+  // 先讀第2列，若無則讀第1列（允許使用者只填第一列）
+  const man = String(sh.getRange(2,1).getValue()||sh.getRange(1,1).getValue()||'').trim();
+  const woman = String(sh.getRange(2,2).getValue()||sh.getRange(1,2).getValue()||'').trim();
+  return {man, woman};
+}
+
+//* ========== logs 工具 ========== *//
+function findLogRowByLineId_(sh, lineId){
+  const last=sh.getLastRow(); if(last<=HEADER_ROWS) return -1; // 無資料
+  const vals=sh.getRange(HEADER_ROWS+1,2,last-HEADER_ROWS,1).getValues(); // B 欄（lineId）
+  for(let i=0;i<vals.length;i++){ if(String(vals[i][0]||'')===String(lineId)) return i+HEADER_ROWS+1; } // 找到回傳列號
+  return -1;
+}
+function bindLineIdEnsureRow_(ss, lineId, displayName, pictureUrl){
+  const sh=ensureLogs_(ss);
+  const r=findLogRowByLineId_(sh,lineId);
+  if(r===-1){
+    sh.appendRow([ nowStr(), lineId, String(pictureUrl||''), '', String(displayName||''), '', '' ]); // 新增一列（7 欄）
+  }else{
+    const row=sh.getRange(r,1,1,7).getValues()[0]; // 讀原列（7 欄）
+    row[0]=nowStr(); row[1]=lineId;
+    row[2]=String(pictureUrl||'') ? String(pictureUrl)  : String(row[2]||''); // 有新頭像才覆蓋
+    row[4]=String(displayName||'')? String(displayName) : String(row[4]||''); // 有新暱稱才覆蓋
+    sh.getRange(r,1,1,7).setValues([row]); // 回寫
+  }
+}
+function alreadySubmitted_(sh,lineId){
+  const r=findLogRowByLineId_(sh,lineId); if(r===-1) return false;
+  const e=String(sh.getRange(r,6).getValue()||'').trim(); // F=instruments
+  const f=String(sh.getRange(r,7).getValue()||'').trim(); // G=notes
+  return !!(e||f); // 任一欄有值視為已送出
+}
+function getRole_(sh,lineId){ const r=findLogRowByLineId_(sh,lineId); if(r===-1) return ''; return String(sh.getRange(r,4).getValue()||'').trim(); } // 讀取角色代碼
+function setRole_(sh,lineId,role){ const r=findLogRowByLineId_(sh,lineId); if(r===-1) return; sh.getRange(r,4).setValue(String(role||'')); } // 設定角色代碼
+function isFirstInteraction_(sh, lineId){
+  const r=findLogRowByLineId_(sh,lineId);
+  if(r===-1) return true;
+  const role=String(sh.getRange(r,4).getValue()||'').trim();
+  const e=String(sh.getRange(r,6).getValue()||'').trim();
+  const f=String(sh.getRange(r,7).getValue()||'').trim();
+  return !role && !e && !f; // 未設定角色且未送出任何資料，視為第一次互動
+}
+
+//* ========== 時間/截止 ========== *//
+function getGlobalDeadline_(){ return new Date(GLOBAL_DEADLINE_ISO+'T23:59:59+08:00'); } // 將日期字串補上當日 23:59:59 +08:00
+function isExpired_(){ return new Date() > getGlobalDeadline_(); }                              // 判斷是否逾期
+
+//* ========== Flex 工具 ========== *//
+function hexToRgb_(hex){ const m=/^#?([a-fA-F0-9]{6})$/.exec((hex||'').trim()); const n=m?parseInt(m[1],16):0xE4E4E4; return {r:(n>>16)&255,g:(n>>8)&255,b:n&255}; } // HEX 轉 RGB
+function blendHex_(fgHex,bgHex,alpha){ const f=hexToRgb_(fgHex), b=hexToRgb_(bgHex); const r=Math.round(f.r*alpha+b.r*(1-alpha)), g=Math.round(f.g*alpha+b.g*(1-alpha)), bl=Math.round(f.b*alpha+b.b*(1-alpha)); return '#'+[r,g,bl].map(v=>v.toString(16).padStart(2,'0')).join(''); } // 前景/背景混色
+const FLEX_SIZE='kilo', GAP='md', FONT='md'; // Flex 設計定值：尺寸/間距/字級
+function buildLinkChip_(uri,label,bgHex){
+  return { type:'box', layout:'horizontal', contents:[
+    { type:'filler', flex:19 },
+    { type:'box', layout:'vertical', flex:62, backgroundColor:bgHex, cornerRadius:'18px',
+      borderColor:FLEX_COLORS.accent, borderWidth:'1px', paddingTop:'12px', paddingBottom:'12px', paddingStart:'18px', paddingEnd:'18px',
+      action:{ type:'uri', uri:String(uri) },
+      contents:[{ type:'text', text:String(label||'🛎️ 點我點我'), size:FONT, weight:'bold', color:FLEX_COLORS.accent, align:'center', wrap:true }] }
+    ,
+    { type:'filler', flex:19 }
+  ]};
+}
+function buildThemedTextCard_(lines, theme){
+  const sep=blendHex_(theme.text||'#0f172a', theme.body||'#E4E4E4', .5);
+  return { type:'flex', altText:'通知', contents:{
+    type:'bubble', size:FLEX_SIZE, styles:{body:{backgroundColor:theme.body},footer:{backgroundColor:theme.footer}},
+    body:{ type:'box', layout:'vertical', paddingAll:'15px', spacing:GAP, contents:[
+      { type:'text', text:'🤵🏻新人👰🏻‍♀️', weight:'bold', size:'lg', color:theme.title, align:'center', wrap:true },
+      { type:'separator', color:sep, margin:'md' },
+      ...lines.map((t,i)=>({ type:'text', text:t, size:'md', weight:'bold', color:theme.text||theme.accent||'#0f172a', align:'center', wrap:true, margin:i===0?'md':GAP }))
+    ]}
+  }};
+}
+function buildCard_Entrance_(roleLabel){
+  return { type:'flex', altText:'🛎️ 點我點我', contents:{
+    type:'bubble', size:FLEX_SIZE,
+    styles:{ body:{backgroundColor:FLEX_COLORS.body}, footer:{backgroundColor:FLEX_COLORS.footer} },
+    body:{ type:'box', layout:'vertical', paddingAll:'15px', spacing:GAP, contents:[
+      { type:'text', text:'🤵🏻新人👰🏻‍♀️', weight:'bold', size:'lg', color:FLEX_COLORS.title, align:'center', wrap:true },
+      { type:'separator', color:blendHex_(FLEX_COLORS.accent,FLEX_COLORS.body,.5), margin:'md' },
+      { type:'text', text:`親愛的${roleLabel}親友👋`, size:'md', weight:'bold', color:FLEX_COLORS.accent, align:'center', wrap:true, margin:'md' },
+      { type:'text', text:'快快點連結來玩耍👣',      size:'md', weight:'bold', color:FLEX_COLORS.accent, align:'center', wrap:true, margin:GAP }
+    ]},
+    footer:{ type:'box', layout:'vertical', contents:[ buildLinkChip_(LIFF_URL_NOTES,'🛎️ 點我點我', FLEX_COLORS.linkBg) ], backgroundColor:FLEX_COLORS.footer }
+  }};
+}
+function buildCard_BlessingEntrance_(roleLabel){
+  return { type:'flex', altText:'🔔 選我選我', contents:{
+    type:'bubble', size:FLEX_SIZE,
+    styles:{ body:{backgroundColor:BLESS_THEME.body}, footer:{backgroundColor:BLESS_THEME.footer} },
+    body:{ type:'box', layout:'vertical', paddingAll:'15px', spacing:GAP, contents:[
+      { type:'text', text:'🤵🏻新人👰🏻‍♀️', weight:'bold', size:'lg', color:BLESS_THEME.title, align:'center', wrap:true },
+      { type:'separator', color:blendHex_(BLESS_THEME.text,BLESS_THEME.body,.5), margin:'md' },
+      { type:'text', text:`親愛的${roleLabel}親友👋`, size:'md', weight:'bold', color:BLESS_THEME.text, align:'center', wrap:true, margin:'md' },
+      { type:'text', text:'快快點連結來告白📣',       size:'md', weight:'bold', color:BLESS_THEME.text, align:'center', wrap:true, margin:GAP }
+    ]},
+    footer:{ type:'box', layout:'vertical', contents:[ buildLinkChip_(LIFF_URL_BLESSING,'🔔 選我選我', BLESS_THEME.linkBg) ], backgroundColor:BLESS_THEME.footer }
+  }};
+}
+function buildCard_RoleSelect_(){
+  return { type:'flex', altText:'嗨嗨，你/妳是...我的', contents:{
+    type:'bubble', size:FLEX_SIZE,
+    styles:{ body:{backgroundColor:'#FFF7D6'}, footer:{backgroundColor:FLEX_COLORS.footer} },
+    body:{ type:'box', layout:'vertical', paddingAll:'15px', spacing:GAP, contents:[
+      { type:'text', text:'嗨嗨，你/妳是...我的', weight:'bold', size:'lg', color:FLEX_COLORS.title, align:'center' },
+      { type:'box', layout:'horizontal', spacing:'md', margin:'lg', contents:[
+        { type:'box', layout:'vertical', flex:1, backgroundColor:FLEX_COLORS.linkBg, cornerRadius:'18px', borderColor:FLEX_COLORS.accent, borderWidth:'1px',
+          paddingAll:'12px', action:{ type:'postback', data:'role=male', displayText:'🤵🏻親友' },
+          contents:[{ type:'text', text:'🤵🏻親友', size:'md', weight:'bold', color:FLEX_COLORS.accent, align:'center' }] }
+        ,
+        { type:'box', layout:'vertical', flex:1, backgroundColor:FLEX_COLORS.linkBg, cornerRadius:'18px', borderColor:FLEX_COLORS.accent, borderWidth:'1px',
+          paddingAll:'12px', action:{ type:'postback', data:'role=female', displayText:'👰🏻‍♀️親友' },
+          contents:[{ type:'text', text:'👰🏻‍♀️親友', size:'md', weight:'bold', color:FLEX_COLORS.accent, align:'center' }] }
+      ]}
+    ]}
+  }};
+}
+function buildCard_Reminder_(){
+  return buildThemedTextCard_(['📍提醒📍','因後台資料過於龐大','回覆會有點略慢出來','再麻煩親友們多擔待'], ALERT_THEME); // 提醒用卡片
+}
+function buildCard_NoticeBusy_(){
+  return buildThemedTextCard_(['📍通知📍','管理員正在忙碌中','他看到會立即回覆','還請親友多多包涵'], ALERT_THEME); // 忙碌通知卡
+}
+function buildCard_NotBound_(){
+  return buildThemedTextCard_(['📍提示📍','目前尚未選擇哪方','輸入開始進行綁定','完成後再點連結唷'], ALERT_THEME); // 尚未綁定提醒卡
+}
+
+//* ========== LINE API ========== *//
+function replyFlex_(token, replyToken, flex){ const url='https://api.line.me/v2/bot/message/reply'; const payload={replyToken,messages:[flex]}; const opt={method:'post',contentType:'application/json',headers:{Authorization:'Bearer '+token},payload:JSON.stringify(payload),muteHttpExceptions:true}; try{UrlFetchApp.fetch(url,opt);}catch(_){} } // 回覆單一 Flex 訊息
+function replyAudio_(token, replyToken, audioUrl, duration){ const url='https://api.line.me/v2/bot/message/reply'; const payload={replyToken,messages:[{type:'audio',originalContentUrl:String(audioUrl),duration:Number(duration)||1000}]}; const opt={method:'post',contentType:'application/json',headers:{Authorization:'Bearer '+token},payload:JSON.stringify(payload),muteHttpExceptions:true}; try{UrlFetchApp.fetch(url,opt);}catch(_){} } // 回覆音訊
+function replyMulti_(token, replyToken, messages){ const url='https://api.line.me/v2/bot/message/reply'; const payload={replyToken,messages}; const opt={method:'post',contentType:'application/json',headers:{Authorization:'Bearer '+token},payload:JSON.stringify(payload),muteHttpExceptions:true}; try{UrlFetchApp.fetch(url,opt);}catch(_){} } // 回覆多則訊息
+function fetchUserProfile_(channelToken, userId){
+  if(!channelToken||!userId) return {displayName:'',pictureUrl:''};
+  const url='https://api.line.me/v2/bot/profile/'+encodeURIComponent(userId);
+  const opt={method:'get',headers:{Authorization:'Bearer '+channelToken},muteHttpExceptions:true};
+  try{ const r=UrlFetchApp.fetch(url,opt); if(r.getResponseCode()===200){ const j=JSON.parse(r.getContentText()||'{}'); return {displayName:String(j.displayName||''), pictureUrl:String(j.pictureUrl||'')} } }catch(_){}
+  return {displayName:'', pictureUrl:''};
+}
+
+//* ========== Web 入口 ========== *//
+function doGet(e){
+  const p=e?.parameter||{}; const action=String(p.action||'').toLowerCase();
+  if(action==='ping')    return T('ok'); // 健康檢查
+
+  if(action==='couple'){ // 取得新人名字（合併顯示）
+    const {man,woman}=getGuests_(openMain_());
+    return J({ok:!!(man||woman), name: (man && woman) ? `${man} & ${woman}` : (man||woman||'') });
+  }
+
+  // 角色 + 新郎/新娘姓名（供前端替換 A&B）
+  if(action==='userrole'){
+    const ssM=openMain_(); const shLogs=ensureLogs_(ssM); const guests=getGuests_(ssM);
+    const lineId=String(p.lineId||'').trim();
+    let role=''; if(lineId) role=getRole_(shLogs,lineId)||'';
+    let nameLabel='—';
+    if(role===ROLE_MALE_FRIEND && guests.man) nameLabel=guests.man;
+    else if(role===ROLE_FEMALE_FRIEND && guests.woman) nameLabel=guests.woman;
+    else if(guests.man||guests.woman) nameLabel=[guests.man,guests.woman].filter(Boolean).join(' & ')||'—';
+    return J({ok:true, role, man:guests.man||'', woman:guests.woman||'', nameLabel});
+  }
+
+  // 同心祈願：列表（支援 role 篩選，內部已時間倒序）
+  if(action==='listblessings'){
+    const role=(String(p.role||'all').toLowerCase());
+    const data=listBlessings_(); // ★ 內部已時間倒序
+    const filtered = role==='all' ? data :
+      data.filter(x=> String(x.role||'').toLowerCase().includes(role==='male'?'male':'female'));
+    return J({ok:true, items:filtered});
+  }
+
+  // 同心祈願：明細（以 row id 讀取）
+  if(action==='getblessingdetail'){
+    const id = Math.max(2, Number(p.id||0)); // 第2列起（跳過表頭）
+    const sh = ensureBlessings_(openMain_());
+    const last = sh.getLastRow();
+    if(id>last) return J({ok:false,error:'not_found'});
+    const r = sh.getRange(id,1,1,9).getValues()[0];
+    return J({ok:true, item:{
+      row:id, time:r[0], lineId:r[1], displayName:r[2], pictureUrl:r[3],
+      role:r[4], contentHTML:r[5], signature:r[6], signatureType:r[7], extra:r[8]
+    }});
+  }
+
+  // 依 lineId 取該使用者「最新一筆」
+  if(action==='getlatestbylineid'){
+    const sh = ensureBlessings_(openMain_());
+    const lineId = String(p.lineId||'').trim();
+    if(!lineId) return J({ok:false});
+    const last = sh.getLastRow(); if(last<=HEADER_ROWS) return J({ok:true, item:null});
+    const vals = sh.getRange(HEADER_ROWS+1,1,last-HEADER_ROWS,9).getValues();
+    let bestIdx=-1,bestTime=0;
+    for(let i=0;i<vals.length;i++){
+      const row=vals[i];
+      if(String(row[1]||'')===lineId){
+        const t = new Date(row[0]||'').getTime()||0;
+        if(t>=bestTime){ bestTime=t; bestIdx=i; }
       }
+    }
+    if(bestIdx<0) return J({ok:true, item:null});
+    const r=vals[bestIdx]; const rowNo=bestIdx+HEADER_ROWS+1;
+    return J({ok:true, item:{
+      row:rowNo, time:r[0], lineId:r[1], displayName:r[2], pictureUrl:r[3],
+      role:r[4], contentHTML:r[5], signature:r[6], signatureType:r[7], extra:r[8]
+    }});
+  }
 
-      /* 背景飾圖（不可互動） */
-      .bg-notes{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none;user-select:none;}
+  return T('ok'); // 預設回應
+}
 
-      /* 全站字體與基底色 */
-      *{box-sizing:border-box;}
-      html,body{height:100%;margin:0;overflow:hidden;color:var(--ink);background:var(--brand-bg);
-        font-family:"Patrick Hand","Noto Sans TC",system-ui,-apple-system,sans-serif;
-        -webkit-text-stroke:.35px rgba(0,0,0,.18); text-shadow:0 1px 0 rgba(255,255,255,.65);}
+//* 小工具：由 userId 取得 roleLabel（男方/女方），無則回空字串 *//
+function getRoleLabelByUser_(shLogs, userId){
+  const code = getRole_(shLogs, userId);
+  if(code===ROLE_FEMALE_FRIEND) return '女方';
+  if(code===ROLE_MALE_FRIEND)   return '男方';
+  return '';
+}
+function getRoleLabelOrDefault_(shLogs, userId){
+  return getRoleLabelByUser_(shLogs, userId) || '男方/女方';
+}
 
-      /* ///======================= 外層面板與標題 =======================/// */
-      .panel{position:relative;z-index:1;max-width:var(--panel-maxw);
-        height:calc(100vh - 110px);margin:26px auto;background:linear-gradient(135deg,var(--panel-grad-from),var(--panel-grad-to));
-        border:1px solid var(--rim);border-radius:16px;box-shadow:var(--shadow-1);display:flex;flex-direction:column;overflow:hidden;}
-      h2{position:relative;left:50%;transform:translateX(-50%);margin:12px 0 6px;text-align:center;width:max-content;max-width:90%;
-        font-family:"Sacramento",cursive;font-weight:700;font-size:2.8rem;color:var(--title);
-        -webkit-text-stroke:.6px rgba(0,0,0,.12);text-shadow:0 3px 4px rgba(255,255,255,.75);}
+function doPost_real(e){
+  let body={}; try{ body=JSON.parse(e?.postData?.contents||'{}'); }catch(_){ body={}; }
 
-      /* ///======================= 工具列 + 角色過濾 + 狀態列 =======================/// */
-      .bar{padding:6px 22px 8px;}
-      .bar-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:12px;}
-      .toolbar{display:flex;gap:var(--toolbar-gap);filter:drop-shadow(0 2px 0 rgba(0,0,0,.08));}
-      .tool-btn,.tool-select{min-width:64px;height:var(--tool-h);padding:0 12px;background:#fff;border:1px solid var(--rim);
-        border-radius:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:var(--shadow-2);cursor:pointer;}
-      .tool-select{min-width:auto;padding:0 10px;}
-      .tool-btn:active{transform:translateY(1px) scale(.99);}
+  // 1) LINE Webhook（互動音符 + 同心祈願入口）
+  if(body && Array.isArray(body.events)) return handleLineWebhook_(body);
 
-      .rolebar{display:flex;gap:var(--toolbar-gap);}
-      .role-btn{min-width:64px;height:var(--tool-h);padding:0 12px;background:#fff;border:1px solid var(--rim);border-radius:12px;
-        font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-2);cursor:pointer;}
-      .role-btn.active{outline:2px solid rgba(0,0,0,.15);}
-      #status{flex:1 1 auto;min-width:240px;background:#F5F1EC;border:1px solid #E4E4E4;border-radius:12px;padding:8px 10px;
-        font-size:14px;text-align:center;color:#A68A7C;font-weight:700;}
+  // 2) 同心祈願：新增
+  const act=String(body.action||'').toLowerCase();
+  if(act==='createblessing') return handleCreateBlessing_(body);
 
-      /* ///======================= 主要舞台（左：輸入 / 右：牆） =======================/// */
-      .stage{flex:1 1 auto;padding:14px 22px var(--panel-bottom-gap);display:flex;justify-content:center;align-items:flex-start;overflow:hidden;}
-      .card{position:relative;width:100%;max-width:var(--card-maxw);border:1px solid rgba(0,0,0,.05);border-radius:16px;box-shadow:0 10px 26px rgba(0,0,0,.08);
-        padding:22px;height:calc(100% - var(--panel-bottom-gap));display:grid;grid-template-columns:1fr 2fr;gap:14px;background:#e6b8af;}
+  // 3) 同心祈願：更新（截止日前）
+  if(act==='updateblessing') return handleUpdateBlessing_(body);
 
-      /* 左側黃色輸入區 */
-      .left-wrap{position:relative;background:linear-gradient(180deg, rgba(255,242,204,.98), rgba(255,242,204,.92));border-radius:16px;border:1px solid rgba(0,0,0,.05);padding:12px;overflow:hidden;}
-      .left-content{position:relative;height:100%;}
+  // 4) 互動音符 LIFF 送單（保留）
+  if(act==='submitnotes')    return handleLiffSubmit_(body);
 
-      /* Dear 標籤 */
-      .chip{position:absolute;min-width:var(--ctrl-w);width:var(--ctrl-w);height:var(--ctrl-h);background:#fff;border:1px solid var(--rim);border-radius:10px;
-        box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;gap:8px;padding:0 10px;user-select:none;}
-      #chipBride{top:10px;left:10px;}
-      #brideLabel{font-weight:800;line-height:1;}
+  return J({ok:false, error:'unknown_action'}); // 未知指令
+}
 
-      /* 內文編輯框（虛線） */
-      /* ✔ 保持你原本的值：底部與三顆按鈕間距 6px，讓按鈕更貼近虛線底部 */
-      .editor{position:absolute;top:calc(10px + var(--ctrl-h) + 16px);right:10px;bottom:calc(10px + var(--ctrl-h) + 6px);left:10px;overflow:auto;line-height:1.8;
-        outline:none;background:transparent;border-radius:12px;padding:14px;font-size:var(--editor-zoom);border:1px dashed rgba(0,0,0,.12);}
-      .editor[data-empty]{opacity:1;color:rgba(15,23,42,.28);-webkit-text-stroke:0;text-shadow:none;font-style:italic;}
-      .editor.locked{pointer-events:none;opacity:.85;}
+//* ========== Webhook（互動音符 + 同心祈願入口） ========== *//
+function handleLineWebhook_(body){
+  const events=body.events||[];
+  const ssM=openMain_(); const ssP=openPublic_();
+  const shM=ensureLogs_(ssM); const shP=ensureLogs_(ssP);
+  const channelToken=(PropertiesService.getScriptProperties().getProperty('CHANNEL_TOKEN')||'').trim(); // 從 Script Properties 讀取 LINE Bot token
 
-      /* 下方三顆：再次修改 → 送出祝福 → 畫押簽名；固定寬避免重疊 */
-      .left-actions{position:absolute;left:10px;right:10px;bottom:10px;height:var(--ctrl-h);display:flex;gap:8px;justify-content:center;flex-wrap:nowrap;}
-      .left-actions > *{flex:0 0 var(--ctrl-w);width:var(--ctrl-w);height:100%;}
-      .left-actions button{background:#fff;border:1px solid var(--rim);border-radius:10px;font-weight:800;box-shadow:var(--shadow-2);cursor:pointer;white-space:nowrap;}
-      .left-actions button:active{transform:translateY(1px) scale(.99);}
+  events.forEach(ev=>{
+    try{
+      const userId=ev.source?.userId||''; if(!userId) return;
 
-      /* 簽名 chip（與按鈕同尺寸） */
-      .left-actions .chip{
-        font-size:1rem;font-weight:800;line-height:1; position:static; display:flex; align-items:center; justify-content:center; cursor:pointer;
-        background:#fff; border:1px solid var(--rim); border-radius:10px; box-shadow:var(--shadow-2); padding:0; overflow:hidden;
-        width:var(--ctrl-w); height:var(--ctrl-h);
-      }
-      #chipSign .hint{ font-weight:800; color:rgba(15,23,42,.38); }
-      #chipSign.locked{ pointer-events:none; opacity:.9; }
-      #signThumb{ display:none; width:100%; height:100%; object-fit:contain; pointer-events:none; max-width:100%; max-height:100%; }
-      #chipSign.has-img #signThumb{ display:block; }
-      #chipSign.has-img .hint{ display:none; }
+      if(ev.type==='follow'){ // 使用者加好友
+        if(channelToken){
+          const prof=fetchUserProfile_(channelToken,userId);
+          bindLineIdEnsureRow_(ssM,userId,prof.displayName,prof.pictureUrl); // 主本綁定/更新
+          bindLineIdEnsureRow_(ssP,userId,prof.displayName,prof.pictureUrl); // 副本綁定/更新
 
-      /* 右側粉色牆容器 */
-      .wall-wrap{
-        background:linear-gradient(180deg,#f9e5ee,#f6dce7);
-        border-radius:16px;border:1px solid rgba(0,0,0,.05);
-        padding:12px;
-        overflow:auto;
-      }
-      .wall{
-        min-height:280px;
-        height:100%;
-        display:grid;
-        grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
-        gap:14px;align-content:start;
-        padding:2px;
-        overflow:visible;
-      }
-
-      /* 木牌（rope/knot 已移除；保留上方釘孔） */
-      .tile{
-        position:relative;width:100%;height:var(--tile-h);padding:18px 12px 12px;cursor:pointer;overflow:hidden;display:flex;flex-direction:column;gap:6px;
-        background:
-          linear-gradient(180deg,#f1e3cf,#e5d1b8),
-          repeating-linear-gradient(14deg, rgba(0,0,0, calc(.03 + var(--wood-grain-contrast)*.10)) 0 4px, rgba(255,255,255, calc(.02 + var(--wood-grain-contrast)*.06)) 4px 9px),
-          repeating-linear-gradient(0deg, rgba(0,0,0, calc(.018 + var(--wood-grain-contrast)*.04)) 0 2px, rgba(255,255,255, calc(.015 + var(--wood-grain-contrast)*.04)) 2px 4px),
-          radial-gradient(16px 12px at 28% 36%, rgba(0,0,0,.08), transparent 60%),
-          radial-gradient(14px 10px at 72% 62%, rgba(0,0,0,.08), transparent 60%);
-        border:1px solid #cfba9b;border-radius:14px;box-shadow:0 10px 18px rgba(0,0,0,.10);
-        clip-path:polygon(0 12%, 12% 0, 88% 0, 100% 12%, 100% 100%, 0 100%);
-      }
-      .tile::before{content:"";position:absolute;top:2px;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;
-        background:radial-gradient(circle at 35% 35%, #fff 0 35%, #bbb 36% 60%, transparent 61%);box-shadow:inset 0 1px 0 rgba(255,255,255,.9), inset 0 -1px 0 rgba(0,0,0,.15);}
-
-      .tile-name{font-weight:800;text-align:center;margin-top:8px;}
-      .tile-sep{height:1px;background:rgba(0,0,0,.12);margin:6px 0;}
-      .tile-date{font-size:12px;opacity:.85;text-align:center;font-weight:800;}
-      .tile-snippet{font-size:14px;line-height:1.6;text-align:left;word-break:break-word;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;}
-
-      /* 遮罩與通用對話框 */
-      .overlay{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:rgba(17,24,39,.35);backdrop-filter:blur(3px);}
-      .overlay.show{display:flex;}
-      .dialog{width:min(92vw,680px);max-height:82vh;background:#F5F1EC;border:1px solid var(--rim);border-radius:14px;padding:16px;box-shadow:0 18px 44px rgba(0,0,0,.18);overflow:auto;}
-      .dialog h3{margin:0 0 10px;font-size:18px;color:#6b5e52;text-align:center;-webkit-text-stroke:0;text-shadow:none;}
-      .view-meta{text-align:center;font-size:12px;opacity:.80;margin-bottom:8px;font-weight:800;color:#6b5e52;}
-      .view-content{background:#fff;border:1px solid #ddd;border-radius:12px;padding:12px;line-height:1.8;}
-      .view-actions{display:flex;gap:10px;justify-content:center;margin-top:12px;}
-      .view-actions button{min-width:120px;height:var(--tool-h);border-radius:10px;border:1px solid var(--rim);background:#fff;cursor:pointer;font-weight:700;}
-
-      /* 簽名板對話框尺寸與畫布 */
-      #sigOverlay .dialog{width:min(92vw,520px);}
-      #pad{width:100%;height:260px;background:#fff;border:1px solid #ddd;border-radius:12px;touch-action:none;}
-      .dlg-actions{display:flex;gap:10px;justify-content:center;margin-top:12px;}
-      .dlg-actions button{width:120px;height:var(--tool-h);border-radius:10px;border:1px solid var(--rim);background:#fff;cursor:pointer;font-weight:700;}
-
-      /* 版權（固定於底部背景層）——僅改「color」讀取變數，其他不動 */
-      .footer-copyright{position:fixed;left:0;right:0;bottom:6px;z-index:0;text-align:center;padding:var(--copyright-pad) 0;
-        font-size:13px;font-weight:700;color:var(--copyright-color);-webkit-text-stroke:0;text-shadow:none;}
-
-      /* ///======================= 手機版：直向 =======================/// */
-      @media (max-width: 860px) and (orientation: portrait){
-        :root{ --tool-w-m: 53px; } /* 手機直向：工具鈕寬度（等寬） */
-        .bar-inner{ flex-direction: column; align-items: stretch; gap: 8px; }
-        .rolebar{ order:1; justify-content:center; }
-        #status{ order:2; min-width:0; }
-        .toolbar{ order:3; flex-wrap:wrap; justify-content:center; gap:8px; }
-        .toolbar .tool-btn,.toolbar .tool-select{ min-width:0; width:var(--tool-w-m); height:32px; padding:0 10px; font-size:13px; border-radius:10px; }
-        .toolbar .tool-select{ text-align:center; text-align-last:center; }
-
-        html, body{ overflow:auto; }
-        .panel{ height:auto; min-height:100dvh; }
-        .stage{ overflow:visible; padding:10px 10px var(--panel-bottom-gap); }
-
-        /* 版面切成上下：黃 74% / 粉 26% */
-        .card{ grid-template-columns:1fr; grid-template-rows:74% 26%; height:auto; min-height:calc(100dvh - 160px); gap:12px; }
-        .left-wrap{ min-height:0; }
-        .wall-wrap{ min-height:0; }
-        .editor{ bottom: calc(10px + var(--ctrl-h) + 16px); }
-
-        :root{ --tile-h: 160px; } /* 木牌高度在手機直向微調 */
-        .wall{ grid-template-columns: repeat(2, 1fr); gap:14px; }
-        .tile{ font-size: 14px; }
-      }
-
-      /* ///======================= 手機版：橫向（按鈕一定收在黃色版內） =======================/// */
-      @media (max-width: 860px) and (orientation: landscape){
-        html, body{ overflow:auto; }
-        .panel{ height:auto; min-height:100dvh; }
-        .stage{ padding:10px 12px var(--panel-bottom-gap); overflow:visible; }
-        .card{ grid-template-columns:1fr 1.2fr; gap:12px; height:auto; min-height:calc(100dvh - 160px); }
-
-        .bar-inner{ flex-wrap:wrap; align-items:center; gap:10px 12px; }
-        .rolebar{ order:1; flex:0 1 auto; }
-        #status{ order:1; flex:1 1 50%; min-width:200px; }
-        .toolbar{ order:2; flex:1 0 100%; justify-content:center; }
-
-        /* 讓三顆按鈕有更大容錯率，不會超出黃色區塊（僅橫向時微縮寬） */
-        :root{ --ctrl-w: 86px; }
-        .left-actions{ gap:8px; right:10px; left:10px; flex-wrap:nowrap; }
-        .left-actions .chip,.left-actions button{ font-size:.95rem; }
-
-        /* 粉框一列 2 片 */
-        .wall{ grid-template-columns: repeat(2, 1fr); gap:14px; }
-      }
-    </style>
-  </head>
-
-  <body>
-    <!-- ///* 背景飾圖（不可互動） */// -->
-    <img class="bg-notes" src="./assets/favors.png?v=4" alt="" />
-
-    <!-- ///======================= 主面板：標題 + 工具列 + 內容區 =======================/// -->
-    <div class="panel">
-      <h2>❤️同心祈願❤️</h2> <!-- 內文標題 -->
-
-      <!-- 工具列與角色篩選 -->
-      <div class="bar">
-        <div class="bar-inner">
-          <div class="rolebar">
-            <button type="button" class="role-btn active" id="roleAll">全部</button>
-            <button type="button" class="role-btn" id="roleMale">男方</button>
-            <button type="button" class="role-btn" id="roleFemale">女方</button>
-          </div>
-
-          <p id="status">✅ 可送上祝福囉，送出後請稍後唷，成功會通知呢</p>
-
-          <div class="toolbar" role="toolbar" aria-label="文字工具">
-            <button class="tool-btn" id="btnBold"      type="button">粗體</button>
-            <button class="tool-btn" id="btnItalic"    type="button">斜體</button>
-            <button class="tool-btn" id="btnUnderline" type="button">底線</button>
-
-            <select id="colorPick" class="tool-select" title="字體顏色">
-              <option value="" selected>顏色</option>
-              <option value="#a21caf">小紫</option>
-              <option value="#dc2626">小紅</option>
-              <option value="#2563eb">小藍</option>
-              <option value="#059669">小綠</option>
-              <option value="#d97706">小橘</option>
-              <option value="#6b7280">小灰</option>
-            </select>
-
-            <button class="tool-btn" id="btnBigger"    type="button">放大</button>
-            <button class="tool-btn" id="btnSmaller"   type="button">縮小</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 主要舞台（左：輸入卡／右：祈願牆） -->
-      <div class="stage">
-        <div class="card" id="card">
-          <!-- 左側：輸入卡 -->
-          <section class="left-wrap">
-            <div class="left-content">
-              <div class="chip" id="chipBride" title="Dear "><span id="brideLabel">Dear —</span></div>
-
-              <div class="editor" id="editor" contenteditable="true" aria-label="祈願內容" data-empty>
-                寫下並獻上最誠摯的祝福…💝
-              </div>
-
-              <!-- 三顆按鈕：再次修改 → 送出祝福 → 畫押簽名 -->
-              <div class="left-actions">
-                <button id="btnEdit"  type="button">再次修改</button>
-                <button id="btnSend"  type="button">送出祝福</button>
-                <div class="chip" id="chipSign" title="點此簽名">
-                  <span class="hint">畫押簽名</span>
-                  <img id="signThumb" alt="signature preview" />
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <!-- 右側：祈願牆 -->
-          <section class="wall-wrap">
-            <div class="wall" id="wall"></div>
-          </section>
-        </div>
-      </div>
-    </div>
-
-    <!-- 版權（固定在最底） -->
-    <div class="footer-copyright" id="copyright">© Copyright 2025 MY‘s System</div>
-
-    <!-- 檢視窗（點木牌打開內容） -->
-    <div id="viewOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="viewTitle">
-      <div class="dialog">
-        <h3 id="viewTitle">祝福內容</h3>
-        <div class="view-meta" id="viewMeta"></div>
-        <div id="viewContent" class="view-content"></div>
-        <div class="view-actions"><button id="viewClose" type="button">關閉</button></div>
-      </div>
-    </div>
-
-    <!-- 簽名 Modal -->
-    <div id="sigOverlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="sigTitle">
-      <div class="dialog">
-        <h3 id="sigTitle">請於下方畫押唷😈</h3>
-        <canvas id="pad"></canvas>
-        <div class="dlg-actions">
-          <button id="sigClear"  type="button">清除</button>
-          <button id="sigCancel" type="button">取消</button>
-          <button id="sigOK"     type="button">確定</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ///* LINE LIFF SDK */// -->
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-
-    <script>
-      ///* ======================= 基本設定與共用函式 ======================= *///
-      const LIFF_ID='2008149060-m5pDXW6a';  // * LINE LIFF ID *//
-      const WEBHOOK='https://script.google.com/macros/s/AKfycbyBBOcKctW3NsUMMg6wtZGrdR9nOeboK-ueMgTC6fGveanM7e8E7Wj4tiIUNc4Sfk8P/exec'; // * 後端 Apps Script *//
-
-      // * 主要節點 *//
-      const editor=document.getElementById('editor'); const wallEl=document.getElementById('wall');
-      function setStatus(m){ document.getElementById('status').textContent=m; } // * 狀態訊息 *//
-
-      // * 狀態資料 *//
-      let lineId='',displayName='',pictureUrl='',myLastRow=null,signatureDataURL='',sendInFlight=false,submittedOnce=false,signatureLocked=false;
-
-      // * LocalStorage 快取 key（保 Dear 與 內文） *//
-      const LS_KEY_CONTENT='blessContent';
-      const LS_KEY_NAME='nameLabel';
-
-      // * 時間字串 → Date（兼容試算表回來的格式） *//
-      function parseSheetTimeToDate(s){
-        if(!s) return new Date();
-        const m=/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})$/.exec(String(s).trim());
-        if(m){
-          const iso=`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}+08:00`;
-          const d=new Date(iso);
-          return isNaN(d.getTime())?new Date():d;
+          // ★ 將 Google Drive 頁面網址轉為「直連」以符合 LINE audio 要求
+          const playable = toDirectDriveUrl_(WELCOME_AUDIO_URL);
+          replyAudio_(channelToken, ev.replyToken, playable, WELCOME_AUDIO_MS); // 回傳音檔
         }
-        const d=new Date(s); return isNaN(d.getTime())?new Date():d;
-      }
-      function pad2(n){return String(n).padStart(2,'0');}
-      function fmtTaipei(s){ const d=parseSheetTimeToDate(s); return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())+' '+pad2(d.getHours())+':'+pad2(d.getMinutes())+':'+pad2(d.getSeconds()); }
-
-      ///* ======================= LIFF 初始化與基本資料 ======================= *///
-      async function initLIFF(){
-        try{
-          await liff.init({ liffId: LIFF_ID, withLoginOnExternalBrowser:true });
-          if(!liff.isLoggedIn()){ liff.login(); return; }
-          await liff.ready;
-          const prof=await liff.getProfile(); const idt=liff.getDecodedIDToken();
-          lineId=prof.userId||idt.sub||''; displayName=prof.displayName||idt.name||''; pictureUrl=prof.pictureUrl||'';
-        }catch(_){}
-        await fetchRoleAndNames(); await preloadMyLatest(); await refreshWall();
-      }
-      async function initialLoad(){ await fetchRoleAndNames(); await refreshWall(); }
-
-      // * Dear 名稱套用（含快取） *//
-      function applyNameLabel(lbl){
-        const name = (lbl && String(lbl).trim()) ? lbl : (localStorage.getItem(LS_KEY_NAME)||'—');
-        document.getElementById('brideLabel').textContent = 'Dear ' + (name||'—');
+        return;
       }
 
-      // * 從後端取使用者角色/名稱（失敗就用快取） *//
-      async function fetchRoleAndNames(){
-        applyNameLabel(null); // 先用快取
-        try{
-          const j=await (await fetch(WEBHOOK+`?action=userRole&lineId=${encodeURIComponent(lineId||'')}`)).json();
-          if(j?.ok){
-            const name = j.nameLabel || '—';
-            localStorage.setItem(LS_KEY_NAME, name);
-            applyNameLabel(name);
-          }
-        }catch(_){
-          applyNameLabel(null);
+      if(ev.type==='postback'){ // 角色選擇（男/女方）
+        const data=String(ev.postback?.data||'');
+
+        /* ★ 先 ensure logs 這個使用者存在（避免 setRole_ 找不到列） */
+        if(channelToken){
+          const prof=fetchUserProfile_(channelToken,userId);
+          bindLineIdEnsureRow_(ssM,userId,prof.displayName,prof.pictureUrl);
+          bindLineIdEnsureRow_(ssP,userId,prof.displayName,prof.pictureUrl);
+        }else{
+          bindLineIdEnsureRow_(ssM,userId,'','');
+          bindLineIdEnsureRow_(ssP,userId,'','');
         }
+
+        if(/role=male/.test(data)){   setRole_(shM,userId,ROLE_MALE_FRIEND);   setRole_(shP,userId,ROLE_MALE_FRIEND); }      // 設為男方親友
+        else if(/role=female/.test(data)){ setRole_(shM,userId,ROLE_FEMALE_FRIEND); setRole_(shP,userId,ROLE_FEMALE_FRIEND); } // 設為女方親友
+
+        if(channelToken){
+          const roleLabel = getRoleLabelByUser_(shM, userId);
+          replyMulti_(channelToken, ev.replyToken, [
+            buildCard_Reminder_(),             // 提醒卡
+            buildCard_Entrance_(roleLabel),    // 互動音符入口
+            buildCard_BlessingEntrance_(roleLabel) // 同心祈願入口
+          ]);
+        }
+        return;
       }
 
-      // * Google Drive 連結 → 直接圖檔（避免 hotlink 問題） *//
-      function toDriveDirectUrl(u){
-        if(!u) return u;
-        try{
-          const s=String(u);
-          const m1 = s.match(/drive\.google\.com\/file\/d\/([^/]+)/);
-          const m2 = s.match(/[?&]id=([^&]+)/);
-          const id = m1 ? m1[1] : (m2 ? m2[1] : null);
-          return id ? `https://drive.google.com/uc?export=view&id=${id}` : u;
-        }catch(_){ return u; }
-      }
+      if(ev.type==='message' && ev.message?.type==='text'){ // 使用者傳文字
+        const raw=String(ev.message.text||'').trim();
 
-      ///* ======================= 載入我上一筆資料（或用快取填入） ======================= *///
-      async function preloadMyLatest(){
-        if(!lineId){
-          const cached = localStorage.getItem(LS_KEY_CONTENT);
-          if(cached && editor.hasAttribute('data-empty')){
-            editor.removeAttribute('data-empty');
-            editor.innerHTML = cached;
+        if(!channelToken) return;
+
+        if(['親友','新郎','新娘'].some(k=>raw.includes(k))){ // 關鍵字：叫出角色選單
+          replyFlex_(channelToken, ev.replyToken, buildCard_RoleSelect_());
+          return;
+        }
+
+        if(raw.includes('📡')){ // 忙碌小鈴鐺
+          replyFlex_(channelToken, ev.replyToken, buildCard_NoticeBusy_());
+          return;
+        }
+
+        if(raw==='開始'){ // 主動引導：若未綁定，先選角色；已綁則丟三卡
+          const roleLabel = getRoleLabelByUser_(shM, userId);
+          if(!roleLabel){
+            replyFlex_(channelToken, ev.replyToken, buildCard_RoleSelect_());
+          }else{
+            replyMulti_(channelToken, ev.replyToken, [
+              buildCard_Reminder_(),
+              buildCard_Entrance_(roleLabel),
+              buildCard_BlessingEntrance_(roleLabel)
+            ]);
           }
           return;
         }
-        try{
-          const j=await (await fetch(WEBHOOK+`?action=getLatestByLineId&lineId=${encodeURIComponent(lineId)}`)).json();
-          if(j?.ok && j.item){
-            const it=j.item;
-            if(it.contentHTML){
-              editor.innerHTML=it.contentHTML; editor.removeAttribute('data-empty'); lockEditor();
-              localStorage.setItem(LS_KEY_CONTENT, it.contentHTML);
-            }
 
-            if(it.signature){
-              const chip=document.getElementById('chipSign');
-              const img=document.getElementById('signThumb');
-              let src = String(it.signature||'').trim();
-              if(src){
-                src = src.startsWith('data:') ? src : toDriveDirectUrl(src);
-                chip.classList.remove('has-img','locked');
-                img.removeAttribute('src'); img.removeAttribute('alt');
-                img.loading = 'eager'; img.referrerPolicy = 'no-referrer';
-                img.onload = ()=>{ chip.classList.add('has-img'); chip.classList.add('locked'); signatureLocked=true; };
-                img.onerror = ()=>{ const direct = toDriveDirectUrl(src); if(img.src !== direct){ img.src = direct; } else { chip.classList.remove('has-img','locked'); img.removeAttribute('src'); } img.onerror = null; };
-                if(/^data:/.test(src) || /^https?:\/\//.test(src)){ img.src = src; }
-              }
-            }
-
-            myLastRow = Number(it.row||0) || null;
-            if(myLastRow){
-              setButtonsState({ canEdit:true, canSend:false, inflight:false });
-              submittedOnce=true; signatureLocked=true; document.getElementById('chipSign').classList.add('locked');
-            }
+        if(KWS_PORTAL_NOTES.some(k=>raw.includes(k))){ // 關鍵字進入 互動音符
+          const roleLabel = getRoleLabelByUser_(shM, userId);
+          if(!roleLabel){
+            replyFlex_(channelToken, ev.replyToken, buildCard_NotBound_()); // 尚未綁定提醒
           }else{
-            setButtonsState({ canEdit:true, canSend:true, inflight:false });
-            const cached = localStorage.getItem(LS_KEY_CONTENT);
-            if(cached && editor.hasAttribute('data-empty')){
-              editor.removeAttribute('data-empty');
-              editor.innerHTML = cached;
-            }
+            replyFlex_(channelToken, ev.replyToken, buildCard_Entrance_(roleLabel));
           }
-        }catch(_){
-          const cached = localStorage.getItem(LS_KEY_CONTENT);
-          if(cached && editor.hasAttribute('data-empty')){
-            editor.removeAttribute('data-empty');
-            editor.innerHTML = cached;
-          }
+          return;
         }
-      }
 
-      ///* ======================= 編輯器工具（粗斜線、字色、縮放） ======================= *///
-      function exec(cmd){ if(editor.hasAttribute('data-empty')||editor.classList.contains('locked')) return; document.execCommand(cmd,false,null); editor.focus(); }
-      document.getElementById('btnBold').onclick=()=>exec('bold');
-      document.getElementById('btnItalic').onclick=()=>exec('italic');
-      document.getElementById('btnUnderline').onclick=()=>exec('underline');
-      document.getElementById('colorPick').onchange=e=>{ const v=e.target.value; if(v&&!editor.classList.contains('locked')&&!editor.hasAttribute('data-empty')) document.execCommand('foreColor',false,v); e.target.blur(); };
-      let globalScale=1; function setScale(s){globalScale=Math.max(.7,Math.min(1.7,s)); editor.style.setProperty('--editor-zoom',globalScale+'rem');}
-      document.getElementById('btnBigger').onclick=()=>setScale(globalScale+.06);
-      document.getElementById('btnSmaller').onclick=()=>setScale(globalScale-.06);
-      const PLACEHOLDER='寫下並獻上最誠摯的祝福…💝';
-      editor.addEventListener('focus',()=>{ if(editor.hasAttribute('data-empty')){ editor.textContent=''; editor.removeAttribute('data-empty'); }});
-      editor.addEventListener('blur',()=>{ if(!editor.textContent.trim()){ editor.setAttribute('data-empty',''); editor.textContent=PLACEHOLDER; }});
-
-      // * 內文即時保存（未鎖定且非 placeholder） *//
-      editor.addEventListener('input',()=>{
-        if(!editor.classList.contains('locked') && !editor.hasAttribute('data-empty')){
-          localStorage.setItem(LS_KEY_CONTENT, editor.innerHTML);
-        }
-      });
-
-      ///* 簽名板（畫押） *///
-      const sigOverlay=document.getElementById('sigOverlay'); const pad=document.getElementById('pad'); const ctx=pad.getContext('2d');
-      let drawing=false,lastX=0,lastY=0;
-      function fitCanvas(){ const dpr=Math.max(1,devicePixelRatio||1),w=pad.clientWidth,h=pad.clientHeight; pad.width=w*dpr; pad.height=h*dpr;
-        ctx.setTransform(dpr,0,0,dpr,0,0); ctx.lineCap='round'; ctx.lineJoin='round'; ctx.lineWidth=3; ctx.strokeStyle='#111'; ctx.clearRect(0,0,w,h); }
-      function pos(e){ const r=pad.getBoundingClientRect(); const c=e.touches?e.touches[0]:e; return {x:c.clientX-r.left,y:c.clientY-r.top}; }
-      function start(e){ if(signatureLocked) return; drawing=true; const p=pos(e); lastX=p.x; lastY=p.y; e.preventDefault(); }
-      function move(e){ if(!drawing||signatureLocked)return; const p=pos(e); ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke(); lastX=p.x; lastY=p.y; e.preventDefault(); }
-      function end(){ drawing=false; }
-      document.getElementById('chipSign').addEventListener('click',()=>{ const chip=document.getElementById('chipSign'); if(chip.classList.contains('locked')||signatureLocked) return;
-        sigOverlay.classList.add('show'); setTimeout(fitCanvas,40); });
-      pad.addEventListener('mousedown',start); pad.addEventListener('mousemove',move); pad.addEventListener('mouseup',end); pad.addEventListener('mouseleave',end);
-      pad.addEventListener('touchstart',start,{passive:false}); pad.addEventListener('touchmove',move,{passive:false}); pad.addEventListener('touchend',end);
-      document.getElementById('sigClear').onclick=()=>{ if(signatureLocked) return; fitCanvas(); };
-      document.getElementById('sigCancel').onclick=()=>sigOverlay.classList.remove('show');
-      document.getElementById('sigOK').onclick=()=>{
-        if(signatureLocked) { sigOverlay.classList.remove('show'); return; }
-        requestAnimationFrame(()=>{
-          signatureDataURL=pad.toDataURL('image/png');
-          const chip=document.getElementById('chipSign'); const img=document.getElementById('signThumb');
-          chip.classList.remove('has-img','locked');
-          img.onload = ()=>{ chip.classList.add('has-img'); img.onload=null; };
-          img.removeAttribute('alt'); img.loading='eager'; img.src=signatureDataURL;
-          sigOverlay.classList.remove('show');
-        });
-      };
-
-      ///* 牆上的摘要先轉純文字，避免 &nbsp; / <br> 亂碼 *///
-      function decodeEntities(s){
-        if(s==null) return '';
-        const el=document.createElement('textarea');
-        el.innerHTML=String(s);
-        return el.value;
-      }
-      function htmlToPlain(s){
-        const decoded = decodeEntities(s).replace(/\u00A0/g,' ');
-        const noTags = decoded.replace(/<\/?[^>]+>/g,'');
-        return noTags.replace(/\r\n|\r/g,'\n').replace(/[ \t]+/g,' ').trim();
-      }
-      function oneLinePreview(s){ return htmlToPlain(s).replace(/\n+/g,' '); }
-      function escapeHTML(s){return String(s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
-
-      ///* 生成木牌（右側牆） *///
-      function tileTemplate(it){
-        const raw = (it.preview ?? it.contentHTML ?? '');
-        const snippet = oneLinePreview(raw) || '—';
-        return `<div class="tile" data-row="${it.row||''}" data-owner="${it.lineId||''}">
-          <div class="tile-name">${escapeHTML(it.displayName||'—')}</div>
-          <div class="tile-sep"></div>
-          <div class="tile-date">${escapeHTML(fmtTaipei(it.time))}</div>
-          <div class="tile-sep"></div>
-          <div class="tile-snippet">${escapeHTML(snippet)}</div>
-        </div>`;
-      }
-
-      ///* 讀取列表 + 點擊木牌開窗 *///
-      async function refreshWall(){
-        try{
-          const role=document.querySelector('.role-btn.active')?.id?.replace('role','').toLowerCase()||'all';
-          const j=await (await fetch(WEBHOOK+`?action=listblessings&role=${role}`)).json();
-          if(j?.ok){
-            const arr=(j.items||[]).slice().sort((a,b)=>parseSheetTimeToDate(b.time)-parseSheetTimeToDate(a.time));
-            wallEl.innerHTML=arr.map(tileTemplate).join('');
-            bindTileClicks();
-          }
-        }catch(_){}
-      }
-      function bindTileClicks(){ document.querySelectorAll('.tile').forEach(t=>t.addEventListener('click',()=>openView(t))); }
-      async function openView(el){
-        const row=el.getAttribute('data-row');
-        const j=await (await fetch(WEBHOOK+`?action=getBlessingDetail&id=${encodeURIComponent(row)}`)).json();
-        if(j?.ok&&j.item){
-          document.getElementById('viewMeta').textContent=`${j.item.displayName||'—'} ｜ ${fmtTaipei(j.item.time)}`;
-          document.getElementById('viewContent').innerHTML=j.item.contentHTML||'';
-          document.getElementById('viewOverlay').classList.add('show');
-        }
-      }
-      document.getElementById('viewClose').onclick=()=>document.getElementById('viewOverlay').classList.remove('show');
-      document.getElementById('roleAll').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));document.getElementById('roleAll').classList.add('active');refreshWall();};
-      document.getElementById('roleMale').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));document.getElementById('roleMale').classList.add('active');refreshWall();};
-      document.getElementById('roleFemale').onclick=()=>{document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));document.getElementById('roleFemale').classList.add('active');refreshWall();};
-
-      ///* 編輯鎖定/解鎖與送出按鈕狀態 *///
-      function lockEditor(){editor.classList.add('locked');editor.setAttribute('contenteditable','false');}
-      function unlockEditor(){editor.classList.remove('locked');editor.setAttribute('contenteditable','true');editor.focus();}
-      function hasSignature(){return document.getElementById('chipSign').classList.contains('has-img') || signatureLocked;}
-
-      function setButtonsState({canEdit, canSend, inflight}){
-        const btnSend=document.getElementById('btnSend');
-        const btnEdit=document.getElementById('btnEdit');
-        const editDisabled = !canEdit || !!inflight;
-        const sendDisabled = !canSend || !!inflight;
-
-        // 新增：可送出時顯示「鎖定」，其他情況顯示「送出祝福」
-        btnSend.textContent = (!sendDisabled ? '鎖定' : '送出祝福');
-        btnSend.setAttribute('aria-label', btnSend.textContent);
-
-        btnEdit.disabled = editDisabled; btnEdit.style.opacity = editDisabled ? '0.6' : '1'; btnEdit.style.pointerEvents = editDisabled ? 'none' : 'auto';
-        btnSend.disabled = sendDisabled; btnSend.style.opacity = sendDisabled ? '0.6' : '1'; btnSend.style.pointerEvents = sendDisabled ? 'none' : 'auto';
-      }
-
-      // * 再次修改（解鎖） *//
-      document.getElementById('btnEdit').onclick=()=>{
-        unlockEditor();
-        submittedOnce=false; sendInFlight=false;
-        setButtonsState({ canEdit:true, canSend:true, inflight:false });
-        if(signatureLocked){ document.getElementById('chipSign').classList.add('locked'); }
-      };
-
-      ///* 送出／更新（按「鎖定」→ 顯示等待 → 成功訊息） *///
-      async function sendOrUpdate(){
-        if(editor.hasAttribute('data-empty')||!editor.textContent.trim()){ alert('欸，不可能不祝福我們吧🖕️'); return; }
-        if(!hasSignature()){ alert('欸，沒有畫押不准離開✍️'); return; }
-        if(sendInFlight){ return; }
-
-        sendInFlight=true;
-        setButtonsState({ canEdit:false, canSend:false, inflight:true });
-        setStatus('⏳ 送出中．請稍後...'); /* 新增：送出鎖定期間顯示等待中 */
-
-        const content=editor.innerHTML.trim();
-        const payload = myLastRow
-          ? {action:'updateBlessing',row:Number(myLastRow),lineId,contentHTML:content}
-          : {action:'createBlessing',lineId,displayName,pictureUrl,contentHTML:content,signaturePNG:signatureDataURL||'',extra:{}};
-        try{
-          const r=await fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(payload)});
-          const j=await r.json().catch(()=>null);
-          if(j?.ok){
-            submittedOnce=true; lockEditor(); await refreshWall(); if(!myLastRow) await preloadMyLatest();
-            setStatus(myLastRow?'✅ 已更新並鎖定，截止日前都可以修改唷':'✅ 已送出並鎖定，截止日前都可以修改唷');
-            if(!signatureLocked){ signatureLocked=true; document.getElementById('chipSign').classList.add('locked'); }
-            setButtonsState({ canEdit:true, canSend:false, inflight:false });
-            sendInFlight=false;
-            myLastRow = myLastRow || Number(j.row||0) || myLastRow;
-          }else if(j?.error==='deadline_passed'){
-            setStatus('⛔ 已到截止日，無法送出及編輯'); lockEditor();
-            setButtonsState({ canEdit:false, canSend:false, inflight:false });
-            sendInFlight=false;
+        if(KWS_PORTAL_BLESS.some(k=>raw.includes(k))){ // 關鍵字進入 同心祈願
+          const roleLabel = getRoleLabelByUser_(shM, userId);
+          if(!roleLabel){
+            replyFlex_(channelToken, ev.replyToken, buildCard_NotBound_()); // 尚未綁定提醒
           }else{
-            setStatus('❌ 送出失敗，稍後再試');
-            sendInFlight=false;
-            setButtonsState({ canEdit:true, canSend:true, inflight:false });
+            replyFlex_(channelToken, ev.replyToken, buildCard_BlessingEntrance_(roleLabel));
           }
-        }catch(_){
-          setStatus('❌ 送出失敗，稍後再試');
-          sendInFlight=false;
-          setButtonsState({ canEdit:true, canSend:true, inflight:false });
+          return;
         }
-      }
-      document.getElementById('btnSend').onclick=sendOrUpdate;
 
-      ///* 頁面載入：先套 Dear 快取與草稿，再啟 LIFF or 初始載入 *///
-      window.addEventListener('DOMContentLoaded',()=>{
-        applyNameLabel(null);
-        const cached = localStorage.getItem(LS_KEY_CONTENT);
-        if(cached && editor.hasAttribute('data-empty')){
-          editor.removeAttribute('data-empty');
-          editor.innerHTML = cached;
-        }
-        if(!editor.textContent.trim()){ editor.setAttribute('data-empty',''); editor.textContent='寫下並獻上最誠摯的祝福…💝'; }
-        if(window.liff) initLIFF(); else initialLoad();
-      });
-    </script>
-  </body>
-</html>
+        return;
+      }
+    }catch(_){}
+  });
+
+  return J({status:'ok'}); // Webhook 統一回覆
+}
+
+//* ========== 互動音符 – LIFF 送單（保留） ========== *//
+function handleLiffSubmit_(body){
+  const ssM=openMain_(); const ssP=openPublic_();
+  const shM=ensureLogs_(ssM); const shP=ensureLogs_(ssP);
+
+  const lineId=String(body.lineId||'').trim();             // 使用者 ID（LIFF profile）
+  const displayName=String(body.displayName||'').trim();   // 使用者暱稱
+  const pictureUrl=String(body.pictureUrl||'').trim();     // 頭像 URL
+  const instruments=String(body.instrumentsCSV||'').trim();// 樂器選擇（CSV）
+  const notes=String(body.notesCSV||'').trim();            // 三音（CSV）
+  // const msg=String(body.extraMessage||'').trim(); // ✂ 已停用，不再存表
+  if(!lineId) return J({ok:false,error:'missing_line_id'});
+
+  bindLineIdEnsureRow_(ssM,lineId,displayName,pictureUrl); // 主本確保綁定
+  bindLineIdEnsureRow_(ssP,lineId,displayName,pictureUrl); // 副本確保綁定
+
+  if(isExpired_())                  return J({ok:false,error:'deadline_passed'}); // 逾期
+  if(alreadySubmitted_(shM,lineId)) return J({ok:false,error:'duplicate'});       // 重複送出
+
+  let roleM=getRole_(shM,lineId), roleP=getRole_(shP,lineId);
+
+  const rM=findLogRowByLineId_(shM,lineId);
+  if(rM===-1) shM.appendRow([nowStr(),lineId,pictureUrl,roleM,displayName,instruments,notes]); // 新增
+  else        shM.getRange(rM,1,1,7).setValues([[nowStr(),lineId,pictureUrl,roleM,displayName,instruments,notes]]); // 覆寫該列
+
+  const rP=findLogRowByLineId_(shP,lineId);
+  if(rP===-1) shP.appendRow([nowStr(),lineId,pictureUrl,roleP,displayName,instruments,notes]); // 新增（副本）
+  else        shP.getRange(rP,1,1,7).setValues([[nowStr(),lineId,pictureUrl,roleP,displayName,instruments,notes]]); // 覆寫該列（副本）
+
+  return J({ok:true});
+}
+
+//* ========== 同心祈願 – 新增/更新（主本＋副本，純文字儲存） ========== *//
+function stripHtml_(html){ return String(html||'').replace(/<[^>]+>/g,''); } // 去除 HTML 標籤，保留純文字
+
+function handleCreateBlessing_(body){
+  const ssM = openMain_();
+  const ssP = openPublic_();
+  const shM = ensureBlessings_(ssM);
+  const shP = ensureBlessings_(ssP);
+  const shLogsM = ensureLogs_(ssM);
+
+  const lineId      = String(body.lineId||'').trim();        // 使用者 ID
+  const displayName = String(body.displayName||'').trim();   // 暱稱
+  const pictureUrl  = String(body.pictureUrl||'').trim();    // 頭像
+  const contentHTML = String(body.contentHTML||'').trim();   // 來自前端的內容（視覺 HTML）
+  const contentPlain= stripHtml_(contentHTML);               // ⭐ 實際存純文字
+  const signature   = String(body.signaturePNG||'').trim();  // 簽名（dataURL）
+  const extra       = JSON.stringify(body.extra||{});        // 其他附加欄位（JSON）
+
+  if(!lineId)       return J({ok:false,error:'missing_line_id'});
+  if(!contentPlain) return J({ok:false,error:'missing_content'});
+  if(isExpired_())  return J({ok:false,error:'deadline_passed'});
+
+  const role = getRole_(shLogsM, lineId) || ''; // 從 logs 讀取使用者角色
+
+  let sigVal = '', sigType = 'none';
+  if(signature){
+    if(SAVE_SIGNATURE_TO_DRIVE){
+      const url = saveSignatureToDrive_(signature, lineId, displayName); // 存到 Drive，回傳分享連結
+      sigVal = url; sigType='drive';
+    }else{
+      sigVal = signature; sigType='base64'; // 直接存 base64
+    }
+  }
+
+  const rowData = [ nowStr(), lineId, displayName, pictureUrl, role, contentPlain, sigVal, sigType, extra ];
+  shM.appendRow(rowData); // 主本新增
+  shP.appendRow(rowData); // 副本同步新增
+  return J({ok:true});
+}
+
+function handleUpdateBlessing_(body){
+  const ssM = openMain_();
+  const ssP = openPublic_();
+  const shM = ensureBlessings_(ssM);
+  const shP = ensureBlessings_(ssP);
+
+  const row = Number(body.row||0);                 // 指定要更新的列（主本）
+  const lineId = String(body.lineId||'').trim();   // 檢查權限用
+  const contentHTML = String(body.contentHTML||'').trim();
+  const contentPlain= stripHtml_(contentHTML);     // ⭐ 實際存純文字
+  if(!row || !lineId || !contentPlain) return J({ok:false,error:'missing_params'});
+  if(isExpired_()) return J({ok:false,error:'deadline_passed'});
+
+  const recM = shM.getRange(row,1,1,9).getValues()[0]; // 讀主本該列資料
+  const ownerM = String(recM[1]||'').trim();
+  if(ownerM!==lineId) return J({ok:false,error:'forbidden'}); // 僅本人可改
+
+  const cellM=shM.getRange(row,6); // F=contentHTML(實際存純文字)
+  const oldHtmlM=cellM.getValue(); const oldNoteM=cellM.getNote();
+  const newNoteM = `${nowStr()} 舊內容：\n${stripHtml_(oldHtmlM)}${oldNoteM?('\n\n'+oldNoteM):''}`.slice(0,5000); // 舊內容寫入備註（保留歷程）
+  cellM.setNote(newNoteM);
+  cellM.setValue(contentPlain);
+  shM.getRange(row,1).setValue(nowStr()); // 更新時間
+
+  const rP = findLatestBlessingRowByLineId_(shP, lineId); // 找副本中該使用者的最新一筆
+  if(rP>0){
+    const cellP=shP.getRange(rP,6);
+    const oldHtmlP=cellP.getValue(); const oldNoteP=cellP.getNote();
+    const newNoteP=`${nowStr()} 舊內容：\n${stripHtml_(oldHtmlP)}${oldNoteP?('\n\n'+oldNoteP):''}`.slice(0,5000);
+    cellP.setNote(newNoteP);
+    cellP.setValue(contentPlain);
+    shP.getRange(rP,1).setValue(nowStr()); // 更新時間（副本）
+  }
+
+  return J({ok:true});
+}
+
+function findLatestBlessingRowByLineId_(sh, lineId){
+  const last=sh.getLastRow(); if(last<=HEADER_ROWS) return -1;
+  const vals=sh.getRange(HEADER_ROWS+1,1,last-HEADER_ROWS,9).getValues();
+  let bestRow=-1, bestTime=0;
+  for(let i=0;i<vals.length;i++){
+    const r=vals[i];
+    if(String(r[1]||'').trim()===lineId){
+      const t = new Date(r[0]||'').getTime()||0;
+      const rowNum = i+HEADER_ROWS+1;
+      if(t>=bestTime){ bestTime=t; bestRow=rowNum; }
+    }
+  }
+  return bestRow; // 回傳該使用者最新一筆所在列（找不到回 -1）
+}
+
+//* ========== 簽名 → Drive ========== *//
+function saveSignatureToDrive_(dataUrl, lineId, displayName){
+  const m = /^data:image\/(png|jpeg);base64,([A-Za-z0-9+/=]+)$/.exec(String(dataUrl||'')); if(!m) return ''; // 僅接受 png/jpeg dataURL
+  const ext = m[1]==='jpeg'?'jpg':m[1]; // 副檔名
+  const bytes = Utilities.base64Decode(m[2]); // 轉成位元組
+  const blob = Utilities.newBlob(bytes, 'image/'+(ext==='jpg'?'jpeg':ext), `sign_${lineId||'anon'}_${Date.now()}.${ext}`); // 建立 blob 檔案
+
+  let folder = null;
+  if(DRIVE_FOLDER_ID){
+    try{ folder = DriveApp.getFolderById(DRIVE_FOLDER_ID); }catch(_){}
+  }
+  if(!folder){
+    const it = DriveApp.getFoldersByName('Blessing-Signatures'); // 以名稱尋找
+    folder = it.hasNext()? it.next() : DriveApp.createFolder('Blessing-Signatures'); // 沒有就建立
+  }
+
+  const file = folder.createFile(blob);            // 上傳檔案
+  try{ file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); }catch(_){ } // 設定持連結者可檢視
+  return file.getUrl();                            // 回傳分享網址
+}
+
+//* ========== 列表/明細輸出（只回傳有內容的列；★時間倒序） ========== *//
+function listBlessings_(){
+  const sh = ensureBlessings_(openMain_());
+  const last = sh.getLastRow(); if(last<=HEADER_ROWS) return []; // 無資料
+  const vals = sh.getRange(HEADER_ROWS+1,1,last-HEADER_ROWS,9).getValues();
+
+  const items=[];
+  for(let i=0;i<vals.length;i++){
+    const r=vals[i];
+    const contentPlain = String(r[5]||'').replace(/<[^>]+>/g,'').trim(); // 再保險去標籤
+    if(!contentPlain) continue; // 沒內容就略過
+    items.push({
+      row: i+HEADER_ROWS+1,
+      time: r[0],
+      lineId: r[1],
+      displayName: r[2],
+      pictureUrl: r[3],
+      role: r[4]||'',
+      preview: contentPlain.slice(0,60), // 前 60 字做預覽
+      signature: r[6],
+      signatureType: r[7],
+      extra: r[8]
+    });
+  }
+  // ★ 依時間倒序（最新在上）；不合法時間視為 0
+  items.sort((a,b)=> (new Date(b.time||0)).getTime() - (new Date(a.time||0)).getTime());
+  return items;
+}
